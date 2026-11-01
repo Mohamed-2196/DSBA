@@ -5502,5 +5502,5345 @@
     "why": "A generic external SQL course; the guide's SQL content is only the Block 3 chapter"
    }
   ]
+ },
+ {
+  "module": "machine-learning",
+  "unitCode": "ST3189",
+  "source": "Machine learning, ST3189 subject guide (the VLE study pages compiled as a PDF, 'ST3189_VLE_GS'), K. Kalogeropoulos, University of London, 2022; checked against the syllabus in the ST3189 Machine learning course information sheet 2025-26 (University of London/LSE) and the 2022-2026 examiners' commentaries",
+  "chapters": [
+   {
+    "id": "ss398uan",
+    "title": "Topic 1: Introduction to Machine Learning Concepts",
+    "guide": "Pages 'Introduction to Machine Learning', 'Hands-on Machine Learning Examples', 'Key Machine Learning Concepts' and 'Illustration of Key Machine Learning Concepts' (pp. 1-24); course information sheet topic 1: Introduction to machine learning concepts",
+    "outcomes": [
+     "define machine learning and its three components: the model, the cost (loss) function and the data",
+     "distinguish supervised learning (regression, classification) from unsupervised learning",
+     "apply the k-nearest neighbours classifier and compute its training error and leave-one-out cross-validation error by hand",
+     "distinguish training error from test error and explain underfitting and overfitting",
+     "explain the bias-variance trade-off and how model complexity (polynomial degree, k) affects it",
+     "describe the holdout method, K-fold and leave-one-out cross-validation, and training/validation/test splits",
+     "describe how machine learning pipelines train, resample and benchmark learners (mlr3)"
+    ],
+    "topics": [
+     {
+      "id": "definition-and-components-of-machine-learning-mo",
+      "title": "Definition and components of machine learning (model, cost function, data)"
+     },
+     {
+      "id": "polynomial-curve-fitting-as-a-regression-example",
+      "title": "Polynomial curve fitting as a regression example"
+     },
+     {
+      "id": "k-nearest-neighbours-classification-wine-data",
+      "title": "k-nearest neighbours classification (wine data)"
+     },
+     {
+      "id": "train-and-test-errors-underfitting-and-overfitti",
+      "title": "Train and test errors; underfitting and overfitting"
+     },
+     {
+      "id": "bias-variance-trade-off-as-two-sources-of-model",
+      "title": "Bias-variance trade-off as two sources of model error"
+     },
+     {
+      "id": "cross-validation",
+      "title": "Cross-validation"
+     },
+     {
+      "id": "estimating-the-test-error-of-the-chosen-model",
+      "title": "Estimating the test error of the chosen model"
+     },
+     {
+      "id": "illustration-in-r-with-mlr3",
+      "title": "Illustration in R with mlr3"
+     }
+    ],
+    "terms": [
+     "machine learning",
+     "supervised learning",
+     "unsupervised learning",
+     "cost function",
+     "loss function",
+     "mean squared error",
+     "k-nearest neighbours",
+     "Euclidean distance",
+     "training error",
+     "test error",
+     "overfitting",
+     "underfitting",
+     "bias-variance trade-off",
+     "holdout method",
+     "k-fold cross-validation",
+     "leave-one-out cross-validation (LOOCV)",
+     "validation set",
+     "majority classifier",
+     "pipeline",
+     "mlr3"
+    ]
+   },
+   {
+    "id": "age96xeg",
+    "title": "Topic 2A: Frequentist Inference (Likelihood, MLE, CIs, Tests)",
+    "guide": "Page 'Statistical Inference on Linear Regression Models' (p. 29), first part: statistical inference, maximum likelihood, bias, variance and MSE, optimality of MLEs, confidence intervals, hypothesis testing; course information sheet topic 2: Linear regression and frequentist inference",
+    "outcomes": [
+     "describe the tasks of statistical inference: point estimation, interval estimation and hypothesis testing",
+     "write down a likelihood and log-likelihood and derive maximum likelihood estimators, checking the second derivative",
+     "compute the bias, variance and mean squared error of an estimator and use them to compare estimators",
+     "state the asymptotic optimality of maximum likelihood estimators: unbiasedness, normality and minimum variance as n grows",
+     "construct and interpret confidence intervals, including asymptotic intervals based on the MLE",
+     "carry out a hypothesis test and interpret the test statistic, significance level, type I error and p-value"
+    ],
+    "topics": [
+     {
+      "id": "samples-parameters-and-statistics",
+      "title": "Samples, parameters and statistics"
+     },
+     {
+      "id": "likelihood-log-likelihood-and-maximum-likelihood",
+      "title": "Likelihood, log-likelihood and maximum likelihood estimators (e.g. exponential waiting times)"
+     },
+     {
+      "id": "bias-of-an-estimator-e-g-the-sample-variance",
+      "title": "Bias of an estimator (e.g. the sample variance)"
+     },
+     {
+      "id": "variance-and-mean-squared-error-of-an-estimator",
+      "title": "Variance and mean squared error of an estimator; MSE = variance + bias squared"
+     },
+     {
+      "id": "optimality-of-mles",
+      "title": "Optimality of MLEs"
+     },
+     {
+      "id": "confidence-intervals",
+      "title": "Confidence intervals"
+     },
+     {
+      "id": "hypothesis-testing",
+      "title": "Hypothesis testing"
+     }
+    ],
+    "terms": [
+     "statistical inference",
+     "estimator",
+     "estimate",
+     "likelihood function",
+     "log-likelihood",
+     "maximum likelihood estimator (MLE)",
+     "bias",
+     "unbiased estimator",
+     "variance",
+     "mean squared error",
+     "Fisher information",
+     "asymptotic normality",
+     "confidence interval",
+     "hypothesis test",
+     "null hypothesis",
+     "test statistic",
+     "significance level",
+     "type I error",
+     "type II error",
+     "p-value"
+    ]
+   },
+   {
+    "id": "jqew8tms",
+    "title": "Topic 2B: Linear Regression and Inference for Regression",
+    "guide": "Pages 'The Linear Regression Model' (p. 25), 'Statistical Inference on Linear Regression Models' (p. 29, second part: estimators for linear regression) and 'Using Linear Regression Models' (p. 40); course information sheet topic 2: Linear regression and frequentist inference",
+    "outcomes": [
+     "write down the linear regression model and interpret its coefficients",
+     "extend the model with polynomial terms, interactions, dummy variables and general linear basis functions",
+     "show that with normal errors the least squares estimator is the maximum likelihood estimator, and derive it for simple one-parameter models",
+     "obtain standard errors, confidence intervals and t tests for regression coefficients and read regression output",
+     "check the assumptions of a fitted model and use it for prediction",
+     "discuss limitations of linear regression: causality and confounding, interpolation versus extrapolation"
+    ],
+    "topics": [
+     {
+      "id": "the-linear-regression-model",
+      "title": "The linear regression model"
+     },
+     {
+      "id": "extensions",
+      "title": "Extensions"
+     },
+     {
+      "id": "estimators-for-linear-regression",
+      "title": "Estimators for linear regression"
+     },
+     {
+      "id": "general-least-squares-formula-in-matrix-notation",
+      "title": "General least squares formula in matrix notation and the MLE of the error variance"
+     },
+     {
+      "id": "statistical-inference-for-the-general-model",
+      "title": "Statistical inference for the general model"
+     },
+     {
+      "id": "case-study-term-life-insurance",
+      "title": "Case study (term life insurance)"
+     },
+     {
+      "id": "additional-considerations",
+      "title": "Additional considerations"
+     }
+    ],
+    "terms": [
+     "linear regression",
+     "regression coefficient",
+     "error term",
+     "least squares",
+     "residual sum of squares",
+     "polynomial regression",
+     "interaction term",
+     "dummy variable",
+     "linear basis function",
+     "design matrix",
+     "standard error",
+     "t statistic",
+     "R-squared",
+     "adjusted R-squared",
+     "residuals",
+     "confounding factor",
+     "interpolation",
+     "extrapolation"
+    ]
+   },
+   {
+    "id": "3vfc7tmy",
+    "title": "Topic 3: Bayesian Inference",
+    "guide": "Pages 'Bayesian Inference Essentials Part 1' (p. 50) and 'Bayesian Inference Essentials Part 2' (p. 57); course information sheet topic 3: Bayesian inference",
+    "outcomes": [
+     "apply Bayes' theorem to a statistical model to obtain the posterior from the prior and the likelihood",
+     "derive posteriors in conjugate models such as Beta-binomial, Poisson-gamma, normal-normal and gamma models",
+     "compute Bayes estimators (posterior mean, median, mode) and credible intervals and compare them with MLEs and confidence intervals",
+     "derive the posterior predictive distribution of a future observation",
+     "compare hypotheses and models using Bayes factors and the marginal likelihood (model evidence)",
+     "choose priors by elicitation, low-informative priors or the Jeffreys prior, and recognise improper priors",
+     "approximate a posterior by the Laplace (normal) approximation and by Monte Carlo simulation"
+    ],
+    "topics": [
+     {
+      "id": "frequentist-vs-bayesian-probability",
+      "title": "Frequentist vs Bayesian probability"
+     },
+     {
+      "id": "bayes-estimators",
+      "title": "Bayes estimators"
+     },
+     {
+      "id": "prediction-with-the-posterior-predictive-distrib",
+      "title": "Prediction with the (posterior-)predictive distribution"
+     },
+     {
+      "id": "conjugate-models",
+      "title": "Conjugate models"
+     },
+     {
+      "id": "bayesian-hypothesis-testing-and-model-choice",
+      "title": "Bayesian hypothesis testing and model choice"
+     },
+     {
+      "id": "prior-specification",
+      "title": "Prior specification"
+     },
+     {
+      "id": "bayesian-central-limit-theorem",
+      "title": "Bayesian central limit theorem"
+     },
+     {
+      "id": "monte-carlo-integration-and-bayesian-inference-f",
+      "title": "Monte Carlo integration and Bayesian inference from posterior draws"
+     }
+    ],
+    "terms": [
+     "prior distribution",
+     "posterior distribution",
+     "likelihood",
+     "marginal likelihood",
+     "model evidence",
+     "conjugate prior",
+     "hyperparameter",
+     "Bayes estimator",
+     "posterior mean",
+     "maximum a posteriori (MAP)",
+     "credible interval",
+     "posterior predictive distribution",
+     "Bayes factor",
+     "prior elicitation",
+     "Jeffreys prior",
+     "improper prior",
+     "Laplace approximation",
+     "Monte Carlo integration"
+    ]
+   },
+   {
+    "id": "urj44aju",
+    "title": "Topic 4: Shrinkage Methods and Model Selection",
+    "guide": "Pages 'Subset Selection Methods in Linear Regression' (p. 64), 'Shrinkage Methods' (p. 70), 'Shrinkage Methods and Subset Selection in R' (p. 84) and 'Bayesian Linear Regression' (p. 92); course information sheet topic 4: Linear regression - shrinkage methods and model selection",
+    "outcomes": [
+     "explain why the maximised log-likelihood favours over-complex models and compare models with AIC and BIC",
+     "carry out best subset, forward-stepwise and backward-stepwise selection and compare their computational and statistical properties",
+     "derive ridge and lasso estimates in simple one-parameter settings and explain why the lasso sets some coefficients exactly to zero",
+     "explain the bias-variance trade-off behind shrinkage and choose the tuning parameter by cross-validation",
+     "describe the elastic net as a combination of ridge and lasso penalties",
+     "show that least squares, ridge and lasso estimators are Bayes estimators in Bayesian linear regression under flat, normal and Laplace priors"
+    ],
+    "topics": [
+     {
+      "id": "comparing-models",
+      "title": "Comparing models"
+     },
+     {
+      "id": "best-subset-selection",
+      "title": "Best subset selection"
+     },
+     {
+      "id": "forward-stepwise-and-backward-stepwise-selection",
+      "title": "Forward-stepwise and backward-stepwise selection"
+     },
+     {
+      "id": "ridge-regression",
+      "title": "Ridge regression"
+     },
+     {
+      "id": "lasso-and-elastic-net",
+      "title": "Lasso and elastic net"
+     },
+     {
+      "id": "bias-variance-trade-off-of-shrinkage-estimators",
+      "title": "Bias-variance trade-off of shrinkage estimators (null-model example) and notes on shrinkage methods"
+     },
+     {
+      "id": "shrinkage-and-subset-selection-in-r",
+      "title": "Shrinkage and subset selection in R"
+     },
+     {
+      "id": "bayesian-linear-regression",
+      "title": "Bayesian linear regression"
+     }
+    ],
+    "terms": [
+     "subset selection",
+     "best subset selection",
+     "forward stepwise selection",
+     "backward stepwise selection",
+     "AIC",
+     "BIC",
+     "Mallows' Cp",
+     "adjusted R-squared",
+     "shrinkage",
+     "regularisation",
+     "ridge regression",
+     "lasso",
+     "elastic net",
+     "L1 penalty",
+     "L2 penalty",
+     "tuning parameter",
+     "penalised least squares",
+     "Bayesian linear regression",
+     "Laplace prior",
+     "glmnet"
+    ]
+   },
+   {
+    "id": "hemswc2t",
+    "title": "Topic 5A: Classification - Logistic Regression, Gradient Descent, Newton-Raphson",
+    "guide": "Pages 'Introduction to Classification' (p. 95) and 'Logistic Regression' (p. 100); course information sheet topic 5: Linear models for classification (first part)",
+    "outcomes": [
+     "describe the classification task, discriminant functions, and discriminative versus generative models",
+     "explain why linear regression is unsuitable for classification and how the sigmoid (logistic) function fixes this",
+     "interpret logistic regression coefficients as changes in log-odds and odds ratios, including confounding",
+     "derive the logistic regression log-likelihood and explain why the MLE has no closed form",
+     "fit the model iteratively with gradient descent and Newton-Raphson or Fisher scoring",
+     "obtain asymptotic standard errors, confidence intervals and p-values from the MLE",
+     "describe penalised and Bayesian logistic regression (normal prior as an L2 penalty, Laplace approximation)"
+    ],
+    "topics": [
+     {
+      "id": "the-classification-task-default-data",
+      "title": "The classification task (Default data)"
+     },
+     {
+      "id": "classification-vs-linear-regression",
+      "title": "Classification vs linear regression"
+     },
+     {
+      "id": "the-logistic-regression-model",
+      "title": "The logistic regression model"
+     },
+     {
+      "id": "maximum-likelihood-estimation",
+      "title": "Maximum likelihood estimation"
+     },
+     {
+      "id": "asymptotic-inference",
+      "title": "Asymptotic inference"
+     },
+     {
+      "id": "bayesian-shrinkage-logistic-regression",
+      "title": "Bayesian/shrinkage logistic regression"
+     }
+    ],
+    "terms": [
+     "classification",
+     "discriminant function",
+     "discriminative model",
+     "generative model",
+     "sigmoid function",
+     "logistic regression",
+     "probit regression",
+     "log-odds",
+     "odds ratio",
+     "maximum likelihood",
+     "negative log-likelihood",
+     "gradient descent",
+     "learning rate",
+     "Newton-Raphson algorithm",
+     "Fisher scoring",
+     "Hessian matrix",
+     "penalised logistic regression",
+     "Bayesian logistic regression"
+    ]
+   },
+   {
+    "id": "8r63yyfd",
+    "title": "Topic 5B: Classification - LDA, QDA, Naive Bayes, Evaluation, NLP",
+    "guide": "Pages 'Assessing Categorical Predictions' (p. 106, listed as 'Shrinkage Methods' in the contents), 'Generative Models' (p. 115) and 'Naive Bayes in Text Classification' (p. 118); course information sheet topic 5: Linear models for classification (second part)",
+    "outcomes": [
+     "construct a confusion matrix and compute accuracy, misclassification rate, sensitivity and specificity",
+     "explain how the probability threshold trades sensitivity against specificity, and interpret ROC curves and AUC",
+     "use precision, recall and F1 for imbalanced problems and judge probabilistic predictions with proper scoring rules such as the log score",
+     "describe generative classifiers and classify a point via Bayes' theorem under Gaussian class densities (LDA, QDA)",
+     "apply a naive Bayes classifier by hand, using maximum likelihood and Laplace smoothing",
+     "represent documents as bags of words and describe text pre-processing for classification"
+    ],
+    "topics": [
+     {
+      "id": "assessing-categorical-predictions",
+      "title": "Assessing categorical predictions"
+     },
+     {
+      "id": "roc-curve-and-area-under-the-curve-auc",
+      "title": "ROC curve and area under the curve (AUC)"
+     },
+     {
+      "id": "imbalanced-cases",
+      "title": "Imbalanced cases"
+     },
+     {
+      "id": "scoring-rules",
+      "title": "Scoring rules"
+     },
+     {
+      "id": "generative-models",
+      "title": "Generative models"
+     },
+     {
+      "id": "linear-and-quadratic-discriminant-analysis",
+      "title": "Linear and quadratic discriminant analysis"
+     },
+     {
+      "id": "naive-bayes-classifier",
+      "title": "Naive Bayes classifier"
+     },
+     {
+      "id": "text-classification",
+      "title": "Text classification"
+     },
+     {
+      "id": "text-data-processing",
+      "title": "Text data processing"
+     }
+    ],
+    "terms": [
+     "confusion matrix",
+     "true positive",
+     "false positive",
+     "misclassification rate",
+     "sensitivity",
+     "specificity",
+     "ROC curve",
+     "AUC",
+     "precision",
+     "recall",
+     "F1 score",
+     "scoring rule",
+     "log score",
+     "linear discriminant analysis (LDA)",
+     "quadratic discriminant analysis (QDA)",
+     "naive Bayes classifier",
+     "bag of words",
+     "Laplace smoothing",
+     "stop words",
+     "natural language processing (NLP)"
+    ]
+   },
+   {
+    "id": "rnck3tx9",
+    "title": "Topic 6: Unsupervised Learning",
+    "guide": "Pages 'Clustering Methods' (p. 126) and 'Dimension Reduction Techniques' (p. 143); course information sheet topic 6: Unsupervised learning",
+    "outcomes": [
+     "distinguish clustering from dimension reduction and give applications of clustering",
+     "perform agglomerative hierarchical clustering by hand with single, complete or average linkage and sketch the dendrogram",
+     "run the k-means algorithm by hand from given initial centroids until the clusters stop changing",
+     "explain the limitations of hierarchical and k-means clustering and how Gaussian mixture models address them",
+     "derive principal components from the eigenvectors of the covariance matrix and interpret loadings, scores and variance explained",
+     "describe factor analysis as a probabilistic analogue of PCA and interpret factor loadings"
+    ],
+    "topics": [
+     {
+      "id": "introduction-to-unsupervised-learning",
+      "title": "Introduction to unsupervised learning"
+     },
+     {
+      "id": "hierarchical-agglomerative-clustering",
+      "title": "Hierarchical (agglomerative) clustering"
+     },
+     {
+      "id": "partitional-methods",
+      "title": "Partitional methods"
+     },
+     {
+      "id": "limitations-of-hierarchical-and-k-means-clusteri",
+      "title": "Limitations of hierarchical and K-means clustering"
+     },
+     {
+      "id": "principal-component-analysis",
+      "title": "Principal component analysis"
+     },
+     {
+      "id": "geometric-interpretation-of-pca-usarrests-biplot",
+      "title": "Geometric interpretation of PCA, USArrests biplot, centring and scaling, limitations of PCA"
+     },
+     {
+      "id": "factor-analysis",
+      "title": "Factor analysis"
+     }
+    ],
+    "terms": [
+     "unsupervised learning",
+     "clustering",
+     "hierarchical clustering",
+     "dendrogram",
+     "single linkage",
+     "complete linkage",
+     "average linkage",
+     "Euclidean distance",
+     "Manhattan distance",
+     "k-means",
+     "centroid",
+     "within-cluster variation",
+     "Gaussian mixture model",
+     "EM algorithm",
+     "dimension reduction",
+     "principal component analysis (PCA)",
+     "loadings",
+     "proportion of variance explained",
+     "factor analysis",
+     "latent factor"
+    ]
+   },
+   {
+    "id": "we3jyezr",
+    "title": "Topic 7: Regression and Classification Trees",
+    "guide": "Pages 'Understanding and Interpreting Trees' (p. 155) and 'Fitting and Pruning Trees' (p. 162); course information sheet topic 7: Regression and classification trees",
+    "outcomes": [
+     "describe the structure of a decision tree: root, decision and terminal nodes, branches, parent and child nodes",
+     "interpret a regression or classification tree and draw the partition of the feature space it defines",
+     "apply recursive binary splitting by hand to minimise the residual sum of squares, given a stopping rule",
+     "explain why recursive binary splitting is top-down and greedy",
+     "compare node impurity measures for classification trees: misclassification error, Gini index and cross-entropy",
+     "explain why large trees overfit and how cost-complexity pruning with a cross-validated penalty fixes this"
+    ],
+    "topics": [
+     {
+      "id": "introduction-to-trees",
+      "title": "Introduction to trees"
+     },
+     {
+      "id": "interpreting-trees",
+      "title": "Interpreting trees"
+     },
+     {
+      "id": "fitting-trees",
+      "title": "Fitting trees"
+     },
+     {
+      "id": "recursive-binary-splitting",
+      "title": "Recursive binary splitting"
+     },
+     {
+      "id": "classification-trees",
+      "title": "Classification trees"
+     },
+     {
+      "id": "tree-pruning",
+      "title": "Tree pruning"
+     }
+    ],
+    "terms": [
+     "decision tree",
+     "root node",
+     "decision node",
+     "terminal node",
+     "leaf",
+     "branch",
+     "CART",
+     "regression tree",
+     "classification tree",
+     "recursive binary splitting",
+     "greedy algorithm",
+     "region",
+     "residual sum of squares (RSS)",
+     "node impurity",
+     "misclassification error",
+     "Gini index",
+     "cross-entropy",
+     "tree pruning",
+     "cost-complexity pruning",
+     "subtree"
+    ]
+   },
+   {
+    "id": "ga5qn492",
+    "title": "Topic 8: Ensemble Learning",
+    "guide": "Pages 'Ensemble Learning' (p. 171) and 'Ensemble Learning on Trees' (p. 180); course information sheet topic 8: Ensemble learning",
+    "outcomes": [
+     "explain why ensembles work: averaging reduces variance and combining models can reduce bias",
+     "combine predictions by majority vote or averaged probabilities and explain Condorcet's majority-voting result",
+     "describe bootstrap samples and bagging, and when bagging helps (low-bias, unstable learners)",
+     "describe boosting and the AdaBoost algorithm's re-weighting of misclassified points",
+     "describe heterogeneous ensembles: Bayesian model averaging and stacking",
+     "describe random forests, out-of-bag error and variable importance",
+     "describe boosted trees and gradient boosting (residuals, learning rate, stumps, XGBoost)"
+    ],
+    "topics": [
+     {
+      "id": "introduction-to-ensemble-learning",
+      "title": "Introduction to ensemble learning"
+     },
+     {
+      "id": "majority-voting",
+      "title": "Majority voting"
+     },
+     {
+      "id": "bagging",
+      "title": "Bagging"
+     },
+     {
+      "id": "boosting",
+      "title": "Boosting"
+     },
+     {
+      "id": "heterogeneous-ensembles",
+      "title": "Heterogeneous ensembles"
+     },
+     {
+      "id": "bagging-trees-and-random-forests",
+      "title": "Bagging trees and random forests"
+     },
+     {
+      "id": "boosting-trees",
+      "title": "Boosting trees"
+     }
+    ],
+    "terms": [
+     "ensemble learning",
+     "homogeneous ensemble",
+     "heterogeneous ensemble",
+     "majority vote",
+     "bootstrap",
+     "bagging",
+     "out-of-bag (OOB) error",
+     "random forest",
+     "decorrelating trees",
+     "variable importance",
+     "boosting",
+     "weak learner",
+     "AdaBoost",
+     "gradient boosting machine",
+     "learning rate",
+     "stump",
+     "XGBoost",
+     "Bayesian model averaging",
+     "stacking"
+    ]
+   },
+   {
+    "id": "9arhsr7r",
+    "title": "Topic 9: Neural Networks",
+    "guide": "Pages 'Neural Networks' (p. 183), 'Training Neural Networks' (p. 189) and 'Implementing Neural Networks in R' (p. 193); course information sheet topic 9: Neural networks",
+    "outcomes": [
+     "describe the perceptron and show how linear and logistic regression are single-layer networks with identity or sigmoid activation",
+     "describe multi-layer perceptrons: input, hidden and output layers, feed-forward architecture and deep networks",
+     "count the parameters (weights and biases) of a feed-forward network and choose activation functions such as sigmoid and ReLU",
+     "define loss functions for regression (sum of squares) and binary classification (cross-entropy)",
+     "explain gradient descent and stochastic (mini-batch) gradient descent, including batches, epochs and iterations",
+     "explain backpropagation as the chain rule applied from the last layer back to the first",
+     "recognise overfitting in deep networks and remedies such as penalties, dropout and more training data"
+    ],
+    "topics": [
+     {
+      "id": "introduction-to-neural-networks",
+      "title": "Introduction to neural networks"
+     },
+     {
+      "id": "from-perceptron-to-sigmoid-and-identity-outputs",
+      "title": "From perceptron to sigmoid and identity outputs"
+     },
+     {
+      "id": "multi-layer-perceptron",
+      "title": "Multi-layer perceptron"
+     },
+     {
+      "id": "neural-network-model",
+      "title": "Neural network model"
+     },
+     {
+      "id": "loss-functions",
+      "title": "Loss functions"
+     },
+     {
+      "id": "gradient-descent-and-stochastic-gradient-descent",
+      "title": "Gradient descent and stochastic gradient descent (linear regression case)"
+     },
+     {
+      "id": "general-case",
+      "title": "General case"
+     },
+     {
+      "id": "overfitting-and-dropout-regularisation-implement",
+      "title": "Overfitting and dropout regularisation; implementing neural networks in R (mlr3, keras)"
+     }
+    ],
+    "terms": [
+     "perceptron",
+     "neuron",
+     "weights",
+     "bias",
+     "activation function",
+     "sigmoid",
+     "ReLU",
+     "multi-layer perceptron",
+     "hidden layer",
+     "feed-forward network",
+     "deep learning",
+     "loss function",
+     "cross-entropy",
+     "gradient descent",
+     "stochastic gradient descent (SGD)",
+     "batch size",
+     "epoch",
+     "learning rate",
+     "backpropagation",
+     "dropout"
+    ]
+   },
+   {
+    "id": "wzvtw32n",
+    "title": "Topic 10: Learning Functions - Splines, Kernels, Gaussian Processes",
+    "guide": "Pages 'Spline Based Methods' (p. 202) and 'Gaussian Process Regression and Classification' (p. 206); course information sheet topic 10: Learning functions",
+    "outcomes": [
+     "describe linear basis function models and the limits of adding polynomial terms",
+     "define piecewise polynomials, knots, cubic splines and natural cubic splines, and count their parameters",
+     "explain smoothing splines as minimising a penalised criterion with a roughness penalty",
+     "describe generalised additive models and the backfitting algorithm",
+     "define kernels as similarity functions and a Gaussian process by its mean and covariance kernel",
+     "derive the Gaussian process regression posterior and predictive distributions by conditioning a multivariate normal",
+     "describe Gaussian process classification using the Laplace approximation"
+    ],
+    "topics": [
+     {
+      "id": "learning-f-without-strong-functional-assumptions",
+      "title": "Learning f without strong functional assumptions (Wage data)"
+     },
+     {
+      "id": "piecewise-polynomials-and-knots-cubic-splines-co",
+      "title": "Piecewise polynomials and knots; cubic splines continuous up to the second derivative"
+     },
+     {
+      "id": "natural-cubic-splines-linear-at-the-boundaries-c",
+      "title": "Natural cubic splines (linear at the boundaries); choosing the number and location of knots"
+     },
+     {
+      "id": "smoothing-splines",
+      "title": "Smoothing splines"
+     },
+     {
+      "id": "generalised-additive-models",
+      "title": "Generalised additive models"
+     },
+     {
+      "id": "kernels-and-gaussian-processes",
+      "title": "Kernels and Gaussian processes"
+     },
+     {
+      "id": "gaussian-process-regression",
+      "title": "Gaussian process regression"
+     },
+     {
+      "id": "gaussian-process-classification",
+      "title": "Gaussian process classification"
+     }
+    ],
+    "terms": [
+     "basis function",
+     "piecewise polynomial",
+     "knot",
+     "cubic spline",
+     "natural cubic spline",
+     "smoothing spline",
+     "roughness penalty",
+     "generalised additive model (GAM)",
+     "backfitting",
+     "kernel",
+     "squared exponential kernel",
+     "Gaussian process",
+     "covariance kernel",
+     "Gaussian process regression",
+     "predictive distribution",
+     "marginal likelihood",
+     "hyperparameter",
+     "Gaussian process classification",
+     "Laplace approximation"
+    ]
+   }
+  ],
+  "unmatched": [
+   {
+    "id": "2dpr5d2v",
+    "title": "Full course: Stanford Statistical Learning (ISLR)",
+    "why": "Whole-course playlist; no single guide chapter"
+   }
+  ]
+ },
+ {
+  "module": "microeconomics",
+  "unitCode": "EC2066",
+  "source": "Microeconomics (EC2066) subject guide, A. Daripa, University of London, 2026",
+  "chapters": [
+   {
+    "id": "3aavyrih",
+    "title": "Consumer theory",
+    "guide": "Chapter 2: Consumer theory",
+    "outcomes": [
+     "explain the implications of the assumptions on the consumer's preferences and describe the concept of modelling preferences using a utility function",
+     "draw indifference curve diagrams starting from the utility function of a consumer, and draw budget lines for different prices and income levels",
+     "solve the consumer's utility maximisation problem and derive the demand for a consumer with a given utility function and budget constraint",
+     "analyse the effect of price and income changes on demand and explain the notion of a compensated demand function",
+     "construct the market demand curve from individual demand curves and explain the notion of elasticity of demand",
+     "explain measures of the welfare impact of a price change: change in consumer surplus, equivalent variation and compensating variation, and use them in specific cases",
+     "analyse the decision to supply labour and the problem of savers and borrowers",
+     "derive the present discounted value of payment streams and explain bond pricing"
+    ],
+    "topics": [
+     {
+      "id": "preferences-and-utility",
+      "title": "Preferences and utility"
+     },
+     {
+      "id": "indifference-curves-and-diminishing-mrs",
+      "title": "Indifference curves and diminishing MRS"
+     },
+     {
+      "id": "budget-constraint-and-utility-maximisation",
+      "title": "Budget constraint and utility maximisation"
+     },
+     {
+      "id": "impact-of-income-and-price-changes",
+      "title": "Impact of income and price changes"
+     },
+     {
+      "id": "market-demand-and-elasticities-of-demand",
+      "title": "Market demand and elasticities of demand"
+     },
+     {
+      "id": "compensated-hicksian-demand-curve-compared-with",
+      "title": "Compensated (Hicksian) demand curve compared with Marshallian (uncompensated) demand"
+     },
+     {
+      "id": "welfare-measures-of-a-price-change",
+      "title": "Welfare measures of a price change"
+     },
+     {
+      "id": "labour-supply",
+      "title": "Labour supply"
+     },
+     {
+      "id": "saving-and-borrowing",
+      "title": "Saving and borrowing"
+     }
+    ],
+    "terms": [
+     "completeness",
+     "transitivity",
+     "utility function",
+     "indifference curve",
+     "marginal rate of substitution (MRS)",
+     "quasilinear utility",
+     "perfect substitutes",
+     "perfect complements",
+     "corner solution",
+     "Marshallian demand",
+     "Hicksian (compensated) demand",
+     "income effect",
+     "substitution effect",
+     "inferior good",
+     "Giffen good",
+     "compensating variation",
+     "equivalent variation",
+     "backward-bending labour supply",
+     "intertemporal budget constraint",
+     "present value"
+    ]
+   },
+   {
+    "id": "jjp55chz",
+    "title": "Choice under uncertainty",
+    "guide": "Chapter 3: Choice under uncertainty",
+    "outcomes": [
+     "calculate expected value of a gamble",
+     "explain the nature of the vN-M utility function and calculate expected utility from a gamble",
+     "explain the different risk attitudes and what they imply for the vN-M utility function",
+     "analyse the demand for insurance and show the relationship between insurance and premium",
+     "explain the concept of diversification",
+     "calculate the Arrow-Pratt measure of risk aversion for different specifications of the vN-M utility function"
+    ],
+    "topics": [
+     {
+      "id": "preliminaries",
+      "title": "Preliminaries"
+     },
+     {
+      "id": "expected-utility-theory",
+      "title": "Expected utility theory"
+     },
+     {
+      "id": "risk-aversion-and-concavity-of-the-vn-m-utility",
+      "title": "Risk aversion and concavity of the vN-M utility function; certainty equivalent and risk premium"
+     },
+     {
+      "id": "insurance-premium-for-full-insurance",
+      "title": "Insurance premium for full insurance"
+     },
+     {
+      "id": "how-much-insurance",
+      "title": "How much insurance"
+     },
+     {
+      "id": "risk-neutral-and-risk-loving-preferences",
+      "title": "Risk-neutral and risk-loving preferences"
+     },
+     {
+      "id": "the-arrow-pratt-measure-of-absolute-risk-aversio",
+      "title": "The Arrow-Pratt measure of absolute risk aversion and relative risk aversion"
+     },
+     {
+      "id": "reducing-risk",
+      "title": "Reducing risk"
+     }
+    ],
+    "terms": [
+     "gamble",
+     "expected value",
+     "expected utility",
+     "von Neumann-Morgenstern (vN-M) utility function",
+     "risk-averse",
+     "risk-neutral",
+     "risk-loving",
+     "certainty equivalent",
+     "risk premium",
+     "full insurance",
+     "fair premium",
+     "actuarially fair insurance",
+     "Arrow-Pratt measure of absolute risk aversion",
+     "relative risk aversion",
+     "diversification"
+    ]
+   },
+   {
+    "id": "fahecw3m",
+    "title": "Game theory",
+    "guide": "Chapter 4: Game theory",
+    "outcomes": [
+     "analyse simultaneous-move games using dominant strategies or by eliminating dominated strategies either once or in an iterative fashion",
+     "calculate Nash equilibria in pure strategies as well as Nash equilibria in mixed strategies in simultaneous-move games",
+     "explain why Nash equilibrium is the central solution concept and explain the importance of proving existence",
+     "specify strategies in extensive-form games",
+     "analyse Nash equilibria in extensive-form games",
+     "explain the idea of refining Nash equilibria in extensive-form games using backward induction and subgame perfection",
+     "analyse the infinitely repeated Prisoners' Dilemma game with discounting and analyse collusive equilibria using trigger strategies",
+     "explain the multiplicity of equilibria in repeated games and state the folk theorem for the Prisoners' Dilemma game"
+    ],
+    "topics": [
+     {
+      "id": "simultaneous-move-normal-form-games",
+      "title": "Simultaneous-move (normal-form) games"
+     },
+     {
+      "id": "iterated-elimination-of-dominated-strategies",
+      "title": "Iterated elimination of dominated strategies"
+     },
+     {
+      "id": "nash-equilibrium-in-pure-strategies",
+      "title": "Nash equilibrium in pure strategies"
+     },
+     {
+      "id": "mixed-strategies-and-mixed-strategy-nash-equilib",
+      "title": "Mixed strategies and mixed-strategy Nash equilibrium"
+     },
+     {
+      "id": "existence-of-nash-equilibrium-games-with-continu",
+      "title": "Existence of Nash equilibrium; games with continuous strategy sets (best-response functions)"
+     },
+     {
+      "id": "sequential-move-extensive-form-games",
+      "title": "Sequential-move (extensive-form) games"
+     },
+     {
+      "id": "incredible-threats-and-subgame-perfection",
+      "title": "Incredible threats and subgame perfection"
+     },
+     {
+      "id": "infinitely-repeated-prisoners-dilemma-with-disco",
+      "title": "Infinitely repeated Prisoners' Dilemma with discounting"
+     },
+     {
+      "id": "folk-theorem-and-multiplicity-of-equilibria-in-r",
+      "title": "Folk theorem and multiplicity of equilibria in repeated games"
+     }
+    ],
+    "terms": [
+     "normal-form game",
+     "dominant strategy",
+     "dominated strategy",
+     "iterated elimination of dominated strategies",
+     "Prisoners' Dilemma",
+     "best response",
+     "Nash equilibrium",
+     "mixed strategy",
+     "extensive-form game",
+     "information set",
+     "imperfect information",
+     "incredible threat",
+     "subgame",
+     "subgame-perfect Nash equilibrium",
+     "backward induction",
+     "infinitely repeated game",
+     "discount factor",
+     "trigger strategy",
+     "folk theorem"
+    ]
+   },
+   {
+    "id": "mk335ei4",
+    "title": "Production, costs and profit maximisation",
+    "guide": "Chapter 5: Production, costs and profit maximisation",
+    "outcomes": [
+     "explain the concepts of average and marginal product and their relationship",
+     "derive the optimal input purchasing decision of a firm in the short run",
+     "derive the optimal input mix decision in the long run",
+     "explain the concepts of isoquants and marginal rate of technical substitution, and how the shape of isoquants depends on input substitutability",
+     "explain the concepts of marginal cost, average cost, fixed cost, sunk cost and variable cost",
+     "explain the various cost curves faced by a firm in the short run and in the long run",
+     "derive the profit-maximising output of a firm",
+     "explain the shut-down decision of a firm"
+    ],
+    "topics": [
+     {
+      "id": "a-general-note-on-costs",
+      "title": "A general note on costs"
+     },
+     {
+      "id": "production-function-and-factor-demand",
+      "title": "Production function and factor demand"
+     },
+     {
+      "id": "short-run-with-one-variable-factor",
+      "title": "Short run with one variable factor"
+     },
+     {
+      "id": "long-run-with-both-factors-variable",
+      "title": "Long run with both factors variable"
+     },
+     {
+      "id": "returns-to-scale",
+      "title": "Returns to scale"
+     },
+     {
+      "id": "optimal-long-run-input-choice",
+      "title": "Optimal long-run input choice"
+     },
+     {
+      "id": "cost-curves",
+      "title": "Cost curves"
+     },
+     {
+      "id": "short-run-and-long-run-cost-curves-and-the-relat",
+      "title": "Short-run and long-run cost curves and the relationship between them"
+     },
+     {
+      "id": "profit-maximisation-mr-mc-and-the-short-run-and",
+      "title": "Profit maximisation (MR = MC) and the short-run and long-run shut-down decision"
+     }
+    ],
+    "terms": [
+     "economic cost",
+     "opportunity cost",
+     "production function",
+     "marginal product",
+     "average product",
+     "marginal revenue product",
+     "isoquant",
+     "marginal rate of technical substitution (MRTS)",
+     "returns to scale",
+     "cost minimisation",
+     "marginal cost",
+     "average cost",
+     "average variable cost",
+     "fixed cost",
+     "sunk cost",
+     "long-run average cost",
+     "profit maximisation",
+     "shut-down decision"
+    ]
+   },
+   {
+    "id": "2f8izpve",
+    "title": "Perfect competition in a single market",
+    "guide": "Chapter 6: Perfect competition in a single market",
+    "outcomes": [
+     "explain the supply decision of a price-taking firm in the short run and in the long run",
+     "derive the industry supply curve in the short run and in the long run, and explain supply elasticities",
+     "calculate the market equilibrium price and quantity given supply and demand curves",
+     "analyse the impact of entry and exit decisions of firms on industry supply and relate the nature of input costs to the long-run industry supply curve",
+     "explain the concept of producer surplus and use this in conjunction with consumer surplus as a measure of welfare",
+     "use the measure of welfare to evaluate the impact of a variety of tax and subsidy policies on the market",
+     "explain the concept of the incidence of a tax or a subsidy",
+     "use the measure of welfare to evaluate price ceilings, price floors, permits and quotas, price support policies and trade policies involving tariffs and quotas"
+    ],
+    "topics": [
+     {
+      "id": "zero-economic-profit-in-competitive-markets",
+      "title": "Zero economic profit in competitive markets"
+     },
+     {
+      "id": "short-run-supply-of-a-price-taking-firm",
+      "title": "Short-run supply of a price-taking firm"
+     },
+     {
+      "id": "long-run-firm-supply",
+      "title": "Long-run firm supply"
+     },
+     {
+      "id": "producer-surplus-and-total-surplus-as-a-welfare",
+      "title": "Producer surplus and total surplus as a welfare measure"
+     },
+     {
+      "id": "tax-and-subsidy-analysis",
+      "title": "Tax and subsidy analysis"
+     },
+     {
+      "id": "price-ceiling-e-g-rent-control-and-price-floor",
+      "title": "Price ceiling (e.g. rent control) and price floor"
+     },
+     {
+      "id": "quota-and-the-role-of-a-resale-market",
+      "title": "Quota and the role of a resale market"
+     },
+     {
+      "id": "price-support-policy",
+      "title": "Price support policy"
+     },
+     {
+      "id": "tariffs-and-import-quotas",
+      "title": "Tariffs and import quotas"
+     }
+    ],
+    "terms": [
+     "price-taking firm",
+     "zero economic profit",
+     "short-run supply curve",
+     "entry and exit",
+     "long-run industry supply",
+     "constant-cost industry",
+     "increasing-cost industry",
+     "supply elasticity",
+     "producer surplus",
+     "consumer surplus",
+     "deadweight loss",
+     "tax incidence",
+     "subsidy",
+     "price ceiling",
+     "rent control",
+     "price floor",
+     "quota",
+     "resale market",
+     "price support",
+     "tariff"
+    ]
+   },
+   {
+    "id": "p7tsid7t",
+    "title": "General equilibrium and welfare",
+    "guide": "Chapter 7: General equilibrium and welfare",
+    "outcomes": [
+     "construct an Edgeworth box and depict the contract curve, the set of possible equilibrium exchanges given an endowment point, and the equilibrium price ratio and allocation",
+     "derive algebraically the contract curve, the equilibrium price ratio and allocation",
+     "explain that only relative prices matter",
+     "explain the importance of establishing existence",
+     "state and provide an informal proof outline for the first welfare theorem in an exchange economy with two agents and two goods and in an economy with production",
+     "state and provide an informal proof outline for the second welfare theorem in an exchange economy with two agents and two goods",
+     "discuss the policy implications of the two welfare theorems and the situations in which they might not apply",
+     "derive the equilibrium conditions in an economy with production"
+    ],
+    "topics": [
+     {
+      "id": "exchange-economy-and-the-edgeworth-box",
+      "title": "Exchange economy and the Edgeworth box"
+     },
+     {
+      "id": "competitive-walrasian-equilibrium-in-an-exchange",
+      "title": "Competitive (Walrasian) equilibrium in an exchange economy"
+     },
+     {
+      "id": "existence-of-equilibrium",
+      "title": "Existence of equilibrium"
+     },
+     {
+      "id": "uniqueness-of-equilibrium",
+      "title": "Uniqueness of equilibrium"
+     },
+     {
+      "id": "the-first-welfare-theorem",
+      "title": "The First Welfare Theorem"
+     },
+     {
+      "id": "implications-of-the-first-welfare-theorem-and-wh",
+      "title": "Implications of the First Welfare Theorem and when it fails (market failures)"
+     },
+     {
+      "id": "the-second-welfare-theorem",
+      "title": "The Second Welfare Theorem"
+     },
+     {
+      "id": "general-equilibrium-with-production",
+      "title": "General equilibrium with production"
+     }
+    ],
+    "terms": [
+     "exchange economy",
+     "endowment",
+     "Edgeworth box",
+     "Pareto efficiency",
+     "contract curve",
+     "competitive (Walrasian) equilibrium",
+     "relative prices",
+     "Walras' law",
+     "excess demand",
+     "existence of equilibrium",
+     "uniqueness",
+     "First Welfare Theorem",
+     "Second Welfare Theorem",
+     "lump-sum transfers",
+     "market failure",
+     "Robinson Crusoe economy",
+     "production possibility frontier",
+     "marginal rate of transformation (MRT)"
+    ]
+   },
+   {
+    "id": "hxmkqbf5",
+    "title": "Monopoly",
+    "guide": "Chapter 8: Monopoly",
+    "outcomes": [
+     "derive the marginal revenue curve associated with any demand curve",
+     "explain the relationship between marginal revenue and price elasticity of demand as well as Lerner's index",
+     "analyse the profit maximising choice by the monopolist and the associated deadweight loss",
+     "analyse the role of regulatory policies",
+     "analyse a variety of price discrimination policies that a monopolist can employ",
+     "analyse the structure of natural monopoly and the regulatory problem in this case"
+    ],
+    "topics": [
+     {
+      "id": "properties-of-marginal-revenue",
+      "title": "Properties of marginal revenue"
+     },
+     {
+      "id": "monopoly-profit-maximisation-mr-mc-and-deadweigh",
+      "title": "Monopoly profit maximisation (MR = MC) and deadweight loss"
+     },
+     {
+      "id": "regulating-a-monopoly",
+      "title": "Regulating a monopoly"
+     },
+     {
+      "id": "the-lerner-index-as-a-measure-of-monopoly-power",
+      "title": "The Lerner index as a measure of monopoly power"
+     },
+     {
+      "id": "price-discrimination-by-market-separation-third",
+      "title": "Price discrimination by market separation (third-degree) compared with a single price"
+     },
+     {
+      "id": "perfect-first-degree-price-discrimination-two-pa",
+      "title": "Perfect (first-degree) price discrimination, two-part tariffs and non-linear pricing"
+     },
+     {
+      "id": "natural-monopoly",
+      "title": "Natural monopoly"
+     }
+    ],
+    "terms": [
+     "marginal revenue",
+     "price elasticity of demand",
+     "Lerner index",
+     "monopoly power",
+     "deadweight loss",
+     "regulated price",
+     "marginal cost pricing",
+     "average cost pricing",
+     "price discrimination",
+     "perfect price discrimination",
+     "third-degree price discrimination",
+     "market separation",
+     "two-part tariff",
+     "natural monopoly",
+     "lump-sum subsidy",
+     "Coase conjecture"
+    ]
+   },
+   {
+    "id": "rzdnpy2f",
+    "title": "Oligopoly",
+    "guide": "Chapter 9: Oligopoly",
+    "outcomes": [
+     "derive the Nash equilibrium in a Cournot game",
+     "analyse collusion in a Cournot game",
+     "analyse Stackelberg leadership",
+     "derive the Nash equilibrium in a Bertrand game",
+     "analyse collusion in a Bertrand game",
+     "derive the Nash equilibrium in a Bertrand game with differentiated products",
+     "derive the equilibrium in the game of sequential price-setting with differentiated products",
+     "analyse strategic entry deterrence"
+    ],
+    "topics": [
+     {
+      "id": "cournot-duopoly",
+      "title": "Cournot duopoly"
+     },
+     {
+      "id": "collusion-in-the-cournot-model",
+      "title": "Collusion in the Cournot model"
+     },
+     {
+      "id": "cournot-competition-with-n-2-firms",
+      "title": "Cournot competition with n > 2 firms"
+     },
+     {
+      "id": "stackelberg-leadership",
+      "title": "Stackelberg leadership"
+     },
+     {
+      "id": "bertrand-price-competition-with-identical-firms",
+      "title": "Bertrand price competition with identical firms"
+     },
+     {
+      "id": "collusion-in-the-bertrand-model-in-an-infinitely",
+      "title": "Collusion in the Bertrand model in an infinitely repeated game"
+     },
+     {
+      "id": "bertrand-competition-with-product-differentiatio",
+      "title": "Bertrand competition with product differentiation (simultaneous price setting)"
+     },
+     {
+      "id": "sequential-price-setting-with-differentiated-pro",
+      "title": "Sequential price setting with differentiated products"
+     },
+     {
+      "id": "strategic-entry-deterrence-under-cournot",
+      "title": "Strategic entry deterrence under Cournot"
+     }
+    ],
+    "terms": [
+     "Cournot competition",
+     "best-response function",
+     "Cournot-Nash equilibrium",
+     "collusion",
+     "incentive to deviate",
+     "Stackelberg leader",
+     "Stackelberg follower",
+     "first-mover advantage",
+     "Bertrand competition",
+     "Bertrand paradox",
+     "product differentiation",
+     "sequential pricing",
+     "strategic entry deterrence",
+     "fixed entry cost",
+     "subgame-perfect Nash equilibrium",
+     "infinitely repeated game"
+    ]
+   },
+   {
+    "id": "u5fz4cxt",
+    "title": "Asymmetric information: adverse selection",
+    "guide": "Chapter 10: Asymmetric information: adverse selection",
+    "outcomes": [
+     "explain the different types of asymmetric information problems",
+     "explain how the scope of enquiry of economics is expanded by considering information asymmetry problems",
+     "explain the types of problems that arise under adverse selection",
+     "analyse the problem of adverse selection in the market for lemons and analyse simple models involving continuous as well as discrete qualities",
+     "analyse the problem of price discrimination by a monopolist under adverse selection",
+     "analyse separating and pooling equilibria in the signalling model of education"
+    ],
+    "topics": [
+     {
+      "id": "types-of-asymmetric-information",
+      "title": "Types of asymmetric information"
+     },
+     {
+      "id": "akerlof-s-1970-lemons-market",
+      "title": "Akerlof's (1970) lemons market"
+     },
+     {
+      "id": "a-model-of-price-discrimination-under-adverse-se",
+      "title": "A model of price discrimination under adverse selection"
+     },
+     {
+      "id": "contracts-under-asymmetric-information",
+      "title": "Contracts under asymmetric information"
+     },
+     {
+      "id": "optimal-menu-of-contracts-under-asymmetric-infor",
+      "title": "Optimal menu of contracts under asymmetric information"
+     },
+     {
+      "id": "spence-s-1973-job-market-signalling",
+      "title": "Spence's (1973) job market signalling"
+     }
+    ],
+    "terms": [
+     "asymmetric information",
+     "adverse selection",
+     "hidden information",
+     "hidden action",
+     "lemons market",
+     "market failure",
+     "full information benchmark",
+     "screening",
+     "incentive compatibility (IC) constraint",
+     "participation constraint (PC)",
+     "menu of contracts",
+     "information rent",
+     "signalling",
+     "separating equilibrium",
+     "pooling equilibrium",
+     "education as a signal"
+    ]
+   },
+   {
+    "id": "7svf3cge",
+    "title": "Asymmetric information: moral hazard",
+    "guide": "Chapter 11: Asymmetric information: moral hazard",
+    "outcomes": [
+     "explain the types of problems that arise under moral hazard",
+     "explain the problem of effort choice and analyse effort choice in a principal-agent model",
+     "explain the trade-off between risk-sharing and effort incentives in the principal-agent model and analyse the optimal risk-sharing arrangement under full and asymmetric information",
+     "explain informally the impact of moral hazard in a variety of settings"
+    ],
+    "topics": [
+     {
+      "id": "effort-choice-and-incentive-contracts",
+      "title": "Effort choice and incentive contracts"
+     },
+     {
+      "id": "full-information-observable-effort",
+      "title": "Full information (observable effort)"
+     },
+     {
+      "id": "which-effort-level-is-optimal-for-the-principal",
+      "title": "Which effort level is optimal for the principal under full information"
+     },
+     {
+      "id": "unobservable-effort",
+      "title": "Unobservable effort"
+     },
+     {
+      "id": "unobservable-effort-implementing-high-effort-wit",
+      "title": "Unobservable effort: implementing high effort with a risk-averse agent, IC and PC constraints, the risk-sharing vs incentives trade-off"
+     },
+     {
+      "id": "risk-neutral-agent",
+      "title": "Risk-neutral agent"
+     }
+    ],
+    "terms": [
+     "moral hazard",
+     "hidden action",
+     "principal-agent model",
+     "effort choice",
+     "disutility of effort",
+     "observable effort",
+     "unobservable effort",
+     "fixed wage",
+     "profit-contingent wage",
+     "reservation utility",
+     "participation constraint (PC)",
+     "incentive compatibility (IC) constraint",
+     "risk-sharing",
+     "risk-neutral principal",
+     "franchising contract",
+     "residual claimant"
+    ]
+   },
+   {
+    "id": "6wtf9dtz",
+    "title": "Externalities and public goods",
+    "guide": "Chapter 12: Externalities and public goods",
+    "outcomes": [
+     "explain the concept of externalities and show how externalities lead to market failures",
+     "analyse remedial policies based on taxes or subsidies",
+     "explain the content of the Coase theorem and analyse the Coasian property rights approach to solving the problem of externalities",
+     "explain how an overall quota can be implemented efficiently using cap-and-trade systems, how such systems have reduced pollution and how they can run into difficulties",
+     "explain the concept of public goods and analyse how private provision leads to inefficiently low provision of such goods",
+     "explain the concept of the tragedy of commons and demonstrate how strategic behaviour leads to over-exploitation of open access resources in simple models",
+     "explain the policy responses to commons problems"
+    ],
+    "topics": [
+     {
+      "id": "externalities",
+      "title": "Externalities"
+     },
+     {
+      "id": "tax-and-quota-policies-to-correct-an-externality",
+      "title": "Tax and quota policies to correct an externality"
+     },
+     {
+      "id": "coase-theorem",
+      "title": "Coase theorem"
+     },
+     {
+      "id": "controlling-pollution",
+      "title": "Controlling pollution"
+     },
+     {
+      "id": "public-goods",
+      "title": "Public goods"
+     },
+     {
+      "id": "private-provision-of-public-goods",
+      "title": "Private provision of public goods"
+     },
+     {
+      "id": "the-commons-problem",
+      "title": "The commons problem"
+     },
+     {
+      "id": "a-simple-model-of-resource-extraction",
+      "title": "A simple model of resource extraction"
+     }
+    ],
+    "terms": [
+     "externality",
+     "positive externality",
+     "negative externality",
+     "marginal social cost",
+     "Pareto optimum",
+     "per-unit tax",
+     "quota",
+     "Coase theorem",
+     "property rights",
+     "cap-and-trade",
+     "emissions trading",
+     "public good",
+     "non-rival and non-excludable",
+     "private provision",
+     "free-riding",
+     "tragedy of the commons",
+     "open access resource",
+     "individual transferable quotas"
+    ]
+   }
+  ],
+  "unmatched": []
+ },
+ {
+  "module": "asset-pricing",
+  "unitCode": "FN2203",
+  "source": "Principles of asset pricing, FN2203, J. Clark, University of London, 2025 (subject guide, read directly; key terms cross-checked against the per-chapter FN2203 formula sheets)",
+  "chapters": [
+   {
+    "id": "wvmum8as",
+    "title": "Review of time value of money",
+    "guide": "Chapter 2: Review of time value of money",
+    "outcomes": [
+     "understand the concept of the time value of money",
+     "define an annuity and how to calculate the present value and the future value of an annuity",
+     "define an annuity due and how to calculate the present value and future value of an annuity due",
+     "define a growing annuity and how to calculate the present value and the future value of a growing annuity",
+     "define a growing annuity due and how to calculate the present value and the future value of a growing annuity due",
+     "define a perpetuity and a perpetuity due and how to calculate the present value of each",
+     "define a growing perpetuity and a growing perpetuity due and how to calculate the present value of each"
+    ],
+    "topics": [
+     {
+      "id": "time-value-of-money",
+      "title": "Time value of money"
+     },
+     {
+      "id": "present-and-future-value-of-an-ordinary-annuity",
+      "title": "Present and future value of an ordinary annuity (e.g. savings plans, loan repayments)"
+     },
+     {
+      "id": "present-and-future-value-of-an-annuity-due-payme",
+      "title": "Present and future value of an annuity due (payments at the start of each period)"
+     },
+     {
+      "id": "present-and-future-value-of-a-growing-annuity",
+      "title": "Present and future value of a growing annuity"
+     },
+     {
+      "id": "present-and-future-value-of-a-growing-annuity-du",
+      "title": "Present and future value of a growing annuity due"
+     },
+     {
+      "id": "present-value-of-a-perpetuity-and-of-a-perpetuit",
+      "title": "Present value of a perpetuity and of a perpetuity due"
+     },
+     {
+      "id": "present-value-of-a-growing-perpetuity-and-of-a-g",
+      "title": "Present value of a growing perpetuity and of a growing perpetuity due"
+     },
+     {
+      "id": "matching-the-rate-to-the-cash-flow-period",
+      "title": "Matching the rate to the cash-flow period"
+     }
+    ],
+    "terms": [
+     "time value of money",
+     "present value",
+     "future value",
+     "discount rate",
+     "effective annual rate",
+     "annual percentage rate",
+     "continuous compounding",
+     "annuity",
+     "annuity due",
+     "growing annuity",
+     "growing annuity due",
+     "perpetuity",
+     "perpetuity due",
+     "growing perpetuity",
+     "growing perpetuity due",
+     "opportunity cost"
+    ]
+   },
+   {
+    "id": "yffnx42n",
+    "title": "Fixed income - Part 1: spot rates, no-arbitrage pricing and the term structure",
+    "guide": "Chapter 3: Fixed income - Part 1",
+    "outcomes": [
+     "define spot rates and explain their role in bond pricing",
+     "use spot rates to price government bonds",
+     "differentiate between the concepts of spot rates and yield to maturity (YTM)",
+     "apply the no-arbitrage principle in government bond pricing",
+     "apply arbitrage strategies if there is mispricing in government bonds",
+     "explain the concept of short selling and its role in financial markets",
+     "use the forward rate formula to compute implied future interest rates",
+     "explain the unbiased expectations hypothesis, the liquidity premium and the market segmentation theory of the term structure"
+    ],
+    "topics": [
+     {
+      "id": "spot-rates-as-yields-on-zero-coupon-bonds-derivi",
+      "title": "Spot rates as yields on zero-coupon bonds; deriving spot rates from zero-coupon bond prices"
+     },
+     {
+      "id": "pricing-government-coupon-and-zero-coupon-bonds",
+      "title": "Pricing government coupon and zero-coupon bonds with spot rates; spot rates versus yield to maturity"
+     },
+     {
+      "id": "arbitrage-and-the-law-of-one-price",
+      "title": "Arbitrage and the law of one price"
+     },
+     {
+      "id": "short-sales-of-bonds-and-the-cash-flows-of-a-sho",
+      "title": "Short sales of bonds and the cash flows of a short position"
+     },
+     {
+      "id": "pricing-government-bonds-via-no-arbitrage",
+      "title": "Pricing government bonds via no arbitrage"
+     },
+     {
+      "id": "exploiting-mispriced-government-bonds",
+      "title": "Exploiting mispriced government bonds"
+     },
+     {
+      "id": "forward-rates-implied-by-spot-rates-and-arbitrag",
+      "title": "Forward rates implied by spot rates, and arbitrage when a quoted forward rate is mispriced"
+     },
+     {
+      "id": "term-structure-theories",
+      "title": "Term structure theories"
+     }
+    ],
+    "terms": [
+     "spot rate",
+     "zero-coupon bond",
+     "coupon bond",
+     "face value",
+     "yield to maturity",
+     "arbitrage",
+     "law of one price",
+     "short sale",
+     "replicating portfolio",
+     "no-arbitrage price",
+     "forward rate",
+     "term structure of interest rates",
+     "yield curve",
+     "unbiased expectations hypothesis",
+     "liquidity premium",
+     "liquidity preference theory",
+     "market segmentation theory"
+    ]
+   },
+   {
+    "id": "jgrrqpnx",
+    "title": "Fixed income - Part 2: yield to maturity, duration and corporate bonds",
+    "guide": "Chapter 4: Fixed income - Part 2",
+    "outcomes": [
+     "understand the difference between the yield to maturity and the realised return on an investment in a bond",
+     "calculate the realised return on an investment in a bond",
+     "understand the concept of Macaulay duration and how to calculate it",
+     "understand the concept of modified duration and how to calculate it",
+     "calculate the appropriate change in the price of a bond or bond portfolio using duration, and understand its limitations",
+     "understand that corporate bonds involve default risk and are not risk-free securities",
+     "understand the concept of credit ratings and credit spreads for corporate bonds"
+    ],
+    "topics": [
+     {
+      "id": "yield-to-maturity-and-realised-return-on-zero-co",
+      "title": "Yield to maturity and realised return on zero-coupon bonds held to maturity or sold early"
+     },
+     {
+      "id": "realised-return-on-coupon-bonds",
+      "title": "Realised return on coupon bonds"
+     },
+     {
+      "id": "bond-prices-and-yields",
+      "title": "Bond prices and yields"
+     },
+     {
+      "id": "macaulay-duration-of-zero-coupon-and-annual-coup",
+      "title": "Macaulay duration of zero-coupon and annual coupon bonds"
+     },
+     {
+      "id": "modified-duration-and-the-sensitivity-of-bond-pr",
+      "title": "Modified duration and the sensitivity of bond prices to interest rates"
+     },
+     {
+      "id": "approximate-change-in-a-bond-or-bond-portfolio-p",
+      "title": "Approximate change in a bond or bond portfolio price using duration"
+     },
+     {
+      "id": "corporate-bonds",
+      "title": "Corporate bonds"
+     },
+     {
+      "id": "credit-ratings-investment-grade-versus-speculati",
+      "title": "Credit ratings (investment grade versus speculative/junk) and credit spreads"
+     }
+    ],
+    "terms": [
+     "yield to maturity",
+     "realised return",
+     "reinvestment rate",
+     "holding period",
+     "premium bond",
+     "discount bond",
+     "Macaulay duration",
+     "modified duration",
+     "interest rate risk",
+     "price-yield curve",
+     "convexity",
+     "corporate bond",
+     "default risk",
+     "promised yield",
+     "expected return",
+     "risk-adjusted discount rate",
+     "default spread",
+     "credit rating",
+     "junk bond",
+     "credit spread"
+    ]
+   },
+   {
+    "id": "5az5u938",
+    "title": "Stock valuation",
+    "guide": "Chapter 5: Stock valuation",
+    "outcomes": [
+     "understand the difference between primary and secondary stock markets",
+     "understand the basics of an initial public offering (IPO) and a seasoned equity offering",
+     "understand the basics of direct search markets, brokered markets, dealer markets, and auction markets",
+     "understand the concepts of the bid price, ask price, and the bid-ask spread",
+     "understand stock valuation using the dividend discount model, including the multiple stage version, and its advantages and disadvantages",
+     "understand stock valuation using price multiples",
+     "estimate the cost of equity using the constant growth dividend discount model, including various methods to forecast the growth rate in dividends",
+     "calculate the present value of growth opportunities (PVGO) for a stock"
+    ],
+    "topics": [
+     {
+      "id": "primary-and-secondary-markets",
+      "title": "Primary and secondary markets"
+     },
+     {
+      "id": "types-of-markets",
+      "title": "Types of markets"
+     },
+     {
+      "id": "bid-and-ask-prices-and-the-bid-ask-spread",
+      "title": "Bid and ask prices and the bid-ask spread"
+     },
+     {
+      "id": "dividend-discount-model-and-the-constant-growth",
+      "title": "Dividend discount model and the constant-growth (Gordon growth) model"
+     },
+     {
+      "id": "multistage-dividend-discount-model-with-a-termin",
+      "title": "Multistage dividend discount model with a terminal value"
+     },
+     {
+      "id": "valuation-using-price-multiples-p-e-and-other-co",
+      "title": "Valuation using price multiples (P/E and other comparables)"
+     },
+     {
+      "id": "estimating-the-cost-of-equity-from-the-constant",
+      "title": "Estimating the cost of equity from the constant-growth DDM; dividend growth g = ROE x plowback ratio"
+     },
+     {
+      "id": "stock-prices-and-investment-opportunities",
+      "title": "Stock prices and investment opportunities"
+     }
+    ],
+    "terms": [
+     "primary market",
+     "secondary market",
+     "initial public offering",
+     "seasoned equity offering",
+     "underwriter",
+     "dealer market",
+     "auction market",
+     "bid price",
+     "ask price",
+     "bid-ask spread",
+     "dividend discount model",
+     "Gordon growth model",
+     "terminal value",
+     "price-earnings ratio",
+     "price multiples",
+     "cost of equity",
+     "dividend yield",
+     "plowback ratio",
+     "return on equity",
+     "present value of growth opportunities"
+    ]
+   },
+   {
+    "id": "hp8rqber",
+    "title": "Portfolio theory and the CAPM",
+    "guide": "Chapter 6: Portfolio theory and the Capital asset pricing model (CAPM)",
+    "outcomes": [
+     "explain different investor attitudes toward risk: risk-averse, risk-neutral, and risk-loving",
+     "calculate expected return and variance for a portfolio with two or more risky assets",
+     "explain the concept of diversification and distinguish between systematic and idiosyncratic risk",
+     "understand the definition of the efficient frontier and the procedure to create it with N risky assets",
+     "explain how all investors combine the risk-free asset and the tangency portfolio, regardless of risk preferences",
+     "define beta as a measure of systematic risk and calculate the beta of a portfolio from individual asset betas",
+     "use the CAPM to calculate expected returns based on beta",
+     "distinguish between the capital market line (CML) and the security market line (SML), and analyse deviations from the SML"
+    ],
+    "topics": [
+     {
+      "id": "attitudes-towards-risk-and-utility-functions-ris",
+      "title": "Attitudes towards risk and utility functions (risk-averse, risk-neutral, risk-loving)"
+     },
+     {
+      "id": "expected-return-and-variance-of-a-portfolio-cova",
+      "title": "Expected return and variance of a portfolio; covariance and correlation; two-asset portfolios"
+     },
+     {
+      "id": "diversification",
+      "title": "Diversification"
+     },
+     {
+      "id": "the-efficient-frontier-with-n-risky-assets-minim",
+      "title": "The efficient frontier with N risky assets (minimum-variance frontier)"
+     },
+     {
+      "id": "combining-a-risk-free-asset-with-a-risky-portfol",
+      "title": "Combining a risk-free asset with a risky portfolio"
+     },
+     {
+      "id": "the-tangency-portfolio-and-the-sharpe-ratio",
+      "title": "The tangency portfolio and the Sharpe ratio"
+     },
+     {
+      "id": "beta-of-a-stock-and-of-a-portfolio",
+      "title": "Beta of a stock and of a portfolio"
+     },
+     {
+      "id": "capm",
+      "title": "CAPM"
+     },
+     {
+      "id": "capital-market-line-versus-security-market-line",
+      "title": "Capital market line versus security market line"
+     }
+    ],
+    "terms": [
+     "risk aversion",
+     "utility function",
+     "expected return",
+     "variance",
+     "standard deviation",
+     "covariance",
+     "correlation coefficient",
+     "diversification",
+     "systematic risk",
+     "idiosyncratic risk",
+     "efficient frontier",
+     "minimum-variance portfolio",
+     "risk-free asset",
+     "capital allocation line",
+     "tangency portfolio",
+     "Sharpe ratio",
+     "beta",
+     "market portfolio",
+     "capital market line",
+     "security market line"
+    ]
+   },
+   {
+    "id": "jssbi8db",
+    "title": "Market efficiency",
+    "guide": "Chapter 7: Market efficiency",
+    "outcomes": [
+     "define and interpret abnormal returns and understand their role in testing market efficiency",
+     "explain the concept of an efficient market",
+     "describe the joint hypothesis problem and understand its significance in empirical tests of market efficiency",
+     "differentiate between the three forms of the efficient market hypothesis (EMH), weak, semi-strong, and strong forms",
+     "identify and evaluate the main empirical tests of the weak form of EMH",
+     "identify and evaluate the main empirical tests of the semi-strong form of EMH, particularly in relation to public news and financial disclosures",
+     "discuss key anomalies and puzzles that challenge market efficiency, such as stock price momentum and reversals, post-earnings announcement drift, the twin-stock puzzle, and speculative bubbles",
+     "understand the concept of limits to arbitrage, including the roles of noise trader risk and implementation costs"
+    ],
+    "topics": [
+     {
+      "id": "basic-idea-of-efficient-markets-and-the-efficien",
+      "title": "Basic idea of efficient markets and the efficient market hypothesis (Fama 1970)"
+     },
+     {
+      "id": "abnormal-returns-measured-against-the-capm-bench",
+      "title": "Abnormal returns measured against the CAPM benchmark"
+     },
+     {
+      "id": "the-joint-hypothesis-problem",
+      "title": "The joint hypothesis problem"
+     },
+     {
+      "id": "foundations-of-efficiency",
+      "title": "Foundations of efficiency"
+     },
+     {
+      "id": "weak-semi-strong-and-strong-form-efficiency-and",
+      "title": "Weak, semi-strong and strong form efficiency and their tests"
+     },
+     {
+      "id": "how-efficient-is-the-market",
+      "title": "How efficient is the market"
+     },
+     {
+      "id": "anomalies",
+      "title": "Anomalies"
+     },
+     {
+      "id": "the-twin-stock-puzzle-royal-dutch-shell-the-dot",
+      "title": "The twin-stock puzzle (Royal Dutch/Shell), the dot-com bubble and interpreting anomalies"
+     },
+     {
+      "id": "limits-to-arbitrage",
+      "title": "Limits to arbitrage"
+     }
+    ],
+    "terms": [
+     "efficient market hypothesis",
+     "informational efficiency",
+     "abnormal return",
+     "alpha",
+     "joint hypothesis problem",
+     "weak form",
+     "semi-strong form",
+     "strong form",
+     "random walk",
+     "technical analysis",
+     "fundamental analysis",
+     "event study",
+     "momentum",
+     "long-term reversal",
+     "post-earnings announcement drift",
+     "twin-stock puzzle",
+     "speculative bubble",
+     "limits to arbitrage",
+     "noise trader risk",
+     "implementation costs"
+    ]
+   },
+   {
+    "id": "bcpk8fpt",
+    "title": "How to beat the market and mutual fund performance",
+    "guide": "Chapter 8: How to beat the market and mutual fund performance",
+    "outcomes": [
+     "define what it means to 'beat the market' and explain how this concept is interpreted within the CAPM framework",
+     "understand the 'betting against beta' strategy, including why low-beta stocks may offer superior risk-adjusted returns compared to high-beta stocks",
+     "explain the construction of self-financing portfolios and how they serve as proxies for systematic risk factors",
+     "describe the Small-Minus-Big (SMB) and High-Minus-Low (HML) strategies and their roles in factor models",
+     "describe the components of the Carhart four-factor model (Market, SMB, HML, Momentum) and understand its purpose in explaining stock returns",
+     "distinguish between risk-adjusted outperformance (alpha) and returns explained by factor exposures",
+     "distinguish between active and passive investment strategies, and understand the implications of each for alpha, cost, and performance",
+     "explain the Berk and Green (2004) model of mutual fund flows and its implications for how skill, alpha, and fund size interact"
+    ],
+    "topics": [
+     {
+      "id": "beating-the-market-under-the-capm-and-betting-ag",
+      "title": "Beating the market under the CAPM and betting against beta (the empirical SML is too flat)"
+     },
+     {
+      "id": "factor-models-and-self-financing-portfolios",
+      "title": "Factor models and self-financing portfolios"
+     },
+     {
+      "id": "the-small-minus-big-smb-strategy-and-the-size-fa",
+      "title": "The small-minus-big (SMB) strategy and the size factor"
+     },
+     {
+      "id": "the-high-minus-low-hml-strategy-and-the-value-pr",
+      "title": "The high-minus-low (HML) strategy and the value premium"
+     },
+     {
+      "id": "momentum-and-the-four-factor-model-fama-french-t",
+      "title": "Momentum and the four-factor model (Fama-French three factors plus momentum, Carhart)"
+     },
+     {
+      "id": "beyond-beta-the-quest-for-alpha",
+      "title": "Beyond beta, the quest for alpha"
+     },
+     {
+      "id": "how-to-pick-stocks",
+      "title": "How to pick stocks"
+     },
+     {
+      "id": "active-versus-passive-investment",
+      "title": "Active versus passive investment"
+     },
+     {
+      "id": "mutual-fund-performance-and-the-berk-green-model",
+      "title": "Mutual fund performance and the Berk-Green model of mutual fund flows (Anna's tale)"
+     }
+    ],
+    "terms": [
+     "beat the market",
+     "betting against beta",
+     "factor model",
+     "self-financing portfolio",
+     "factor loading",
+     "SMB",
+     "size factor",
+     "HML",
+     "value premium",
+     "book-to-market ratio",
+     "momentum",
+     "Fama-French three-factor model",
+     "Carhart four-factor model",
+     "alpha",
+     "technical analysis",
+     "fundamental analysis",
+     "active investment",
+     "passive investment",
+     "mutual fund flows",
+     "Berk and Green model"
+    ]
+   },
+   {
+    "id": "z4bhu97x",
+    "title": "Futures, forwards and swaps",
+    "guide": "Chapter 9: Futures, forwards, and swaps",
+    "outcomes": [
+     "distinguish between forward and futures contracts, highlighting their structural differences in terms of standardization, trading venues, counterparty risk, and liquidity",
+     "understand the function of margin accounts, including initial margin, maintenance margin, and the implications of margin calls",
+     "calculate gains or losses on futures positions using the mark-to-market process and apply this knowledge to margin account balance updates",
+     "illustrate how reversal of futures positions works",
+     "apply the no-arbitrage principle to derive the forward pricing formula for investment assets with known fixed cash income",
+     "extend the forward pricing model to include continuous or discrete investment yields, such as dividend yields",
+     "apply forward pricing formulas that incorporate storage costs and explain the role of convenience yield in the valuation of consumption commodities",
+     "derive the fixed rate (k) on a swap using spot interest rates and equating the value of fixed and floating legs"
+    ],
+    "topics": [
+     {
+      "id": "forwards-versus-futures",
+      "title": "Forwards versus futures"
+     },
+     {
+      "id": "futures-settlement",
+      "title": "Futures settlement"
+     },
+     {
+      "id": "reversal-closing-out-of-futures-positions",
+      "title": "Reversal (closing out) of futures positions"
+     },
+     {
+      "id": "pricing-forwards-on-investment-assets-with-fixed",
+      "title": "Pricing forwards on investment assets with fixed cash income by no arbitrage"
+     },
+     {
+      "id": "pricing-forwards-on-investment-assets-with-an-in",
+      "title": "Pricing forwards on investment assets with an investment yield (e.g. dividend yield)"
+     },
+     {
+      "id": "pricing-forwards-on-investment-commodities-with",
+      "title": "Pricing forwards on investment commodities with storage costs"
+     },
+     {
+      "id": "pricing-forwards-on-consumption-commodities-with",
+      "title": "Pricing forwards on consumption commodities with net convenience yield; forward arbitrage strategies"
+     },
+     {
+      "id": "interest-rate-swaps",
+      "title": "Interest rate swaps"
+     }
+    ],
+    "terms": [
+     "forward contract",
+     "futures contract",
+     "long position",
+     "short position",
+     "clearinghouse",
+     "mark-to-market",
+     "initial margin",
+     "maintenance margin",
+     "margin call",
+     "reversing trade",
+     "spot price",
+     "forward price",
+     "cost of carry",
+     "storage costs",
+     "convenience yield",
+     "investment asset",
+     "consumption commodity",
+     "interest rate swap",
+     "notional principal",
+     "swap rate"
+    ]
+   },
+   {
+    "id": "uyjwrjjp",
+    "title": "Options - Part 1: strategies, binomial pricing and bounds",
+    "guide": "Chapter 10: Options - Part 1",
+    "outcomes": [
+     "identify and construct key option trading strategies, including straddle, reverse straddle, bull spread using calls, and bear spread using puts",
+     "understand the concept of no-arbitrage pricing for options using the replicating portfolio approach in a binomial tree",
+     "construct a replicating portfolio for a European call or put option using positions in the underlying asset and a risk-free bond",
+     "derive and apply the risk-neutral pricing formula using a binomial tree framework",
+     "state and explain the arbitrage bounds for European call and put options on non-dividend paying stocks"
+    ],
+    "topics": [
+     {
+      "id": "call-and-put-options",
+      "title": "Call and put options"
+     },
+     {
+      "id": "option-strategies",
+      "title": "Option strategies"
+     },
+     {
+      "id": "one-period-binomial-model",
+      "title": "One-period binomial model"
+     },
+     {
+      "id": "risk-neutral-method",
+      "title": "Risk-neutral method"
+     },
+     {
+      "id": "two-period-binomial-tree-for-european-options-ba",
+      "title": "Two-period binomial tree for European options (backward induction, dynamic replication)"
+     },
+     {
+      "id": "upper-and-lower-bounds-for-european-calls-and-pu",
+      "title": "Upper and lower bounds for European calls and puts, proved by arbitrage"
+     }
+    ],
+    "terms": [
+     "call option",
+     "put option",
+     "strike price",
+     "European option",
+     "payoff",
+     "option premium",
+     "put-call parity",
+     "straddle",
+     "reverse straddle",
+     "bull spread",
+     "bear spread",
+     "binomial model",
+     "replicating portfolio",
+     "delta",
+     "risk-free bond",
+     "risk-neutral probability",
+     "risk-neutral valuation",
+     "upper bound",
+     "lower bound",
+     "arbitrage"
+    ]
+   },
+   {
+    "id": "qj79hsbs",
+    "title": "Options - Part 2: American and exotic options, Black-Scholes",
+    "guide": "Chapter 11: Options - Part 2",
+    "outcomes": [
+     "differentiate between American and European options, including their exercise features and practical implications",
+     "price American call and put options using the binomial tree model, accounting for early exercise possibilities",
+     "prove why early exercise of an American call option is never optimal on a non-dividend-paying stock",
+     "price path-dependent options (such as Asian options) using a binomial tree framework",
+     "apply the Black-Scholes option pricing model to determine the price of European-style options",
+     "understand and interpret the key inputs required for the Black-Scholes formula, including stock price, strike price, volatility, interest rate, and time to maturity"
+    ],
+    "topics": [
+     {
+      "id": "american-versus-european-options",
+      "title": "American versus European options"
+     },
+     {
+      "id": "pricing-american-calls-and-puts-in-a-binomial-tr",
+      "title": "Pricing American calls and puts in a binomial tree"
+     },
+     {
+      "id": "early-exercise-of-an-american-call-on-a-non-divi",
+      "title": "Early exercise of an American call on a non-dividend-paying stock is never optimal"
+     },
+     {
+      "id": "exotic-path-dependent-options",
+      "title": "Exotic path-dependent options"
+     },
+     {
+      "id": "from-the-binomial-model-to-black-scholes",
+      "title": "From the binomial model to Black-Scholes"
+     },
+     {
+      "id": "the-black-scholes-formula-for-a-european-call-an",
+      "title": "The Black-Scholes formula for a European call (and put via put-call parity)"
+     },
+     {
+      "id": "black-scholes-inputs",
+      "title": "Black-Scholes inputs"
+     }
+    ],
+    "terms": [
+     "American option",
+     "European option",
+     "early exercise",
+     "exercise value",
+     "continuation value",
+     "plain vanilla option",
+     "exotic option",
+     "path-dependent option",
+     "lookback option",
+     "Asian option",
+     "non-recombining tree",
+     "Black-Scholes formula",
+     "cumulative normal distribution",
+     "volatility",
+     "historical volatility",
+     "implied volatility",
+     "continuous compounding",
+     "put-call parity"
+    ]
+   }
+  ],
+  "unmatched": [
+   {
+    "id": "mirztscx",
+    "title": "Full course: MIT 15.401 Finance Theory I (Andrew Lo)",
+    "why": "Whole-course playlist; no single guide chapter"
+   }
+  ]
+ },
+ {
+  "module": "marketing-management",
+  "unitCode": "MN3141",
+  "source": "MN3141 Marketing Management course information sheets 2025-26 and 2026-27, University of London (LSE); chapter numbers and sections from the MN3141 examiners' commentaries 2022-2026, which cite the subject guide (2019 edition); essential text Kotler and Armstrong, Principles of Marketing (Pearson). The guide PDF itself was not readable, so outcomes are derived, not the guide's wording",
+  "chapters": [
+   {
+    "id": "7fvw6qf7",
+    "title": "General introduction",
+    "guide": "Chapter 1: General introduction (course information sheet syllabus topic 1; guide not readable, content from Kotler & Armstrong chs 1-2)",
+    "outcomes": [
+     "explain what marketing is and the core concepts of needs, wants, demands, exchange and customer value",
+     "describe the marketing process of creating value for customers and capturing value in return",
+     "explain the elements of the marketing mix (4Ps) and the extended 7Ps for services",
+     "describe the role of marketing in company-wide strategic planning",
+     "question the limitations of marketing management and recognise the relevance of other academic disciplines to marketing"
+    ],
+    "topics": [
+     {
+      "id": "definition-of-marketing-and-the-marketing-proces",
+      "title": "Definition of marketing and the marketing process"
+     },
+     {
+      "id": "needs-wants-and-demands-market-offerings-and-exc",
+      "title": "Needs, wants and demands; market offerings and exchange"
+     },
+     {
+      "id": "customer-value-and-satisfaction",
+      "title": "Customer value and satisfaction"
+     },
+     {
+      "id": "the-marketing-mix",
+      "title": "The marketing mix"
+     },
+     {
+      "id": "company-wide-strategic-planning",
+      "title": "Company-wide strategic planning"
+     },
+     {
+      "id": "marketing-strategy-and-the-marketing-plan",
+      "title": "Marketing strategy and the marketing plan"
+     }
+    ],
+    "terms": [
+     "marketing",
+     "needs",
+     "wants",
+     "demands",
+     "exchange",
+     "market offering",
+     "customer value",
+     "customer satisfaction",
+     "non-monetary costs",
+     "marketing mix",
+     "4Ps",
+     "7Ps",
+     "strategic planning",
+     "growth-share matrix",
+     "product/market expansion grid",
+     "marketing plan"
+    ]
+   },
+   {
+    "id": "9nxh32vz",
+    "title": "An overview of marketing history and theory",
+    "guide": "Chapter 2: An overview of marketing history and theory (sheet topic 2; section 2.5 on business orientations cited in commentaries)",
+    "outcomes": [
+     "describe how marketing practice and marketing thought have evolved",
+     "explain the production, product, selling, marketing and societal orientations and how each shapes a firm's approach to its products",
+     "distinguish the marketing orientation (can it be sold?) from the societal marketing orientation (should it be sold?)",
+     "explain how value is constructed through exchange and why a product-centred view leads to marketing myopia",
+     "critically assess the limitations of the marketing concept and of marketing theory"
+    ],
+    "topics": [
+     {
+      "id": "evolution-of-marketing-practice",
+      "title": "Evolution of marketing practice"
+     },
+     {
+      "id": "development-of-marketing-thought-and-its-roots-i",
+      "title": "Development of marketing thought and its roots in economics, psychology and sociology"
+     },
+     {
+      "id": "exchange-and-the-construction-of-customer-value",
+      "title": "Exchange and the construction of customer value"
+     },
+     {
+      "id": "business-orientations-section-2-5",
+      "title": "Business orientations (section 2.5)"
+     },
+     {
+      "id": "marketing-orientation-versus-societal-marketing",
+      "title": "Marketing orientation versus societal marketing orientation"
+     },
+     {
+      "id": "marketing-myopia-levitt",
+      "title": "Marketing myopia (Levitt)"
+     },
+     {
+      "id": "developments-in-marketing-theory",
+      "title": "Developments in marketing theory"
+     }
+    ],
+    "terms": [
+     "production orientation",
+     "product orientation",
+     "selling orientation",
+     "marketing orientation",
+     "societal marketing orientation",
+     "marketing concept",
+     "marketing myopia",
+     "exchange",
+     "customer value",
+     "goods-dominant logic",
+     "service-dominant logic",
+     "relationship marketing era"
+    ]
+   },
+   {
+    "id": "v6g7epwb",
+    "title": "The marketing environment",
+    "guide": "Chapter 3: The marketing environment (sheet topic 3; chapter cited in commentaries)",
+    "outcomes": [
+     "identify the actors in a company's micro-environment and explain how they affect its ability to serve customers",
+     "analyse how macro-environmental forces create opportunities and threats for marketers",
+     "explain who counts as a competitor, including indirect and non-traditional competitors",
+     "identify a firm's stakeholders and assess their salience using power, legitimacy and urgency",
+     "assess the market potential of a product in the light of its marketing environment"
+    ],
+    "topics": [
+     {
+      "id": "the-micro-environment",
+      "title": "The micro-environment"
+     },
+     {
+      "id": "competitors",
+      "title": "Competitors"
+     },
+     {
+      "id": "the-macro-environment",
+      "title": "The macro-environment"
+     },
+     {
+      "id": "stakeholders-and-their-interests",
+      "title": "Stakeholders and their interests"
+     },
+     {
+      "id": "stakeholder-salience",
+      "title": "Stakeholder salience"
+     },
+     {
+      "id": "responding-to-environmental-change",
+      "title": "Responding to environmental change"
+     }
+    ],
+    "terms": [
+     "micro-environment",
+     "macro-environment",
+     "suppliers",
+     "marketing intermediaries",
+     "competitors",
+     "publics",
+     "PESTEL",
+     "demographic environment",
+     "technological environment",
+     "cultural environment",
+     "substitutes",
+     "barriers to entry",
+     "stakeholders",
+     "stakeholder salience",
+     "power",
+     "legitimacy",
+     "urgency",
+     "definitive stakeholder"
+    ]
+   },
+   {
+    "id": "9k64b4e4",
+    "title": "Consumer behaviour",
+    "guide": "Chapter 4: Consumer behaviour (sheet topic 4; sections 4.4 self-concept and 4.5 social influence cited in commentaries)",
+    "outcomes": [
+     "explain the five-stage buyer decision process and apply it to a purchase or consumer journey",
+     "explain how involvement and perceived risk shape information search and decision making",
+     "distinguish search, experience and credence attributes and explain how consumers use information sources",
+     "explain how motivation, attitudes and the self-concept influence consumer choice",
+     "distinguish utilitarian from hedonic consumption",
+     "analyse social influences on consumers, including opinion leaders and network effects on influence"
+    ],
+    "topics": [
+     {
+      "id": "the-five-stage-buyer-decision-process",
+      "title": "The five-stage buyer decision process"
+     },
+     {
+      "id": "involvement-and-types-of-buying-behaviour-comple",
+      "title": "Involvement and types of buying behaviour (complex, dissonance-reducing, habitual, variety-seeking)"
+     },
+     {
+      "id": "perceived-risk",
+      "title": "Perceived risk"
+     },
+     {
+      "id": "information-search-search-experience-credence-at",
+      "title": "Information search, search/experience/credence attributes and the credibility of information sources"
+     },
+     {
+      "id": "motivation-and-needs",
+      "title": "Motivation and needs"
+     },
+     {
+      "id": "attitudes-and-beliefs-as-the-basis-for-evaluatin",
+      "title": "Attitudes and beliefs as the basis for evaluating brands"
+     },
+     {
+      "id": "the-self-concept-section-4-4",
+      "title": "The self-concept (section 4.4)"
+     },
+     {
+      "id": "social-influence-section-4-5",
+      "title": "Social influence (section 4.5)"
+     }
+    ],
+    "terms": [
+     "buyer decision process",
+     "need recognition",
+     "information search",
+     "evaluation of alternatives",
+     "post-purchase behaviour",
+     "cognitive dissonance",
+     "consumer journey",
+     "involvement",
+     "perceived risk",
+     "social risk",
+     "search attributes",
+     "experience attributes",
+     "credence attributes",
+     "Maslow's hierarchy of needs",
+     "utilitarian needs",
+     "hedonic needs",
+     "self-concept",
+     "opinion leaders",
+     "tie strength",
+     "homophily"
+    ]
+   },
+   {
+    "id": "astzvniq",
+    "title": "Organisational buyer behaviour",
+    "guide": "Chapter 5: Organisational buyer behaviour (sheet topic 5; chapter cited in commentaries)",
+    "outcomes": [
+     "explain how organisational buying differs from consumer buying, and the limits of that distinction",
+     "describe the types of buying situation and the roles in the buying centre",
+     "explain the central role of perceived risk in organisational buying and how buyers reduce it",
+     "analyse the rational and personal motives that influence organisational buyers",
+     "assess the risks faced by each party to an exchange and how they can be managed",
+     "derive marketing mix decisions from a customer's organisational buying behaviour"
+    ],
+    "topics": [
+     {
+      "id": "business-markets-versus-consumer-markets",
+      "title": "Business markets versus consumer markets"
+     },
+     {
+      "id": "types-of-buying-situation",
+      "title": "Types of buying situation"
+     },
+     {
+      "id": "the-buying-centre",
+      "title": "The buying centre"
+     },
+     {
+      "id": "the-business-buying-process-and-environmental-or",
+      "title": "The business buying process and environmental, organisational, interpersonal and individual influences on it"
+     },
+     {
+      "id": "perceived-risk-in-organisational-buying-and-risk",
+      "title": "Perceived risk in organisational buying and risk-reduction strategies"
+     },
+     {
+      "id": "rational-versus-subjective-reputation-personal-n",
+      "title": "Rational versus subjective (reputation, personal needs) buying criteria"
+     },
+     {
+      "id": "risk-for-both-parties-to-an-exchange-e-g-hosts-a",
+      "title": "Risk for both parties to an exchange (e.g. hosts and guests on platforms) and how each manages it"
+     },
+     {
+      "id": "marketing-mix-for-business-buyers",
+      "title": "Marketing mix for business buyers"
+     }
+    ],
+    "terms": [
+     "business market",
+     "derived demand",
+     "buying centre",
+     "straight rebuy",
+     "modified rebuy",
+     "new task",
+     "users",
+     "influencers",
+     "deciders",
+     "gatekeepers",
+     "perceived risk",
+     "risk reduction",
+     "total cost of ownership",
+     "personal selling",
+     "key account management"
+    ]
+   },
+   {
+    "id": "8fqpxstf",
+    "title": "Market segmentation, targeting and positioning",
+    "guide": "Chapter 6: Market segmentation, targeting and positioning (sheet topic 6; positioning choices cited from guide p.80)",
+    "outcomes": [
+     "describe the bases for segmenting consumer and business markets",
+     "evaluate market segments using size and growth, structural attractiveness and company objectives and resources",
+     "explain alternative targeting strategies, from mass marketing to niche marketing",
+     "explain positioning as the place a brand occupies in customers' minds relative to competing brands",
+     "choose between features, abstract, direct, indirect and surrogate positioning",
+     "use positioning maps to analyse and recommend a brand's position"
+    ],
+    "topics": [
+     {
+      "id": "segmentation-bases-for-consumer-markets",
+      "title": "Segmentation bases for consumer markets"
+     },
+     {
+      "id": "segmenting-business-markets-including-geographic",
+      "title": "Segmenting business markets, including geographic segmentation"
+     },
+     {
+      "id": "evaluating-segments",
+      "title": "Evaluating segments"
+     },
+     {
+      "id": "targeting-strategies",
+      "title": "Targeting strategies"
+     },
+     {
+      "id": "differentiation-and-positioning",
+      "title": "Differentiation and positioning"
+     },
+     {
+      "id": "positioning-choices",
+      "title": "Positioning choices"
+     },
+     {
+      "id": "positioning-maps-and-repositioning",
+      "title": "Positioning maps and repositioning"
+     }
+    ],
+    "terms": [
+     "market segmentation",
+     "geographic segmentation",
+     "demographic segmentation",
+     "psychographic segmentation",
+     "behavioural segmentation",
+     "segment size and growth",
+     "structural attractiveness",
+     "target market",
+     "undifferentiated marketing",
+     "differentiated marketing",
+     "niche marketing",
+     "micromarketing",
+     "differentiation",
+     "positioning",
+     "surrogate positioning",
+     "positioning map",
+     "repositioning",
+     "value proposition"
+    ]
+   },
+   {
+    "id": "izkabne9",
+    "title": "Customer relationship marketing (CRM)",
+    "guide": "Chapter 7: Customer relationship marketing (CRM) (sheet topic 7; chapter cited in commentaries for CRM, trust and asset-specific investments)",
+    "outcomes": [
+     "distinguish transactional from relationship marketing",
+     "explain customer relationship management and the links between satisfaction, loyalty and retention",
+     "explain why customer retention and customer equity matter to the firm",
+     "explain the role of trust and commitment in marketing relationships",
+     "explain how asset-specific investments and switching costs shape relationships",
+     "analyse long-term relationships as a way of managing risk in business and channel relationships"
+    ],
+    "topics": [
+     {
+      "id": "transactional-versus-relationship-marketing",
+      "title": "Transactional versus relationship marketing"
+     },
+     {
+      "id": "customer-relationship-management",
+      "title": "Customer relationship management"
+     },
+     {
+      "id": "customer-equity-and-the-value-of-retaining-versu",
+      "title": "Customer equity and the value of retaining versus acquiring customers"
+     },
+     {
+      "id": "trust-and-commitment-trustworthiness-as-ability",
+      "title": "Trust and commitment; trustworthiness as ability, integrity and benevolence (Schoorman et al. 2007)"
+     },
+     {
+      "id": "long-term-relationships-as-a-risk-management-dev",
+      "title": "Long-term relationships as a risk-management device in business-to-business and channel relationships"
+     },
+     {
+      "id": "asset-specific-investments-switching-costs-and-c",
+      "title": "Asset-specific investments, switching costs and customer lock-in"
+     },
+     {
+      "id": "relationships-with-multiple-stakeholders",
+      "title": "Relationships with multiple stakeholders"
+     }
+    ],
+    "terms": [
+     "relationship marketing",
+     "transactional marketing",
+     "customer relationship management",
+     "customer satisfaction",
+     "customer loyalty",
+     "customer retention",
+     "attrition",
+     "customer equity",
+     "loyalty scheme",
+     "trust",
+     "commitment",
+     "ability",
+     "integrity",
+     "benevolence",
+     "asset-specific investment",
+     "switching costs",
+     "lock-in",
+     "opportunism"
+    ]
+   },
+   {
+    "id": "xtgyyfus",
+    "title": "Branding and product development",
+    "guide": "Chapter 8: Branding and product development (sheet topic 8; sections 8.3, 8.4.4, 8.5 and 8.8 cited in commentaries)",
+    "outcomes": [
+     "explain the nature of products and services and the distinctive characteristics of services",
+     "explain brand equity and why it matters to marketers",
+     "explain how value is co-created with customers and brand communities",
+     "explain how consumers use intrinsic and extrinsic cues, and their predictive and confidence value, to judge quality",
+     "apply the brand strategies model (line extension, brand extension, multibrands, new brands) to branding decisions",
+     "evaluate brand portfolio decisions, including cannibalisation and portfolio focus"
+    ],
+    "topics": [
+     {
+      "id": "products-and-services",
+      "title": "Products and services"
+     },
+     {
+      "id": "brand-equity-brand-personality-and-brand-associa",
+      "title": "Brand equity, brand personality and brand associations"
+     },
+     {
+      "id": "co-creation-of-value-with-customers-section-8-3",
+      "title": "Co-creation of value with customers (section 8.3)"
+     },
+     {
+      "id": "quality-cues",
+      "title": "Quality cues"
+     },
+     {
+      "id": "brand-strategies-model",
+      "title": "Brand strategies model"
+     },
+     {
+      "id": "brand-portfolio-strategy",
+      "title": "Brand portfolio strategy"
+     },
+     {
+      "id": "common-design-and-brand-communities-section-8-8",
+      "title": "Common design and brand communities (section 8.8)"
+     }
+    ],
+    "terms": [
+     "product levels",
+     "augmented product",
+     "services",
+     "intangibility",
+     "inseparability",
+     "variability",
+     "perishability",
+     "brand equity",
+     "brand personality",
+     "co-creation",
+     "intrinsic cues",
+     "extrinsic cues",
+     "predictive value",
+     "confidence value",
+     "line extension",
+     "brand extension",
+     "multibrands",
+     "brand portfolio",
+     "cannibalisation",
+     "brand community"
+    ]
+   },
+   {
+    "id": "sphkh4yc",
+    "title": "Product innovation and the life-cycle approach",
+    "guide": "Chapter 9: Product innovation and the life-cycle approach (sheet topic 9; chapter cited in commentaries)",
+    "outcomes": [
+     "describe the stages of the new product development process",
+     "explain the diffusion of innovations and the adopter categories",
+     "explain Rogers' characteristics of an innovation that affect its rate of adoption",
+     "apply adoption concepts to marketing mix decisions for a new product",
+     "explain how network effects and social proof influence adoption",
+     "describe the product life cycle, its alternative shapes and the marketing strategies suited to each stage"
+    ],
+    "topics": [
+     {
+      "id": "the-new-product-development-process",
+      "title": "The new product development process"
+     },
+     {
+      "id": "diffusion-of-innovations-and-adopter-categories",
+      "title": "Diffusion of innovations and adopter categories (innovators to laggards)"
+     },
+     {
+      "id": "rogers-innovation-characteristics",
+      "title": "Rogers' innovation characteristics"
+     },
+     {
+      "id": "using-adoption-characteristics-to-shape-the-mark",
+      "title": "Using adoption characteristics to shape the marketing mix and reduce the perceived risk of new products"
+     },
+     {
+      "id": "network-effects-and-social-proof-in-adoption",
+      "title": "Network effects and social proof in adoption"
+     },
+     {
+      "id": "the-product-life-cycle",
+      "title": "The product life cycle"
+     },
+     {
+      "id": "marketing-strategies-across-the-product-life-cyc",
+      "title": "Marketing strategies across the product life cycle"
+     }
+    ],
+    "terms": [
+     "new product development",
+     "idea screening",
+     "concept testing",
+     "test marketing",
+     "commercialisation",
+     "diffusion of innovations",
+     "adopter categories",
+     "innovators",
+     "early adopters",
+     "laggards",
+     "relative advantage",
+     "compatibility",
+     "complexity",
+     "trialability",
+     "observability",
+     "network effects",
+     "social proof",
+     "product life cycle",
+     "fashion",
+     "fad"
+    ]
+   },
+   {
+    "id": "2wuk35yt",
+    "title": "Promotion",
+    "guide": "Chapter 10: Promotion (sheet topic 10; chapter cited in commentaries for communication objectives, source credibility, hierarchy of effects and digital communications)",
+    "outcomes": [
+     "discuss the function and effect of advertising and promotion from an organisational perspective",
+     "explain the elements of the promotion mix and integrated marketing communications",
+     "describe the steps in developing effective marketing communications, including setting communication objectives",
+     "explain response-hierarchy models such as the hierarchy of effects and AIDA",
+     "explain how the message source and its credibility affect persuasion",
+     "evaluate the effectiveness of communications, including word of mouth and digital channels"
+    ],
+    "topics": [
+     {
+      "id": "the-communication-process-shannon-and-weaver-mod",
+      "title": "The communication process (Shannon and Weaver model) and noise"
+     },
+     {
+      "id": "the-promotion-mix-and-integrated-marketing-commu",
+      "title": "The promotion mix and integrated marketing communications"
+     },
+     {
+      "id": "developing-effective-communications",
+      "title": "Developing effective communications"
+     },
+     {
+      "id": "response-hierarchies",
+      "title": "Response hierarchies"
+     },
+     {
+      "id": "source-credibility-and-persuasion",
+      "title": "Source credibility and persuasion"
+     },
+     {
+      "id": "measuring-advertising-and-communication-effectiv",
+      "title": "Measuring advertising and communication effectiveness"
+     },
+     {
+      "id": "word-of-mouth-viral-marketing-and-earned-media",
+      "title": "Word of mouth, viral marketing and earned media"
+     },
+     {
+      "id": "digital-marketing-communications",
+      "title": "Digital marketing communications"
+     }
+    ],
+    "terms": [
+     "promotion mix",
+     "integrated marketing communications",
+     "advertising",
+     "sales promotion",
+     "public relations",
+     "personal selling",
+     "communication process",
+     "noise",
+     "target audience",
+     "communication objectives",
+     "hierarchy of effects",
+     "AIDA",
+     "message source",
+     "source credibility",
+     "word of mouth",
+     "viral marketing",
+     "earned media",
+     "owned media",
+     "paid media",
+     "digital marketing"
+    ]
+   },
+   {
+    "id": "mku23vy9",
+    "title": "Pricing",
+    "guide": "Chapter 11: Pricing (sheet topic 11; section 11.3 cited in commentaries)",
+    "outcomes": [
+     "describe the pricing behaviour of firms in an uncertain environment where information may be limited or wrong",
+     "compare value-based, cost-based and competition-based pricing and their advantages and disadvantages",
+     "calculate a markup price from costs and expected sales",
+     "explain new-product pricing strategies such as skimming and penetration",
+     "explain price discrimination and how firms segment customers by price",
+     "explain how information asymmetry, bounded rationality and opportunism affect pricing and negotiation",
+     "explain how reference prices, anchors and transaction utility shape consumers' responses to price"
+    ],
+    "topics": [
+     {
+      "id": "three-broad-approaches",
+      "title": "Three broad approaches"
+     },
+     {
+      "id": "cost-plus-calculation",
+      "title": "Cost-plus calculation"
+     },
+     {
+      "id": "price-and-positioning",
+      "title": "Price and positioning"
+     },
+     {
+      "id": "new-product-pricing",
+      "title": "New-product pricing"
+     },
+     {
+      "id": "price-discrimination-segmented-pricing",
+      "title": "Price discrimination (segmented pricing)"
+     },
+     {
+      "id": "pricing-with-limited-information-section-11-3",
+      "title": "Pricing with limited information (section 11.3)"
+     },
+     {
+      "id": "behavioural-pricing",
+      "title": "Behavioural pricing"
+     },
+     {
+      "id": "price-sensitivity-and-protecting-brand-equity-wi",
+      "title": "Price sensitivity and protecting brand equity without price cuts (e.g. interest-free credit)"
+     }
+    ],
+    "terms": [
+     "value-based pricing",
+     "cost-plus pricing",
+     "markup",
+     "competition-based pricing",
+     "price sensitivity",
+     "price elasticity",
+     "market-skimming pricing",
+     "penetration pricing",
+     "prestige pricing",
+     "price discrimination",
+     "information asymmetry",
+     "bounded rationality",
+     "opportunism",
+     "negotiation",
+     "anchoring",
+     "decoy",
+     "reference price",
+     "transaction utility",
+     "acquisition utility",
+     "default bias"
+    ]
+   },
+   {
+    "id": "jfc6uyin",
+    "title": "Distribution",
+    "guide": "Chapter 12: Distribution (sheet topic 12; section 12.3 and postponement/speculation (guide p.175) cited in commentaries)",
+    "outcomes": [
+     "explain the role of marketing channels and the value added by intermediaries",
+     "describe the functions of distribution channels",
+     "explain channel design decisions, including distribution intensity and the control-versus-coverage trade-off",
+     "evaluate channel alternatives on economic, control and adaptive criteria",
+     "analyse channel power, conflict and disintermediation, including the impact of e-commerce",
+     "apply the concepts of postponement and speculation"
+    ],
+    "topics": [
+     {
+      "id": "marketing-channels",
+      "title": "Marketing channels"
+     },
+     {
+      "id": "channel-functions-section-12-3",
+      "title": "Channel functions (section 12.3)"
+     },
+     {
+      "id": "distribution-intensity-intensive-selective-exclu",
+      "title": "Distribution intensity (intensive, selective, exclusive) and the control-versus-coverage trade-off"
+     },
+     {
+      "id": "evaluating-channel-alternatives-on-economic-cont",
+      "title": "Evaluating channel alternatives on economic, control and adaptive criteria"
+     },
+     {
+      "id": "channel-power-and-conflict-gaski-1984",
+      "title": "Channel power and conflict (Gaski 1984)"
+     },
+     {
+      "id": "postponement-and-speculation",
+      "title": "Postponement and speculation"
+     },
+     {
+      "id": "disintermediation-vertical-integration-e-commerc",
+      "title": "Disintermediation, vertical integration, e-commerce and multichannel distribution"
+     },
+     {
+      "id": "retailing-and-wholesaling-formats-e-g-pop-up-sto",
+      "title": "Retailing and wholesaling formats, e.g. pop-up stores, phygital retail and vending"
+     }
+    ],
+    "terms": [
+     "marketing channel",
+     "intermediary",
+     "direct channel",
+     "indirect channel",
+     "channel functions",
+     "matching",
+     "physical distribution",
+     "risk-taking",
+     "intensive distribution",
+     "selective distribution",
+     "exclusive distribution",
+     "channel power",
+     "channel conflict",
+     "vertical integration",
+     "disintermediation",
+     "multichannel distribution",
+     "postponement",
+     "speculation",
+     "retailing",
+     "wholesaling"
+    ]
+   },
+   {
+    "id": "kdh8aasy",
+    "title": "Corporate social responsibility (CSR)",
+    "guide": "Chapter 13: Corporate social responsibility (CSR) (2025-26 sheet topic 13; chapter cited in commentaries; dropped from the 2026-27 syllabus list)",
+    "outcomes": [
+     "evaluate marketing activities from the perspective of corporate social responsibility",
+     "define CSR and relate it to the societal marketing orientation",
+     "explain how marketing exchanges can affect third parties and society",
+     "assess whether and how consumers respond to firms' ethical and social attributes",
+     "discuss sustainability, consumerism and common criticisms of marketing",
+     "critically evaluate the benefits and risks of CSR, including greenwashing"
+    ],
+    "topics": [
+     {
+      "id": "defining-csr",
+      "title": "Defining CSR"
+     },
+     {
+      "id": "the-societal-marketing-orientation-revisited",
+      "title": "The societal marketing orientation revisited"
+     },
+     {
+      "id": "do-consumers-care-consumer-response-to-ethics-ca",
+      "title": "Do consumers care? Consumer response to ethics (Carrigan and Attalla 2001)"
+     },
+     {
+      "id": "sustainability-and-sustainable-marketing",
+      "title": "Sustainability and sustainable marketing"
+     },
+     {
+      "id": "consumerism-and-criticisms-of-marketing-e-g-enco",
+      "title": "Consumerism and criticisms of marketing, e.g. encouraging overconsumption"
+     },
+     {
+      "id": "marketing-ethics",
+      "title": "Marketing ethics"
+     },
+     {
+      "id": "benefits-and-criticisms-of-csr",
+      "title": "Benefits and criticisms of CSR"
+     }
+    ],
+    "terms": [
+     "corporate social responsibility",
+     "societal marketing orientation",
+     "stakeholders",
+     "third parties",
+     "sustainability",
+     "sustainable marketing",
+     "consumerism",
+     "marketing ethics",
+     "greenwashing",
+     "extrinsic cue",
+     "trust",
+     "consumer privacy",
+     "deceptive practices",
+     "anti-consumption"
+    ]
+   },
+   {
+    "id": "93pkv9vz",
+    "title": "Analytical tools in marketing",
+    "guide": "Chapter 14: Analytical tools in marketing (2025-26 sheet topic 14; sections 14.2 and 14.3 cited in commentaries)",
+    "outcomes": [
+     "estimate market potential using the chain ratio method",
+     "apply the Fishbein multi-attribute model to brand attribute data",
+     "compare compensatory and non-compensatory decision rules and show how they can change predicted choice",
+     "calculate and interpret customer lifetime value",
+     "recommend marketing strategies to improve customer lifetime value",
+     "discuss the assumptions and limitations of these analytical tools"
+    ],
+    "topics": [
+     {
+      "id": "estimating-market-potential-with-the-chain-ratio",
+      "title": "Estimating market potential with the chain ratio method"
+     },
+     {
+      "id": "multi-attribute-attitude-fishbein-model",
+      "title": "Multi-attribute attitude (Fishbein) model"
+     },
+     {
+      "id": "compensatory-versus-non-compensatory-decision-ru",
+      "title": "Compensatory versus non-compensatory decision rules (e.g. conjunctive, lexicographic)"
+     },
+     {
+      "id": "using-attribute-scores-to-choose-target-segments",
+      "title": "Using attribute scores to choose target segments and positions; rating-scale design issues"
+     },
+     {
+      "id": "customer-lifetime-value",
+      "title": "Customer lifetime value"
+     },
+     {
+      "id": "interpreting-clv-results-and-strategies-to-raise",
+      "title": "Interpreting CLV results and strategies to raise CLV (acquisition cost, cost to serve, retention)"
+     },
+     {
+      "id": "assumptions-and-limitations-of-the-clv-and-multi",
+      "title": "Assumptions and limitations of the CLV and multi-attribute models"
+     }
+    ],
+    "terms": [
+     "market potential",
+     "chain ratio method",
+     "multi-attribute attitude model",
+     "Fishbein model",
+     "importance weights",
+     "brand ratings",
+     "compensatory decision rule",
+     "non-compensatory decision rule",
+     "conjunctive rule",
+     "lexicographic rule",
+     "customer lifetime value",
+     "acquisition cost",
+     "average revenue per user",
+     "cost to serve",
+     "attrition rate",
+     "retention rate",
+     "discount rate"
+    ]
+   },
+   {
+    "id": "usahfjsa",
+    "title": "Marketing research",
+    "guide": "Course information sheet 2026-27, syllabus topic 14: Marketing research (new for 2026-27; no guide chapter seen yet, content from Kotler & Armstrong ch 4)",
+    "outcomes": [
+     "understand the role and application of marketing research for marketers",
+     "explain how marketing information is used to gain customer insights",
+     "describe the steps in the marketing research process",
+     "distinguish secondary from primary data and qualitative from quantitative research",
+     "describe the main research approaches, contact methods, sampling plans and research instruments"
+    ],
+    "topics": [
+     {
+      "id": "marketing-information-and-customer-insights",
+      "title": "Marketing information and customer insights"
+     },
+     {
+      "id": "the-marketing-research-process",
+      "title": "The marketing research process"
+     },
+     {
+      "id": "exploratory-descriptive-and-causal-research",
+      "title": "Exploratory, descriptive and causal research"
+     },
+     {
+      "id": "secondary-versus-primary-data",
+      "title": "Secondary versus primary data"
+     },
+     {
+      "id": "research-approaches",
+      "title": "Research approaches"
+     },
+     {
+      "id": "contact-methods-sampling-plans-and-research-inst",
+      "title": "Contact methods, sampling plans and research instruments (questionnaires)"
+     },
+     {
+      "id": "qualitative-versus-quantitative-research",
+      "title": "Qualitative versus quantitative research"
+     }
+    ],
+    "terms": [
+     "customer insights",
+     "marketing information system",
+     "internal databases",
+     "competitive marketing intelligence",
+     "marketing research",
+     "exploratory research",
+     "descriptive research",
+     "causal research",
+     "secondary data",
+     "primary data",
+     "observational research",
+     "ethnographic research",
+     "survey research",
+     "experimental research",
+     "focus group",
+     "sample",
+     "questionnaire",
+     "qualitative research",
+     "quantitative research"
+    ]
+   }
+  ],
+  "unmatched": [
+   {
+    "id": "6f4bdk6u",
+    "title": "Full course: Intro to Marketing lecture series (Kotler and Armstrong based)",
+    "why": "Whole-course playlist; no single guide chapter"
+   }
+  ]
+ },
+ {
+  "module": "further-maths-economists",
+  "unitCode": "MT3095",
+  "source": "Further mathematics for economists (MT3095, formerly 2790095) subject guide, M. Anthony, University of London, 2005, reprinted with minor revisions 2011",
+  "chapters": [
+   {
+    "id": "haeif3ez",
+    "title": "Matrices, vectors and systems of linear equations",
+    "guide": "Chapter 2: Matrices, vectors, and systems of linear equations",
+    "outcomes": [
+     "solve systems of linear equations and calculate determinants (revision)",
+     "compute the rank of a matrix and understand how the rank of a matrix relates to the solution set of a corresponding system of linear equations",
+     "determine the solution to a linear system using vector notation",
+     "explain what is meant by the range and null space of a matrix and be able to determine these for a given matrix"
+    ],
+    "topics": [
+     {
+      "id": "vectors-and-matrices",
+      "title": "Vectors and matrices"
+     },
+     {
+      "id": "determinants",
+      "title": "Determinants"
+     },
+     {
+      "id": "row-operations",
+      "title": "Row operations"
+     },
+     {
+      "id": "invertible-matrices",
+      "title": "Invertible matrices"
+     },
+     {
+      "id": "the-rank-of-a-matrix",
+      "title": "The rank of a matrix"
+     },
+     {
+      "id": "rank-and-systems-of-linear-equations",
+      "title": "Rank and systems of linear equations"
+     },
+     {
+      "id": "general-solution-of-a-linear-system-in-vector-no",
+      "title": "General solution of a linear system in vector notation"
+     },
+     {
+      "id": "null-space-of-a-matrix",
+      "title": "Null space of a matrix"
+     },
+     {
+      "id": "range-column-space-of-a-matrix",
+      "title": "Range (column space) of a matrix"
+     }
+    ],
+    "terms": [
+     "determinant",
+     "cofactor expansion",
+     "elementary row operations",
+     "augmented matrix",
+     "echelon form",
+     "reduced echelon form",
+     "leading one",
+     "invertible matrix",
+     "adjoint (adjugate) matrix",
+     "trivial solution",
+     "rank",
+     "consistent system",
+     "general solution",
+     "particular solution",
+     "null space",
+     "range",
+     "column space"
+    ]
+   },
+   {
+    "id": "8p8umkn4",
+    "title": "Vector spaces, basis, dimension",
+    "guide": "Chapter 3: Vector spaces, basis, dimension",
+    "outcomes": [
+     "explain what is meant by a vector space and a subspace",
+     "prove that a given set is a vector space, or a subspace of a given vector space",
+     "explain what is meant by the linear span of a set of vectors",
+     "explain what is meant by linear independence and linear dependence",
+     "determine whether a given set of vectors is linearly independent or linearly dependent, and in the latter case, find a non-trivial linear combination of the vectors which equals the zero vector",
+     "explain what is meant by a basis, by coordinates with respect to a basis, and by the dimension of a finite-dimensional vector space",
+     "find a basis for a linear span",
+     "explain how rank and nullity are defined, and the relationship between them (the rank-nullity theorem)"
+    ],
+    "topics": [
+     {
+      "id": "definition-of-a-vector-space",
+      "title": "Definition of a vector space"
+     },
+     {
+      "id": "subspaces",
+      "title": "Subspaces"
+     },
+     {
+      "id": "subspaces-connected-with-matrices",
+      "title": "Subspaces connected with matrices"
+     },
+     {
+      "id": "linear-span-of-a-set-of-vectors",
+      "title": "Linear span of a set of vectors"
+     },
+     {
+      "id": "linear-independence-and-dependence-testing-linea",
+      "title": "Linear independence and dependence; testing linear independence in R^n"
+     },
+     {
+      "id": "bases-coordinates-with-respect-to-a-basis-and-di",
+      "title": "Bases, coordinates with respect to a basis, and dimension (including bases of subspaces)"
+     },
+     {
+      "id": "finding-a-basis-for-a-linear-span-in-r-n",
+      "title": "Finding a basis for a linear span in R^n"
+     },
+     {
+      "id": "dimensions-of-range-and-null-space",
+      "title": "Dimensions of range and null space"
+     }
+    ],
+    "terms": [
+     "vector space",
+     "vector space axioms",
+     "subspace",
+     "closed under addition",
+     "closed under scalar multiplication",
+     "linear combination",
+     "linear span",
+     "spanning set",
+     "linearly independent",
+     "linearly dependent",
+     "basis",
+     "standard basis",
+     "coordinates",
+     "dimension",
+     "finite-dimensional",
+     "row space",
+     "column space",
+     "nullity",
+     "rank-nullity theorem"
+    ]
+   },
+   {
+    "id": "uv32jvcv",
+    "title": "Linear transformations, change of basis",
+    "guide": "Chapter 4: Linear transformations, change of basis",
+    "outcomes": [
+     "explain what is meant by a linear transformation and be able to prove a given mapping is linear",
+     "explain what is meant by the range and null space, and rank and nullity of a linear transformation",
+     "comprehend the two-way relationship between matrices and linear transformations",
+     "find the matrix representation of a transformation with respect to two given bases",
+     "know how to change the basis of a vector space",
+     "know what it means to say that two square matrices are similar"
+    ],
+    "topics": [
+     {
+      "id": "linear-transformations",
+      "title": "Linear transformations"
+     },
+     {
+      "id": "examples-of-linear-transformations",
+      "title": "Examples of linear transformations"
+     },
+     {
+      "id": "range-and-null-space-of-a-linear-transformation",
+      "title": "Range and null space of a linear transformation"
+     },
+     {
+      "id": "rank-and-nullity",
+      "title": "Rank and nullity"
+     },
+     {
+      "id": "linear-transformations-and-matrices",
+      "title": "Linear transformations and matrices"
+     },
+     {
+      "id": "coordinates-and-the-matrix-of-a-transformation-w",
+      "title": "Coordinates and the matrix of a transformation with respect to given bases"
+     },
+     {
+      "id": "change-of-basis-and-similarity-of-matrices-p-1-a",
+      "title": "Change of basis and similarity of matrices (P^-1 A P)"
+     }
+    ],
+    "terms": [
+     "linear transformation",
+     "linear mapping",
+     "range",
+     "null space (kernel)",
+     "rank",
+     "nullity",
+     "rank-nullity theorem",
+     "matrix representation",
+     "ordered basis",
+     "coordinates",
+     "change of basis",
+     "similar matrices",
+     "similarity"
+    ]
+   },
+   {
+    "id": "graa7b6k",
+    "title": "Diagonalisation",
+    "guide": "Chapter 5: Diagonalisation",
+    "outcomes": [
+     "explain what is meant by eigenvectors and eigenvalues, and by diagonalisation",
+     "find eigenvalues and corresponding eigenvectors for a square matrix",
+     "diagonalise a diagonalisable matrix",
+     "recognise what diagonalisation says in terms of change of basis and matrix representation of linear transformations",
+     "perform orthogonal diagonalisation on a symmetric matrix that has distinct eigenvalues"
+    ],
+    "topics": [
+     {
+      "id": "eigenvalues-and-eigenvectors",
+      "title": "Eigenvalues and eigenvectors"
+     },
+     {
+      "id": "finding-eigenvalues-and-eigenvectors",
+      "title": "Finding eigenvalues and eigenvectors"
+     },
+     {
+      "id": "complex-eigenvalues",
+      "title": "Complex eigenvalues"
+     },
+     {
+      "id": "diagonalisation-of-a-square-matrix",
+      "title": "Diagonalisation of a square matrix"
+     },
+     {
+      "id": "eigenvectors-for-distinct-eigenvalues-are-linear",
+      "title": "Eigenvectors for distinct eigenvalues are linearly independent"
+     },
+     {
+      "id": "orthogonal-diagonalisation-of-symmetric-matrices",
+      "title": "Orthogonal diagonalisation of symmetric matrices with distinct eigenvalues"
+     }
+    ],
+    "terms": [
+     "eigenvalue",
+     "eigenvector",
+     "characteristic polynomial",
+     "eigenspace",
+     "complex eigenvalues",
+     "diagonalisable matrix",
+     "diagonalisation",
+     "diagonal matrix",
+     "distinct eigenvalues",
+     "symmetric matrix",
+     "orthogonal matrix",
+     "orthogonal diagonalisation"
+    ]
+   },
+   {
+    "id": "4n36zrm6",
+    "title": "Applications of diagonalisation",
+    "guide": "Chapter 6: Applications of diagonalisation",
+    "outcomes": [
+     "calculate the general nth power of a diagonalisable matrix using diagonalisation",
+     "solve systems of difference equations in which the underlying matrix is diagonalisable, by using both the matrix powers method and the change of variable method",
+     "solve linear systems of differential equations in which the underlying matrix is diagonalisable",
+     "know what is meant by a steady state of a system of differential equations, and by an asymptotically stable equilibrium",
+     "determine the steady states of a system, and show that certain steady states are asymptotically stable",
+     "find the symmetric matrix representing a given quadratic form and, conversely, find the quadratic form given by a particular symmetric matrix",
+     "determine the definiteness of a quadratic form by examining the eigenvalues",
+     "use the test involving principal leading subdeterminants to show that certain quadratic forms or matrices are positive definite or negative definite"
+    ],
+    "topics": [
+     {
+      "id": "powers-of-matrices-using-diagonalisation",
+      "title": "Powers of matrices using diagonalisation"
+     },
+     {
+      "id": "difference-equations",
+      "title": "Difference equations"
+     },
+     {
+      "id": "systems-of-difference-equations",
+      "title": "Systems of difference equations"
+     },
+     {
+      "id": "systems-of-difference-equations-solving-using-ma",
+      "title": "Systems of difference equations: solving using matrix powers"
+     },
+     {
+      "id": "systems-of-linear-differential-equations",
+      "title": "Systems of linear differential equations"
+     },
+     {
+      "id": "competing-species",
+      "title": "Competing species"
+     },
+     {
+      "id": "steady-states-and-asymptotic-stability-in-linear",
+      "title": "Steady states and asymptotic stability in linear systems (eigenvalue conditions)"
+     },
+     {
+      "id": "stability-in-general-non-linear-systems",
+      "title": "Stability in general (non-linear) systems"
+     },
+     {
+      "id": "quadratic-forms",
+      "title": "Quadratic forms"
+     }
+    ],
+    "terms": [
+     "matrix powers",
+     "difference equation",
+     "system of difference equations",
+     "change of variable",
+     "system of differential equations",
+     "population dynamics",
+     "competing species",
+     "steady state",
+     "asymptotically stable",
+     "linearisation",
+     "Jacobian matrix",
+     "Taylor's theorem",
+     "quadratic form",
+     "positive definite",
+     "negative definite",
+     "semi-definite",
+     "indefinite",
+     "principal leading subdeterminants"
+    ]
+   },
+   {
+    "id": "y8p45wn4",
+    "title": "Inner products and orthogonality",
+    "guide": "Chapter 7: Inner products and orthogonality",
+    "outcomes": [
+     "explain what is meant by an inner product on a vector space",
+     "verify that a given inner product is indeed an inner product",
+     "compute norms in inner product spaces",
+     "explain why orthogonality of a set of vectors implies linear independence",
+     "explain what is meant by an orthonormal set of vectors",
+     "explain why an n x n matrix is orthogonal if and only if it possesses an orthonormal set of n eigenvectors",
+     "know and apply the Cauchy-Schwarz inequality, the Generalised Pythagoras Theorem, and the triangle inequality for norms",
+     "use the Gram-Schmidt orthonormalisation process"
+    ],
+    "topics": [
+     {
+      "id": "the-inner-product-of-two-real-n-vectors",
+      "title": "The inner product of two real n-vectors"
+     },
+     {
+      "id": "inner-products-more-generally",
+      "title": "Inner products more generally"
+     },
+     {
+      "id": "norms-in-a-vector-space",
+      "title": "Norms in a vector space"
+     },
+     {
+      "id": "orthogonal-vectors",
+      "title": "Orthogonal vectors"
+     },
+     {
+      "id": "orthogonal-matrices-and-orthonormal-sets",
+      "title": "Orthogonal matrices and orthonormal sets"
+     },
+     {
+      "id": "the-cauchy-schwarz-inequality-generalised-pythag",
+      "title": "The Cauchy-Schwarz inequality, generalised Pythagoras theorem and triangle inequality for norms"
+     },
+     {
+      "id": "gram-schmidt-orthonormalisation-process",
+      "title": "Gram-Schmidt orthonormalisation process"
+     },
+     {
+      "id": "orthogonal-diagonalisation-of-symmetric-matrices",
+      "title": "Orthogonal diagonalisation of symmetric matrices when eigenvalues are not distinct"
+     }
+    ],
+    "terms": [
+     "inner product",
+     "inner product space",
+     "norm",
+     "angle between vectors",
+     "orthogonal vectors",
+     "orthonormal set",
+     "orthonormal basis",
+     "orthogonal matrix",
+     "Cauchy-Schwarz inequality",
+     "generalised Pythagoras theorem",
+     "triangle inequality for norms",
+     "Gram-Schmidt orthonormalisation",
+     "orthogonal diagonalisation",
+     "repeated eigenvalues"
+    ]
+   },
+   {
+    "id": "mssrt47e",
+    "title": "Mathematical analysis",
+    "guide": "Chapter 8: Mathematical analysis",
+    "outcomes": [
+     "use existential and universal quantifiers, and state and use the triangle inequality",
+     "explain exactly what is meant by the supremum and infimum and be able to determine these",
+     "explain precisely what it means to say that a sequence converges or tends to infinity or minus infinity, and determine limits and prove results using the formal definition of the limit of a sequence",
+     "prove and use the fact that bounded monotonic sequences converge, and calculate limits using the algebra of limits and the Sandwich Theorem",
+     "explain what is meant formally by the limit of a function at a point, or as x tends to infinity or minus infinity, and by one-sided limits",
+     "prove functions are continuous or discontinuous using the formal definition and heredity results",
+     "use the fact that a continuous function has a maximum and a minimum value on a closed bounded interval, and state and use the Intermediate Value Theorem",
+     "explain what is meant by open and closed sets, and use the definitions and results concerning convergence, continuity, open and closed sets, and compact sets in R^m"
+    ],
+    "topics": [
+     {
+      "id": "sets-and-functions-terminology-universal-and-exi",
+      "title": "Sets and functions terminology; universal and existential quantifiers"
+     },
+     {
+      "id": "the-triangle-inequality",
+      "title": "The triangle inequality"
+     },
+     {
+      "id": "properties-of-real-numbers",
+      "title": "Properties of real numbers"
+     },
+     {
+      "id": "sequences-and-limits",
+      "title": "Sequences and limits"
+     },
+     {
+      "id": "the-algebra-of-limits-and-the-sandwich-theorem",
+      "title": "The algebra of limits and the Sandwich Theorem"
+     },
+     {
+      "id": "limits-of-real-functions",
+      "title": "Limits of real functions"
+     },
+     {
+      "id": "continuity-of-real-functions",
+      "title": "Continuity of real functions"
+     },
+     {
+      "id": "open-and-closed-sets-of-real-numbers",
+      "title": "Open and closed sets of real numbers"
+     },
+     {
+      "id": "analysis-on-r-m",
+      "title": "Analysis on R^m"
+     }
+    ],
+    "terms": [
+     "universal quantifier",
+     "existential quantifier",
+     "triangle inequality",
+     "supremum",
+     "infimum",
+     "upper bound",
+     "limit of a sequence",
+     "convergent sequence",
+     "bounded sequence",
+     "monotonic sequence",
+     "algebra of limits",
+     "Sandwich Theorem",
+     "one-sided limit",
+     "continuity",
+     "heredity results",
+     "Intermediate Value Theorem",
+     "open set",
+     "closed set",
+     "compact set",
+     "Bolzano-Weierstrass Theorem"
+    ]
+   },
+   {
+    "id": "ad8jd9a5",
+    "title": "Functions of several variables",
+    "guide": "Chapter 9: Functions of several variables",
+    "outcomes": [
+     "find the equation of a plane given a normal vector and a point on the plane, and explain what is meant by the level surfaces of a function",
+     "explain what is meant by the Jacobian derivative of a real-valued function, and how this gives a linear approximation to the function",
+     "find tangent planes to surfaces and level surfaces",
+     "explain what is meant by a directional derivative and the gradient, and be able to calculate these",
+     "find contract curves using the Edgeworth Box method",
+     "explain what is meant by the Jacobian derivative of a vector-valued function, how this relates to linear approximation, and calculate it",
+     "describe and use Young's Theorem, and explain what is meant by the Hessian and be able to calculate it",
+     "explain what is meant by convex set, convex function, concave function, quasi-concave function, quasi-convex function, and prove a given function is convex or concave"
+    ],
+    "topics": [
+     {
+      "id": "geometrical-considerations",
+      "title": "Geometrical considerations"
+     },
+     {
+      "id": "linear-approximation-of-a-function-of-several-va",
+      "title": "Linear approximation of a function of several variables (Jacobian derivative)"
+     },
+     {
+      "id": "tangent-planes-to-surfaces-and-level-surfaces-th",
+      "title": "Tangent planes to surfaces and level surfaces; the gradient"
+     },
+     {
+      "id": "tangency-in-utility-maximisation",
+      "title": "Tangency in utility maximisation"
+     },
+     {
+      "id": "directional-derivatives-and-the-gradient",
+      "title": "Directional derivatives and the gradient"
+     },
+     {
+      "id": "edgeworth-box-and-contract-curves",
+      "title": "Edgeworth box and contract curves"
+     },
+     {
+      "id": "derivative-jacobian-of-a-vector-valued-function",
+      "title": "Derivative (Jacobian) of a vector-valued function f"
+     },
+     {
+      "id": "higher-order-derivatives",
+      "title": "Higher-order derivatives"
+     },
+     {
+      "id": "convex-sets-concave-convex-quasi-concave-and-qua",
+      "title": "Convex sets; concave, convex, quasi-concave and quasi-convex functions"
+     }
+    ],
+    "terms": [
+     "normal vector",
+     "plane",
+     "level surface",
+     "linear approximation",
+     "tangent plane",
+     "gradient",
+     "directional derivative",
+     "Edgeworth box",
+     "contract curve",
+     "Jacobian derivative",
+     "Jacobian matrix",
+     "Hessian",
+     "Young's theorem",
+     "continuously differentiable (C^1, C^2)",
+     "convex set",
+     "concave function",
+     "convex function",
+     "quasi-concave function",
+     "quasi-convex function"
+    ]
+   },
+   {
+    "id": "bmi4vmdb",
+    "title": "Optimisation of functions of several variables",
+    "guide": "Chapter 10: Optimisation of functions of several variables",
+    "outcomes": [
+     "find critical points of functions of several variables and classify these",
+     "know precisely the Lagrange multiplier method in its various forms, and know how to check the non-degeneracy constraint qualifications",
+     "solve various types of constrained optimisation problems (with equality constraints, inequality constraints, or both)",
+     "use the Kuhn-Tucker Lagrangian method where appropriate",
+     "interpret the meaning of the Lagrange multiplier and be able to make use of this",
+     "know the Envelope theorems described in this chapter and be able to use them"
+    ],
+    "topics": [
+     {
+      "id": "unconstrained-optimisation",
+      "title": "Unconstrained optimisation"
+     },
+     {
+      "id": "finding-optima",
+      "title": "Finding optima"
+     },
+     {
+      "id": "second-order-conditions-using-the-hessian-defini",
+      "title": "Second-order conditions using the Hessian (definiteness, saddle points)"
+     },
+     {
+      "id": "global-optimisation-of-concave-and-convex-functi",
+      "title": "Global optimisation of concave and convex functions"
+     },
+     {
+      "id": "equality-constraints",
+      "title": "Equality constraints"
+     },
+     {
+      "id": "inequality-constraints-mixtures-of-equality-and",
+      "title": "Inequality constraints, mixtures of equality and inequality constraints, and minimisation"
+     },
+     {
+      "id": "the-kuhn-tucker-lagrangian-for-problems-with-non",
+      "title": "The Kuhn-Tucker Lagrangian for problems with non-negativity constraints"
+     },
+     {
+      "id": "meaning-of-the-multipliers",
+      "title": "Meaning of the multipliers"
+     },
+     {
+      "id": "envelope-theorems-for-unconstrained-and-constrai",
+      "title": "Envelope theorems for unconstrained and constrained problems"
+     }
+    ],
+    "terms": [
+     "local maximum",
+     "global maximum",
+     "critical point",
+     "first-order conditions",
+     "second-order conditions",
+     "Hessian",
+     "saddle point",
+     "Lagrangian",
+     "Lagrange multiplier",
+     "equality constraint",
+     "inequality constraint",
+     "binding constraint",
+     "non-degenerate constraint qualification (NDCQ)",
+     "Kuhn-Tucker Lagrangian",
+     "non-negativity constraints",
+     "maximum value function",
+     "shadow price",
+     "envelope theorem"
+    ]
+   },
+   {
+    "id": "kd93u6uf",
+    "title": "Theory of linear programming, and applications",
+    "guide": "Chapter 11: Theory of linear programming, and applications",
+    "outcomes": [
+     "explain what is meant by convex combination and convex hull",
+     "use facts about convex sets",
+     "describe the separating hyperplanes theorem and what is meant by a supporting hyperplane",
+     "explain what is meant by the primal and dual linear programming problems",
+     "state and use the duality theorem of linear programming",
+     "explain what is meant by optimal strategies for, and the value of, a two-person, zero-sum game",
+     "solve matrix games"
+    ],
+    "topics": [
+     {
+      "id": "convex-sets",
+      "title": "Convex sets"
+     },
+     {
+      "id": "the-separating-hyperplanes-theorem",
+      "title": "The separating hyperplanes theorem"
+     },
+     {
+      "id": "supporting-hyperplanes",
+      "title": "Supporting hyperplanes"
+     },
+     {
+      "id": "the-basic-linear-program",
+      "title": "The basic linear program"
+     },
+     {
+      "id": "location-of-optimal-solutions",
+      "title": "Location of optimal solutions"
+     },
+     {
+      "id": "linear-programming-duality",
+      "title": "Linear programming duality"
+     },
+     {
+      "id": "zero-sum-games-and-matrix-games",
+      "title": "Zero-sum games and matrix games"
+     },
+     {
+      "id": "existence-of-optimal-mixed-strategies-via-linear",
+      "title": "Existence of optimal mixed strategies via linear programming duality"
+     },
+     {
+      "id": "finding-the-optimal-mixed-strategies-geometrical",
+      "title": "Finding the optimal mixed strategies geometrically"
+     }
+    ],
+    "terms": [
+     "convex combination",
+     "convex hull",
+     "convex set",
+     "hyperplane",
+     "half-space",
+     "separating hyperplanes theorem",
+     "supporting hyperplane",
+     "linear program",
+     "feasible region",
+     "objective function",
+     "extreme point",
+     "primal problem",
+     "dual problem",
+     "duality theorem",
+     "zero-sum game",
+     "matrix game",
+     "mixed strategy",
+     "optimal strategy",
+     "value of the game"
+    ]
+   }
+  ],
+  "unmatched": []
+ },
+ {
+  "module": "market-research",
+  "unitCode": "ST3188",
+  "source": "Statistical methods for market research, ST3188 subject guide, J. Abdey, University of London, 2026 (from the module's materials folder); checked against the ST3188 course information sheet 2025-26 (University of London/LSE) and the 2022-2026 examiners' commentaries",
+  "chapters": [
+   {
+    "id": "vy3wt9gr",
+    "title": "Week 1: Introduction and Defining the Market Research Problem",
+    "guide": "Chapter 1: Introduction to market research and developing an approach",
+    "outcomes": [
+     "explain why market research provides systematic frameworks for decision-making under uncertainty",
+     "distinguish between problem-identification and problem-solving research",
+     "formulate management decision problems as information-oriented market research problems",
+     "conduct problem audits that separate symptoms from underlying causes",
+     "develop research approaches incorporating theoretical frameworks and analytical models",
+     "construct research questions and hypotheses that guide data collection",
+     "evaluate when market research adds value versus when it wastes resources",
+     "communicate research problem definitions and approaches to diverse stakeholders"
+    ],
+    "topics": [
+     {
+      "id": "the-function-of-market-research-in-business-deci",
+      "title": "The function of market research in business decision-making"
+     },
+     {
+      "id": "the-six-step-market-research-process",
+      "title": "The six-step market research process"
+     },
+     {
+      "id": "from-management-decision-problems-to-market-rese",
+      "title": "From management decision problems to market research problems"
+     },
+     {
+      "id": "the-problem-audit-and-the-7-cs-of-effective-rese",
+      "title": "The problem audit and the 7 Cs of effective researcher-manager interaction"
+     },
+     {
+      "id": "understanding-the-environmental-context",
+      "title": "Understanding the environmental context"
+     },
+     {
+      "id": "developing-the-approach",
+      "title": "Developing the approach"
+     },
+     {
+      "id": "formulating-research-questions-and-hypotheses-sp",
+      "title": "Formulating research questions and hypotheses; specifying information requirements"
+     },
+     {
+      "id": "when-research-is-worth-the-investment-common-pro",
+      "title": "When research is worth the investment; common problem definition errors and how to avoid them"
+     },
+     {
+      "id": "international-market-research-and-the-self-refer",
+      "title": "International market research and the self-reference criterion; problem definition worked example"
+     }
+    ],
+    "terms": [
+     "market research",
+     "problem-identification research",
+     "problem-solving research",
+     "market research process",
+     "management decision problem",
+     "market research problem",
+     "problem audit",
+     "7 Cs",
+     "environmental context",
+     "approach to the problem",
+     "theory",
+     "analytical model",
+     "verbal model",
+     "graphical model",
+     "mathematical model",
+     "research question",
+     "hypothesis",
+     "information requirements",
+     "self-reference criterion"
+    ]
+   },
+   {
+    "id": "pw5meqbp",
+    "title": "Week 2: Research Design",
+    "guide": "Chapter 2: Research design",
+    "outcomes": [
+     "define research design and explain its role in the market research process",
+     "distinguish among exploratory, descriptive, and causal research designs based on objectives and methods",
+     "evaluate when cross-sectional versus longitudinal designs are appropriate",
+     "explain cohort analysis and its applications in tracking market trends",
+     "identify and quantify potential sources of error in research designs",
+     "develop realistic project budgets and schedules accounting for research design complexity",
+     "prepare professional research proposals that communicate design decisions",
+     "recognise ethical considerations in research design formulation"
+    ],
+    "topics": [
+     {
+      "id": "defining-research-design-and-its-role-in-the-res",
+      "title": "Defining research design and its role in the research process"
+     },
+     {
+      "id": "the-research-design-classification-framework",
+      "title": "The research design classification framework"
+     },
+     {
+      "id": "exploratory-research",
+      "title": "Exploratory research"
+     },
+     {
+      "id": "descriptive-research",
+      "title": "Descriptive research"
+     },
+     {
+      "id": "cohort-analysis",
+      "title": "Cohort analysis"
+     },
+     {
+      "id": "causal-research",
+      "title": "Causal research"
+     },
+     {
+      "id": "potential-sources-of-error",
+      "title": "Potential sources of error"
+     },
+     {
+      "id": "budgeting-and-scheduling-research-projects-the-m",
+      "title": "Budgeting and scheduling research projects; the market research proposal"
+     },
+     {
+      "id": "international-and-ethical-considerations-in-rese",
+      "title": "International and ethical considerations in research design"
+     }
+    ],
+    "terms": [
+     "research design",
+     "exploratory research",
+     "conclusive research",
+     "descriptive research",
+     "causal research",
+     "cross-sectional design",
+     "single cross-sectional design",
+     "multiple cross-sectional design",
+     "longitudinal design",
+     "panel",
+     "cohort analysis",
+     "total error",
+     "random sampling error",
+     "non-sampling error",
+     "non-response error",
+     "response error",
+     "research proposal",
+     "critical path"
+    ]
+   },
+   {
+    "id": "i3ktck65",
+    "title": "Week 3: Internal Secondary Data and Analytics",
+    "guide": "Chapter 3: Exploratory research design: secondary and syndicated data",
+    "outcomes": [
+     "distinguish between secondary and primary data and justify when each is appropriate",
+     "evaluate the advantages and limitations of secondary data for specific business decisions",
+     "apply systematic criteria for assessing secondary data quality and relevance",
+     "identify and exploit internal secondary data sources within organisations",
+     "evaluate external secondary data sources including government statistics and commercial databases",
+     "classify syndicated data services and match them to research requirements",
+     "integrate secondary data from multiple sources to address research problems",
+     "identify ethical issues in secondary data collection and application"
+    ],
+    "topics": [
+     {
+      "id": "defining-secondary-data-and-distinguishing-it-fr",
+      "title": "Defining secondary data and distinguishing it from primary data"
+     },
+     {
+      "id": "strategic-advantages-and-limitations-of-secondar",
+      "title": "Strategic advantages and limitations of secondary data"
+     },
+     {
+      "id": "six-criteria-for-evaluating-secondary-data",
+      "title": "Six criteria for evaluating secondary data"
+     },
+     {
+      "id": "internal-secondary-data",
+      "title": "Internal secondary data"
+     },
+     {
+      "id": "external-secondary-data",
+      "title": "External secondary data"
+     },
+     {
+      "id": "syndicated-commercial-sources",
+      "title": "Syndicated commercial sources"
+     },
+     {
+      "id": "integrating-multiple-secondary-sources",
+      "title": "Integrating multiple secondary sources"
+     },
+     {
+      "id": "international-complications-and-ethical-issues-i",
+      "title": "International complications and ethical issues in secondary data usage"
+     }
+    ],
+    "terms": [
+     "primary data",
+     "secondary data",
+     "internal secondary data",
+     "external secondary data",
+     "specifications",
+     "currency",
+     "dependability",
+     "customer database",
+     "web analytics",
+     "government statistics",
+     "syndicated data",
+     "consumer panel",
+     "retail audit",
+     "point-of-sale data",
+     "media measurement",
+     "brand tracking",
+     "triangulation"
+    ]
+   },
+   {
+    "id": "7aiq4jk9",
+    "title": "Week 4: Qualitative Research - Focus Groups and Projective Techniques",
+    "guide": "Chapter 4: Exploratory research design: qualitative research",
+    "outcomes": [
+     "explain how qualitative research generates insights impossible to obtain through quantitative methods",
+     "distinguish situations where focus groups, in-depth interviews, or projective techniques are most appropriate",
+     "design focus group discussion guides that balance structure with flexibility",
+     "recruit and screen qualitative research participants ensuring sample appropriateness",
+     "moderate focus groups and conduct in-depth interviews eliciting authentic rather than socially desirable responses",
+     "apply projective techniques accessing unconscious motivations and beliefs",
+     "analyse qualitative data systematically rather than selectively cherry-picking supportive quotes",
+     "integrate qualitative insights into subsequent quantitative research design"
+    ],
+    "topics": [
+     {
+      "id": "the-strategic-role-of-qualitative-research-versu",
+      "title": "The strategic role of qualitative research versus quantitative research"
+     },
+     {
+      "id": "when-qualitative-research-adds-genuine-value-six",
+      "title": "When qualitative research adds genuine value (six situations) and when it wastes resources"
+     },
+     {
+      "id": "focus-groups",
+      "title": "Focus groups"
+     },
+     {
+      "id": "in-depth-interviews-and-their-techniques",
+      "title": "In-depth interviews and their techniques"
+     },
+     {
+      "id": "projective-techniques",
+      "title": "Projective techniques"
+     },
+     {
+      "id": "analysing-qualitative-data-systematically",
+      "title": "Analysing qualitative data systematically"
+     },
+     {
+      "id": "integrating-qualitative-and-quantitative-researc",
+      "title": "Integrating qualitative and quantitative research"
+     },
+     {
+      "id": "international-complications-and-ethics-in-qualit",
+      "title": "International complications and ethics in qualitative research"
+     }
+    ],
+    "terms": [
+     "qualitative research",
+     "focus group",
+     "moderator",
+     "discussion guide",
+     "screening",
+     "in-depth interview",
+     "laddering",
+     "hidden issue questioning",
+     "symbolic analysis",
+     "projective technique",
+     "word association",
+     "sentence completion",
+     "story completion",
+     "picture response",
+     "cartoon completion",
+     "role-playing",
+     "third-person technique",
+     "social desirability bias"
+    ]
+   },
+   {
+    "id": "wz3pq6xp",
+    "title": "Week 5: Survey and Quantitative Observation Techniques",
+    "guide": "Chapter 5: Descriptive research design: survey and observation",
+    "outcomes": [
+     "distinguish between survey and observational approaches to descriptive research and justify when each is appropriate",
+     "evaluate the fundamental trade-offs among telephone, face-to-face, postal, and digital survey administration modes",
+     "design survey instruments appropriate for different administration modes accounting for mode-specific constraints",
+     "calculate the total cost of survey research including hidden costs that naive budgets overlook",
+     "classify observational methods and match them to research objectives requiring behavioural measurement",
+     "integrate survey and observational data to overcome limitations of single-method approaches",
+     "evaluate response rate optimisation strategies and assess their cost-effectiveness"
+    ],
+    "topics": [
+     {
+      "id": "defining-descriptive-research-and-its-role",
+      "title": "Defining descriptive research and its role"
+     },
+     {
+      "id": "survey-research-and-administration-modes",
+      "title": "Survey research and administration modes"
+     },
+     {
+      "id": "evaluating-administration-modes-against-ten-crit",
+      "title": "Evaluating administration modes against ten criteria"
+     },
+     {
+      "id": "calculating-the-true-cost-of-survey-research",
+      "title": "Calculating the true cost of survey research"
+     },
+     {
+      "id": "response-rates",
+      "title": "Response rates"
+     },
+     {
+      "id": "observational-research",
+      "title": "Observational research"
+     },
+     {
+      "id": "mechanical-observation-technologies",
+      "title": "Mechanical observation technologies"
+     },
+     {
+      "id": "integrating-survey-and-observational-data-intern",
+      "title": "Integrating survey and observational data; international and ethical issues"
+     }
+    ],
+    "terms": [
+     "descriptive research",
+     "survey",
+     "administration mode",
+     "telephone interviewing",
+     "CATI",
+     "face-to-face interviewing",
+     "CAPI",
+     "postal survey",
+     "digital survey",
+     "response rate",
+     "non-response",
+     "incentives",
+     "observation",
+     "structured observation",
+     "disguised observation",
+     "natural observation",
+     "mechanical observation",
+     "eye tracking",
+     "mystery shopping",
+     "Hawthorne effect"
+    ]
+   },
+   {
+    "id": "3r99gupb",
+    "title": "Week 6: Causal Research Design - Experimentation",
+    "guide": "Chapter 6: Causal research design: experimentation",
+    "outcomes": [
+     "distinguish between causal inference and mere association and explain why only experiments support strong causal claims",
+     "evaluate internal validity threats and design experiments controlling for confounding variables",
+     "assess external validity trade-offs and determine when laboratory control justifies sacrificing generalisability",
+     "select appropriate experimental designs based on research objectives, constraints, and validity requirements",
+     "calculate statistical power and required sample sizes preventing inconclusive experiments",
+     "distinguish between statistical significance and practical significance when interpreting experimental results",
+     "design and implement field experiments including test marketing programmes",
+     "conduct digital experiments using A/B testing and online experimental platforms"
+    ],
+    "topics": [
+     {
+      "id": "understanding-causation",
+      "title": "Understanding causation"
+     },
+     {
+      "id": "eight-threats-to-internal-validity",
+      "title": "Eight threats to internal validity"
+     },
+     {
+      "id": "external-validity-and-the-generalisability-probl",
+      "title": "External validity and the generalisability problem; laboratory vs field experiments"
+     },
+     {
+      "id": "experimental-design-selection",
+      "title": "Experimental design selection"
+     },
+     {
+      "id": "statistical-power-and-sample-size",
+      "title": "Statistical power and sample size"
+     },
+     {
+      "id": "field-experimentation-and-test-marketing",
+      "title": "Field experimentation and test marketing"
+     },
+     {
+      "id": "digital-experimentation",
+      "title": "Digital experimentation"
+     },
+     {
+      "id": "analysing-and-interpreting-experimental-results",
+      "title": "Analysing and interpreting experimental results; international and ethical issues"
+     }
+    ],
+    "terms": [
+     "causality",
+     "experiment",
+     "independent variable",
+     "dependent variable",
+     "extraneous variable",
+     "confounding",
+     "randomisation",
+     "internal validity",
+     "external validity",
+     "history",
+     "maturation",
+     "selection bias",
+     "mortality",
+     "pre-experimental design",
+     "true experimental design",
+     "post-test-only control group design",
+     "quasi-experimental design",
+     "factorial design",
+     "statistical power",
+     "test marketing"
+    ]
+   },
+   {
+    "id": "hhxy6vie",
+    "title": "Week 7: Measurement and Scaling",
+    "guide": "Chapter 7: Measurement and scaling: fundamentals, comparative and non-comparative scaling techniques",
+    "outcomes": [
+     "distinguish between measurement and scaling and explain how scaling extends measurement",
+     "evaluate the four scale characteristics (description, order, distance, origin) determining measurement level",
+     "select appropriate primary scales (nominal, ordinal, interval, ratio) based on construct properties and analytical requirements",
+     "design comparative scaling techniques (paired comparison, rank order, constant sum) capturing relative preferences",
+     "construct non-comparative scales (Likert, semantic differential, Stapel) measuring attitudes independently",
+     "assess scale reliability and validity, determining whether scales measure what they claim to measure",
+     "calculate required sample sizes for paired comparison and ranking studies"
+    ],
+    "topics": [
+     {
+      "id": "understanding-measurement-and-scaling",
+      "title": "Understanding measurement and scaling"
+     },
+     {
+      "id": "the-four-scale-characteristics",
+      "title": "The four scale characteristics"
+     },
+     {
+      "id": "primary-scales-of-measurement",
+      "title": "Primary scales of measurement"
+     },
+     {
+      "id": "comparative-scaling",
+      "title": "Comparative scaling"
+     },
+     {
+      "id": "non-comparative-scaling",
+      "title": "Non-comparative scaling"
+     },
+     {
+      "id": "scale-reliability",
+      "title": "Scale reliability"
+     },
+     {
+      "id": "integrating-comparative-and-non-comparative-tech",
+      "title": "Integrating comparative and non-comparative techniques"
+     },
+     {
+      "id": "international-complications-and-ethical-issues-i",
+      "title": "International complications and ethical issues in measurement and scaling"
+     }
+    ],
+    "terms": [
+     "measurement",
+     "scaling",
+     "description",
+     "order",
+     "distance",
+     "origin",
+     "nominal scale",
+     "ordinal scale",
+     "interval scale",
+     "ratio scale",
+     "comparative scale",
+     "paired comparison",
+     "rank-order scaling",
+     "constant sum scaling",
+     "non-comparative scale",
+     "Likert scale",
+     "semantic differential scale",
+     "Stapel scale",
+     "Cronbach's alpha",
+     "construct validity"
+    ]
+   },
+   {
+    "id": "9yuznf54",
+    "title": "Week 8: Questionnaire Design",
+    "guide": "Chapter 8: Questionnaire and form design",
+    "outcomes": [
+     "explain why questionnaire design determines whether research investments generate valid insights versus misleading data",
+     "apply the ten-step questionnaire design process systematically from information specification through pretesting",
+     "design individual questions that respondents can answer (overcoming inability) and will answer honestly (overcoming unwillingness)",
+     "select appropriate question structures (unstructured, multiple-choice, dichotomous, scales) matching research objectives",
+     "construct question wording that eliminates ambiguity, bias, and implicit assumptions",
+     "arrange questions in sequences that maintain engagement while minimising order effects",
+     "design observational forms specifying the who, what, when, where, why, and how of behaviour measurement",
+     "conduct rigorous pretesting, identifying and eliminating problems before fieldwork"
+    ],
+    "topics": [
+     {
+      "id": "the-three-fundamental-questionnaire-objectives",
+      "title": "The three fundamental questionnaire objectives"
+     },
+     {
+      "id": "the-ten-step-questionnaire-design-process-how-th",
+      "title": "The ten-step questionnaire design process; how the administration mode constrains design"
+     },
+     {
+      "id": "designing-individual-questions",
+      "title": "Designing individual questions"
+     },
+     {
+      "id": "choosing-question-structure",
+      "title": "Choosing question structure"
+     },
+     {
+      "id": "choosing-question-wording",
+      "title": "Choosing question wording"
+     },
+     {
+      "id": "determining-question-order",
+      "title": "Determining question order"
+     },
+     {
+      "id": "pretesting-for-quality-control",
+      "title": "Pretesting for quality control"
+     },
+     {
+      "id": "observational-forms-international-and-mobile-que",
+      "title": "Observational forms; international and mobile questionnaire design; ethical obligations"
+     }
+    ],
+    "terms": [
+     "questionnaire",
+     "questionnaire design process",
+     "double-barrelled question",
+     "inability to answer",
+     "unwillingness to answer",
+     "unstructured question",
+     "multiple-choice question",
+     "dichotomous question",
+     "question wording",
+     "leading question",
+     "implicit assumption",
+     "question order",
+     "funnel approach",
+     "filter question",
+     "branching question",
+     "pretesting",
+     "observational form",
+     "acquiescence bias"
+    ]
+   },
+   {
+    "id": "end2fmuy",
+    "title": "Week 9: Sampling - Design and Procedures",
+    "guide": "Chapter 9: Sampling: design and procedures",
+    "outcomes": [
+     "distinguish between samples and censuses and justify when each is appropriate based on population size, cost constraints, and error tolerance",
+     "define target populations using the four-component framework specifying elements, sampling units, extent, and time",
+     "construct sampling frames minimising coverage error while acknowledging practical constraints",
+     "evaluate non-probability techniques (convenience, judgemental, quota, snowball) identifying appropriate applications and inherent limitations",
+     "design probability samples using simple random, systematic, stratified, and cluster techniques appropriate to research objectives",
+     "calculate sampling intervals for systematic sampling and allocations for stratified sampling",
+     "assess the probability-non-probability choice systematically considering research nature, error magnitudes, and resource constraints"
+    ],
+    "topics": [
+     {
+      "id": "the-sample-versus-census-decision",
+      "title": "The sample versus census decision"
+     },
+     {
+      "id": "the-sampling-design-process",
+      "title": "The sampling design process"
+     },
+     {
+      "id": "non-probability-sampling",
+      "title": "Non-probability sampling"
+     },
+     {
+      "id": "simple-random-and-systematic-sampling-sampling-i",
+      "title": "Simple random and systematic sampling (sampling interval)"
+     },
+     {
+      "id": "stratified-sampling",
+      "title": "Stratified sampling"
+     },
+     {
+      "id": "cluster-sampling",
+      "title": "Cluster sampling"
+     },
+     {
+      "id": "choosing-between-non-probability-and-probability",
+      "title": "Choosing between non-probability and probability sampling"
+     },
+     {
+      "id": "executing-the-sampling-process-with-quality-cont",
+      "title": "Executing the sampling process with quality controls"
+     }
+    ],
+    "terms": [
+     "population",
+     "census",
+     "sample",
+     "target population",
+     "element",
+     "sampling unit",
+     "sampling frame",
+     "coverage error",
+     "non-probability sampling",
+     "convenience sampling",
+     "judgemental sampling",
+     "quota sampling",
+     "snowball sampling",
+     "probability sampling",
+     "simple random sampling",
+     "systematic sampling",
+     "sampling interval",
+     "stratified sampling",
+     "proportionate allocation",
+     "cluster sampling"
+    ]
+   },
+   {
+    "id": "dgyaekex",
+    "title": "Week 10: Sampling - Determining Sample Size",
+    "guide": "Chapter 10: Sampling: final and initial sample size determination",
+    "outcomes": [
+     "distinguish between population parameters and sample statistics and explain why sample size affects estimation precision",
+     "construct confidence intervals around sample means and proportions",
+     "calculate required sample sizes for estimating means and proportions given precision and confidence requirements",
+     "apply finite population corrections when samples represent substantial population proportions",
+     "adjust statistically-determined sample sizes for incidence rates and completion rates",
+     "evaluate multiple-parameter research requiring sample sizes accommodating the most demanding precision requirement",
+     "assess non-response bias through early-late respondent comparison",
+     "implement adjustment techniques for non-response bias"
+    ],
+    "topics": [
+     {
+      "id": "parameters-statistics-and-sampling-distributions",
+      "title": "Parameters, statistics and sampling distributions; standard error of the mean and of a proportion"
+     },
+     {
+      "id": "confidence-intervals-for-a-mean-and-a-proportion",
+      "title": "Confidence intervals for a mean and a proportion"
+     },
+     {
+      "id": "sample-size-determination-for-means",
+      "title": "Sample size determination for means"
+     },
+     {
+      "id": "sample-size-determination-for-proportions",
+      "title": "Sample size determination for proportions"
+     },
+     {
+      "id": "the-finite-population-correction",
+      "title": "The finite population correction"
+     },
+     {
+      "id": "multiple-parameters-and-segment-analysis",
+      "title": "Multiple parameters and segment analysis"
+     },
+     {
+      "id": "adjusting-for-incidence-and-completion-rates-low",
+      "title": "Adjusting for incidence and completion rates; low incidence and targeted sampling"
+     },
+     {
+      "id": "non-response-assessment-and-seven-adjustment-tec",
+      "title": "Non-response assessment and seven adjustment techniques"
+     }
+    ],
+    "terms": [
+     "parameter",
+     "statistic",
+     "sampling distribution",
+     "standard error",
+     "confidence interval",
+     "confidence level",
+     "precision",
+     "sample size determination",
+     "finite population correction",
+     "incidence rate",
+     "completion rate",
+     "initial sample size",
+     "non-response bias",
+     "trend analysis",
+     "weighting",
+     "imputation",
+     "substitution"
+    ]
+   },
+   {
+    "id": "9igw5e6g",
+    "title": "Week 11: Getting Started with SPSS",
+    "guide": "Chapter 11: Getting started with SPSS (a short orientation chapter; the practical work is in VLE screencasts)",
+    "outcomes": [
+     "familiarise yourself with the SPSS environment and basic data management issues",
+     "describe how survey data are coded for analysis, using the Benetton.sav example dataset",
+     "declare missing-value codes and measurement levels for variables such as Likert-type ratings",
+     "enter and manipulate data and interpret SPSS output, which later chapters' exam questions are built on"
+    ],
+    "topics": [
+     {
+      "id": "obtaining-spss-statistics-free-trial-or-student",
+      "title": "Obtaining SPSS Statistics (free trial or student licence; the Base edition suffices)"
+     },
+     {
+      "id": "example-dataset-benetton-sav",
+      "title": "Example dataset Benetton.sav"
+     },
+     {
+      "id": "coding-variables",
+      "title": "Coding variables"
+     },
+     {
+      "id": "screencast-demonstrations-on-the-vle",
+      "title": "Screencast demonstrations on the VLE"
+     }
+    ],
+    "terms": [
+     "SPSS Statistics",
+     "dataset",
+     ".sav file",
+     "variable",
+     "coding",
+     "value labels",
+     "missing values",
+     "measurement level",
+     "Likert-type scale",
+     "data entry",
+     "data manipulation",
+     "SPSS output"
+    ]
+   },
+   {
+    "id": "x7q4pva3",
+    "title": "Week 12A: Cross-Tabulation and Chi-Square",
+    "guide": "Chapter 12: Cross-tabulation and hypothesis testing, sections 12.2-12.5 (cross-tabulation, chi-squared test, measures of association, the hypothesis testing framework)",
+    "outcomes": [
+     "explain why cross-tabulation reveals relationships between variables that separate frequency analyses cannot detect",
+     "construct two-variable and three-variable cross-tabulations, computing percentages in the correct direction",
+     "interpret chi-squared tests determining whether observed associations reflect genuine relationships versus sampling variation",
+     "select appropriate measures of association (phi coefficient, Cramer's V, lambda coefficient) based on table structure",
+     "formulate null and alternative hypotheses connecting to management decision problems",
+     "distinguish between statistical significance and practical significance when interpreting results"
+    ],
+    "topics": [
+     {
+      "id": "two-variable-cross-tabulation",
+      "title": "Two-variable cross-tabulation"
+     },
+     {
+      "id": "chi-squared-test-of-independence",
+      "title": "Chi-squared test of independence"
+     },
+     {
+      "id": "measuring-association-strength",
+      "title": "Measuring association strength"
+     },
+     {
+      "id": "three-variable-cross-tabulation-controlling-for",
+      "title": "Three-variable cross-tabulation controlling for confounding"
+     },
+     {
+      "id": "the-eight-step-hypothesis-testing-framework",
+      "title": "The eight-step hypothesis testing framework"
+     }
+    ],
+    "terms": [
+     "cross-tabulation",
+     "contingency table",
+     "frequency distribution",
+     "chi-squared statistic",
+     "expected frequency",
+     "degrees of freedom",
+     "test of independence",
+     "phi coefficient",
+     "Cramer's V",
+     "lambda coefficient",
+     "three-variable cross-tabulation",
+     "spurious relationship",
+     "suppressed association",
+     "refinement",
+     "null hypothesis",
+     "alternative hypothesis",
+     "significance level",
+     "p-value"
+    ]
+   },
+   {
+    "id": "ckiuk4bj",
+    "title": "Week 12B: Hypothesis Tests - t-Tests and Non-Parametric Tests",
+    "guide": "Chapter 12: Cross-tabulation and hypothesis testing, sections 12.6-12.10 (parametric tests, p-values, Type I and II errors, non-parametric alternatives)",
+    "outcomes": [
+     "conduct and interpret t tests for one sample, two independent samples, and paired samples",
+     "test a population proportion against a hypothesised value with a z test",
+     "interpret p-values correctly and avoid common misconceptions",
+     "evaluate Type I and Type II error trade-offs and determine appropriate significance levels",
+     "distinguish between statistical significance and practical significance when interpreting results",
+     "communicate statistical findings to non-technical stakeholders emphasising business implications"
+    ],
+    "topics": [
+     {
+      "id": "one-sample-tests",
+      "title": "One-sample tests"
+     },
+     {
+      "id": "two-independent-samples",
+      "title": "Two independent samples"
+     },
+     {
+      "id": "paired-samples-t-test",
+      "title": "Paired samples t test"
+     },
+     {
+      "id": "interpreting-statistical-significance",
+      "title": "Interpreting statistical significance"
+     },
+     {
+      "id": "type-i-and-type-ii-errors",
+      "title": "Type I and Type II errors"
+     },
+     {
+      "id": "non-parametric-alternatives-mann-whitney-u-wilco",
+      "title": "Non-parametric alternatives (Mann-Whitney U, Wilcoxon signed-rank, Kruskal-Wallis)"
+     },
+     {
+      "id": "practical-guidelines-for-business-applications-o",
+      "title": "Practical guidelines for business applications of hypothesis tests"
+     }
+    ],
+    "terms": [
+     "parametric test",
+     "one-sample t test",
+     "z test",
+     "independent samples t test",
+     "pooled variance",
+     "paired samples t test",
+     "degrees of freedom",
+     "p-value",
+     "statistical significance",
+     "practical significance",
+     "type I error",
+     "type II error",
+     "significance level",
+     "statistical power",
+     "non-parametric test",
+     "Mann-Whitney U test",
+     "Wilcoxon signed-rank test"
+    ]
+   },
+   {
+    "id": "kt85ep2u",
+    "title": "Week 13: Analysis of Variance and Covariance",
+    "guide": "Chapter 13: Analysis of variance and covariance",
+    "outcomes": [
+     "explain why ANOVA extends t tests to multiple-group comparisons and when ANOVA is appropriate versus alternative techniques",
+     "decompose total variation into between-group and within-group components and explain what each represents",
+     "conduct one-way ANOVA testing whether a single categorical factor affects a metric dependent variable",
+     "calculate and interpret effect size measures (eta-squared, omega-squared) distinguishing strength from significance",
+     "design and analyse factorial experiments, testing multiple factors and their interactions simultaneously",
+     "interpret interaction effects correctly, distinguishing ordinal from disordinal interactions",
+     "apply ANCOVA controlling for metric covariates when experimental control is incomplete",
+     "evaluate ANOVA assumptions and recognise when violations compromise validity"
+    ],
+    "topics": [
+     {
+      "id": "anova-s-place-among-techniques",
+      "title": "ANOVA's place among techniques"
+     },
+     {
+      "id": "one-way-anova",
+      "title": "One-way ANOVA"
+     },
+     {
+      "id": "the-f-statistic-msx-mserror-and-hypothesis-test",
+      "title": "The F statistic (MSx/MSerror) and hypothesis test of equal means"
+     },
+     {
+      "id": "measuring-effect-strength",
+      "title": "Measuring effect strength"
+     },
+     {
+      "id": "conducting-one-way-anova-and-reading-spss-output",
+      "title": "Conducting one-way ANOVA and reading SPSS output"
+     },
+     {
+      "id": "anova-assumptions-and-robustness",
+      "title": "ANOVA assumptions and robustness"
+     },
+     {
+      "id": "n-way-anova",
+      "title": "N-way ANOVA"
+     },
+     {
+      "id": "interpreting-interactions",
+      "title": "Interpreting interactions"
+     },
+     {
+      "id": "analysis-of-covariance-ancova-with-metric-covari",
+      "title": "Analysis of covariance (ANCOVA) with metric covariates; common ANOVA errors"
+     }
+    ],
+    "terms": [
+     "analysis of variance (ANOVA)",
+     "factor",
+     "treatment",
+     "one-way ANOVA",
+     "between-group variation",
+     "within-group variation",
+     "sum of squares",
+     "mean square",
+     "F statistic",
+     "eta-squared",
+     "omega-squared",
+     "homogeneity of variance",
+     "Levene's test",
+     "n-way ANOVA",
+     "main effect",
+     "interaction effect",
+     "ordinal interaction",
+     "disordinal interaction",
+     "analysis of covariance (ANCOVA)",
+     "covariate"
+    ]
+   },
+   {
+    "id": "9vabbw8f",
+    "title": "Week 14: Correlation and Regression",
+    "guide": "Chapter 14: Correlation and regression",
+    "outcomes": [
+     "calculate and interpret Pearson correlation coefficients, distinguishing correlation strength from statistical significance",
+     "apply partial correlation controlling for confounding variables that create spurious associations",
+     "conduct bivariate regression analysis estimating intercepts and slopes using ordinary least squares",
+     "evaluate regression model quality through coefficient of determination, standard error of estimate, and significance testing",
+     "extend bivariate regression to multiple regression and interpret partial and standardised regression coefficients",
+     "assess multicollinearity diagnosing when predictor intercorrelations invalidate coefficient interpretation",
+     "examine residual plots identifying assumption violations requiring remedial action",
+     "apply stepwise regression and dummy variables, and cross-validate regression models"
+    ],
+    "topics": [
+     {
+      "id": "product-moment-correlation",
+      "title": "Product moment correlation"
+     },
+     {
+      "id": "partial-correlation",
+      "title": "Partial correlation"
+     },
+     {
+      "id": "bivariate-regression",
+      "title": "Bivariate regression"
+     },
+     {
+      "id": "multiple-regression",
+      "title": "Multiple regression"
+     },
+     {
+      "id": "multiple-regression-evaluation-and-diagnostics",
+      "title": "Multiple regression evaluation and diagnostics"
+     },
+     {
+      "id": "regression-assumptions-and-residual-analysis",
+      "title": "Regression assumptions and residual analysis"
+     },
+     {
+      "id": "multicollinearity",
+      "title": "Multicollinearity"
+     },
+     {
+      "id": "stepwise-regression",
+      "title": "Stepwise regression"
+     },
+     {
+      "id": "model-validation-and-cross-validation-common-reg",
+      "title": "Model validation and cross-validation; common regression errors and communicating results"
+     }
+    ],
+    "terms": [
+     "product moment correlation",
+     "correlation coefficient",
+     "partial correlation",
+     "bivariate regression",
+     "least squares",
+     "intercept",
+     "slope",
+     "coefficient of determination (R-squared)",
+     "adjusted R-squared",
+     "standard error of estimate",
+     "multiple regression",
+     "partial regression coefficient",
+     "standardised coefficient (beta weight)",
+     "residual",
+     "multicollinearity",
+     "variance inflation factor (VIF)",
+     "stepwise regression",
+     "dummy variable",
+     "cross-validation"
+    ]
+   },
+   {
+    "id": "5qdhaxry",
+    "title": "Week 15: Discriminant Analysis",
+    "guide": "Chapter 15: Discriminant analysis",
+    "outcomes": [
+     "explain how discriminant analysis differs from regression and ANOVA despite mathematical similarities",
+     "distinguish two-group from multiple discriminant analysis and justify when each is appropriate",
+     "formulate discriminant problems specifying criterion variables, predictors, and validation samples",
+     "estimate discriminant function coefficients and calculate discriminant scores",
+     "interpret standardised coefficients and structure correlations determining predictor importance",
+     "test discriminant function significance using Wilks' Lambda",
+     "construct classification matrices calculating hit ratios and comparing against chance",
+     "apply stepwise discriminant analysis selecting optimal predictor subsets"
+    ],
+    "topics": [
+     {
+      "id": "discriminant-analysis-fundamentals",
+      "title": "Discriminant analysis fundamentals"
+     },
+     {
+      "id": "the-discriminant-function-model",
+      "title": "The discriminant function model"
+     },
+     {
+      "id": "conducting-discriminant-analysis",
+      "title": "Conducting discriminant analysis"
+     },
+     {
+      "id": "testing-significance-with-wilks-lambda-chi-squar",
+      "title": "Testing significance with Wilks' Lambda (chi-squared transformation)"
+     },
+     {
+      "id": "interpreting-predictor-importance",
+      "title": "Interpreting predictor importance"
+     },
+     {
+      "id": "validation-and-classification-accuracy",
+      "title": "Validation and classification accuracy"
+     },
+     {
+      "id": "multiple-discriminant-analysis",
+      "title": "Multiple discriminant analysis"
+     },
+     {
+      "id": "stepwise-discriminant-analysis-f-to-enter-and-cl",
+      "title": "Stepwise discriminant analysis (F-to-enter) and classification rules"
+     }
+    ],
+    "terms": [
+     "discriminant analysis",
+     "criterion variable",
+     "predictor variable",
+     "discriminant function",
+     "discriminant score",
+     "discriminant coefficient",
+     "standardised discriminant coefficient",
+     "structure correlation",
+     "group centroid",
+     "Wilks' Lambda",
+     "analysis sample",
+     "holdout sample",
+     "classification matrix",
+     "hit ratio",
+     "chance classification",
+     "multiple discriminant analysis",
+     "stepwise discriminant analysis",
+     "eigenvalue"
+    ]
+   },
+   {
+    "id": "2y7zwb2t",
+    "title": "Week 16: Logit Analysis",
+    "guide": "Chapter 16: Logistic regression analysis",
+    "outcomes": [
+     "explain why logistic regression is required for binary outcomes when linear regression produces invalid predictions outside [0, 1]",
+     "distinguish between logistic regression and discriminant analysis, justifying when each is appropriate",
+     "interpret logistic regression coefficients as log-odds ratios and exponentiate to obtain odds ratios",
+     "evaluate model fit through pseudo-R2 measures, likelihood ratio tests, and classification accuracy",
+     "test coefficient significance using Wald statistics",
+     "select classification thresholds systematically accounting for misclassification costs and base rates",
+     "apply ROC curve analysis evaluating classification performance across threshold ranges"
+    ],
+    "topics": [
+     {
+      "id": "why-logistic-regression",
+      "title": "Why logistic regression"
+     },
+     {
+      "id": "the-logistic-regression-logit-model",
+      "title": "The logistic regression (logit) model"
+     },
+     {
+      "id": "interpreting-coefficients",
+      "title": "Interpreting coefficients"
+     },
+     {
+      "id": "maximum-likelihood-estimation-and-model-fit",
+      "title": "Maximum likelihood estimation and model fit"
+     },
+     {
+      "id": "wald-statistics-for-individual-coefficients-like",
+      "title": "Wald statistics for individual coefficients; likelihood ratio tests comparing models"
+     },
+     {
+      "id": "classification-thresholds-why-0-50-fails-and-roc",
+      "title": "Classification thresholds (why 0.50 fails) and ROC curves"
+     },
+     {
+      "id": "ethical-obligations-in-predictive-classification",
+      "title": "Ethical obligations in predictive classification"
+     }
+    ],
+    "terms": [
+     "logistic regression",
+     "logit",
+     "binary dependent variable",
+     "probability",
+     "odds",
+     "log-odds",
+     "odds ratio",
+     "maximum likelihood estimation",
+     "log-likelihood",
+     "pseudo-R2",
+     "McFadden's R2",
+     "Nagelkerke R2",
+     "Wald statistic",
+     "likelihood ratio test",
+     "classification threshold",
+     "classification accuracy",
+     "ROC curve",
+     "area under the curve (AUC)"
+    ]
+   },
+   {
+    "id": "23rbi6pt",
+    "title": "Week 17: Factor Analysis",
+    "guide": "Chapter 17: Factor analysis",
+    "outcomes": [
+     "explain how factor analysis differs fundamentally from regression, ANOVA, and discriminant analysis",
+     "evaluate whether factor analysis is appropriate using KMO statistics and Bartlett's sphericity tests",
+     "distinguish between principal components analysis and common factor analysis",
+     "determine the number of factors using eigenvalue criteria, scree plots, and validation methods",
+     "interpret rotated factor matrices correctly, identifying which variables define each factor",
+     "calculate and interpret communalities assessing variable representation quality",
+     "compute factor scores or select surrogate variables for subsequent analyses",
+     "assess factor solution quality through residual analysis and cross-validation"
+    ],
+    "topics": [
+     {
+      "id": "understanding-factor-analysis-as-an-interdepende",
+      "title": "Understanding factor analysis as an interdependence technique for data reduction"
+     },
+     {
+      "id": "when-factor-analysis-is-appropriate",
+      "title": "When factor analysis is appropriate"
+     },
+     {
+      "id": "the-factor-analysis-model",
+      "title": "The factor analysis model"
+     },
+     {
+      "id": "principal-components-analysis-vs-common-factor-a",
+      "title": "Principal components analysis vs common factor analysis"
+     },
+     {
+      "id": "determining-the-number-of-factors",
+      "title": "Determining the number of factors"
+     },
+     {
+      "id": "factor-rotation",
+      "title": "Factor rotation"
+     },
+     {
+      "id": "communalities",
+      "title": "Communalities"
+     },
+     {
+      "id": "factor-scores-vs-surrogate-variables",
+      "title": "Factor scores vs surrogate variables"
+     },
+     {
+      "id": "assessing-solution-quality",
+      "title": "Assessing solution quality"
+     }
+    ],
+    "terms": [
+     "factor analysis",
+     "interdependence technique",
+     "correlation matrix",
+     "Kaiser-Meyer-Olkin (KMO) measure",
+     "Bartlett's test of sphericity",
+     "principal components analysis",
+     "common factor analysis",
+     "factor loading",
+     "eigenvalue",
+     "scree plot",
+     "percentage of variance",
+     "factor rotation",
+     "varimax",
+     "oblique rotation",
+     "factor matrix",
+     "communality",
+     "factor scores",
+     "surrogate variable",
+     "residuals"
+    ]
+   },
+   {
+    "id": "4p83xuqq",
+    "title": "Week 18: Cluster Analysis",
+    "guide": "Chapter 18: Cluster analysis",
+    "outcomes": [
+     "explain how cluster analysis discovers groups when membership is unknown versus discriminant analysis which requires known groups",
+     "distinguish between hierarchical and nonhierarchical clustering approaches and justify when each is appropriate",
+     "calculate Euclidean distances and select appropriate distance measures matching variable measurement levels",
+     "evaluate cluster solutions using dendrograms, agglomeration schedules, and within-cluster variance criteria",
+     "interpret cluster centroids profiling segments through means on clustering variables",
+     "validate cluster stability through split-sample analysis and multiple method comparison",
+     "determine optimal cluster numbers balancing parsimony against meaningful differentiation",
+     "recognise when standardisation is required preventing scale-dependent clustering artifacts"
+    ],
+    "topics": [
+     {
+      "id": "cluster-analysis-in-market-segmentation-selectin",
+      "title": "Cluster analysis in market segmentation; selecting clustering variables"
+     },
+     {
+      "id": "distance-measures",
+      "title": "Distance measures"
+     },
+     {
+      "id": "hierarchical-clustering-with-ward-s-method",
+      "title": "Hierarchical clustering with Ward's method"
+     },
+     {
+      "id": "determining-the-number-of-clusters",
+      "title": "Determining the number of clusters"
+     },
+     {
+      "id": "k-means-nonhierarchical-clustering-with-seeds-an",
+      "title": "K-means (nonhierarchical) clustering with seeds, and two-stage (Ward then k-means) approaches"
+     },
+     {
+      "id": "cluster-validation",
+      "title": "Cluster validation"
+     },
+     {
+      "id": "interpreting-and-profiling-clusters-through-cent",
+      "title": "Interpreting and profiling clusters through centroids; common clustering errors"
+     }
+    ],
+    "terms": [
+     "cluster analysis",
+     "market segmentation",
+     "clustering variables",
+     "Euclidean distance",
+     "squared Euclidean distance",
+     "standardisation",
+     "hierarchical clustering",
+     "agglomerative clustering",
+     "Ward's method",
+     "agglomeration schedule",
+     "dendrogram",
+     "nonhierarchical clustering",
+     "k-means",
+     "cluster seed",
+     "cluster centroid",
+     "two-stage clustering",
+     "split-half validation",
+     "cluster profiling"
+    ]
+   },
+   {
+    "id": "txfmdzm4",
+    "title": "Week 19: Conjoint Analysis",
+    "guide": "Chapter 19: Conjoint analysis",
+    "outcomes": [
+     "explain how conjoint analysis decomposes overall preference into attribute-level utilities",
+     "design conjoint analysis studies selecting attributes and levels that capture realistic purchase decisions",
+     "distinguish compensatory attributes suitable for conjoint analysis from non-compensatory screening criteria that should be excluded",
+     "estimate part-worth utilities using dummy variable regression and interpret coefficients correctly",
+     "calculate relative importance weights determining which attributes drive choice most strongly",
+     "recognise when hybrid conjoint analysis is required, managing large attribute sets without overwhelming respondents",
+     "communicate conjoint findings to non-technical stakeholders, emphasising product design and pricing implications"
+    ],
+    "topics": [
+     {
+      "id": "conjoint-analysis",
+      "title": "Conjoint analysis"
+     },
+     {
+      "id": "conducting-conjoint-analysis",
+      "title": "Conducting conjoint analysis"
+     },
+     {
+      "id": "formulating-the-problem",
+      "title": "Formulating the problem"
+     },
+     {
+      "id": "estimating-part-worth-utilities-by-dummy-variabl",
+      "title": "Estimating part-worth utilities by dummy variable regression"
+     },
+     {
+      "id": "relative-importance-of-attributes-from-the-range",
+      "title": "Relative importance of attributes from the range of part-worths"
+     },
+     {
+      "id": "validating-conjoint-solutions",
+      "title": "Validating conjoint solutions"
+     },
+     {
+      "id": "common-conjoint-analysis-errors",
+      "title": "Common conjoint analysis errors"
+     }
+    ],
+    "terms": [
+     "conjoint analysis",
+     "attribute",
+     "attribute level",
+     "utility",
+     "part-worth",
+     "relative importance weight",
+     "compensatory model",
+     "full-profile approach",
+     "pairwise approach",
+     "stimuli",
+     "ratings",
+     "rankings",
+     "dummy variable regression",
+     "fractional factorial design",
+     "holdout validation",
+     "hybrid conjoint analysis"
+    ]
+   },
+   {
+    "id": "j25ejk6p",
+    "title": "Week 20: Multidimensional Scaling",
+    "guide": "Chapter 20: Multidimensional scaling",
+    "outcomes": [
+     "explain how multidimensional scaling reveals perceptual structures that separate attribute analyses cannot detect",
+     "distinguish between metric and nonmetric MDS procedures and justify when each is appropriate",
+     "select between direct similarity judgments and derived attribute-based approaches for obtaining input data",
+     "interpret stress values and R2 statistics assessing whether spatial maps represent data adequately",
+     "determine appropriate dimensionality for a spatial solution, balancing statistical fit against interpretability",
+     "construct and label perceptual maps positioning brands on the psychological dimensions consumers use for evaluation",
+     "distinguish internal from external analysis of preference data and explain when each is appropriate"
+    ],
+    "topics": [
+     {
+      "id": "revealing-the-structure-of-perceptions",
+      "title": "Revealing the structure of perceptions"
+     },
+     {
+      "id": "obtaining-input-data",
+      "title": "Obtaining input data"
+     },
+     {
+      "id": "conducting-mds",
+      "title": "Conducting MDS"
+     },
+     {
+      "id": "determining-dimensionality",
+      "title": "Determining dimensionality"
+     },
+     {
+      "id": "interpreting-and-labelling-dimensions",
+      "title": "Interpreting and labelling dimensions"
+     },
+     {
+      "id": "assessing-reliability-and-validity-of-mds-soluti",
+      "title": "Assessing reliability and validity of MDS solutions"
+     }
+    ],
+    "terms": [
+     "multidimensional scaling (MDS)",
+     "perceptual map",
+     "spatial map",
+     "psychological dimensions",
+     "similarity judgement",
+     "direct approach",
+     "derived approach",
+     "metric MDS",
+     "nonmetric MDS",
+     "stress",
+     "R-squared",
+     "dimensionality",
+     "elbow criterion",
+     "ideal point",
+     "internal analysis of preferences",
+     "external analysis of preferences",
+     "positioning"
+    ]
+   }
+  ],
+  "unmatched": [
+   {
+    "id": "grtcetjm",
+    "title": "Full course: Marketing Research and Analysis lectures (NPTEL)",
+    "why": "Whole-course playlist; no single guide chapter"
+   }
+  ]
  }
 ]
