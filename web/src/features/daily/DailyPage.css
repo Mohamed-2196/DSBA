@@ -333,10 +333,14 @@
   background: color-mix(in srgb, #f2b33d 28%, var(--surface));
   color: var(--ink);
 }
-.dh-state.is-won,
-.dh-state.is-lost {
+.dh-state.is-won {
   background: var(--success-soft);
   color: var(--success);
+}
+/* Not solved: finished, but no tick and no green. */
+.dh-state.is-lost {
+  background: var(--surface-2);
+  color: var(--ink-2);
 }
 .dh-state__icon {
   width: 14px;

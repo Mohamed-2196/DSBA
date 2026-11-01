@@ -44,7 +44,14 @@ function describe(play: Play, won: boolean): Omit<Result, 'held'> {
         ? { headline: praise(n), summary: `Solved in ${plural(n, 'guess', 'guesses')}`, answer: null }
         : {
             headline: 'Not this time',
-            summary: view.answer ? 'The word was' : 'Out of guesses',
+            // Lost with guesses to spare: the player gave up.
+            summary: view.answer
+              ? 'The word was'
+              : n === 0
+                ? 'Gave up'
+                : n < view.maxGuesses
+                  ? `Gave up after ${plural(n, 'guess', 'guesses')}`
+                  : 'Out of guesses',
             answer: view.answer ?? null,
           };
     }

@@ -353,3 +353,31 @@
 .dy-colours__use {
   color: var(--ink-2);
 }
+
+/* DSBA Daily's moves, shared by the Daily's screens (each uses them only without reduced motion). */
+@keyframes dd-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+@keyframes dd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes dd-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.06);
+  }
+}
+@keyframes dd-grow {
+  from {
+    transform: scaleX(0);
+  }
+}

@@ -425,3 +425,24 @@
     transform: none;
   }
 }
+
+/* ── Motion, as DSBA Daily moves (none with reduced motion) ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  /* The rules and the result rise from below on a soft spring. */
+  .ui-modal:not([data-state='closing']) .ui-modal__panel.dy {
+    animation: dd-sheet-in 480ms cubic-bezier(0.22, 1.2, 0.36, 1);
+  }
+  /* The rules' examples come in one after another. */
+  .dg-rules__example > * {
+    animation: dd-rise 240ms var(--ease) both;
+  }
+  .dg-rules__example > :nth-child(2) {
+    animation-delay: 100ms;
+  }
+  .dg-rules__example > :nth-child(3) {
+    animation-delay: 200ms;
+  }
+  .dg-rules__example > :nth-child(4) {
+    animation-delay: 300ms;
+  }
+}

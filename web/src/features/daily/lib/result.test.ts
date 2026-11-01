@@ -52,7 +52,12 @@ describe('resultOf', () => {
     } as unknown as Play;
     expect(resultOf(play).answer).toBe('TABLE');
     const held = resultOf({ ...play, view: { ...play.view, answer: null } } as unknown as Play, true);
-    expect([held.answer, held.held, held.summary]).toEqual([null, true, 'Out of guesses']);
+    expect([held.answer, held.held, held.summary]).toEqual([null, true, 'Gave up']);
+    const row = { word: 'RANGE', marks: ['near', 'miss', 'near', 'miss', 'near'] };
+    const used = { ...play, view: { ...play.view, answer: null, rows: Array(6).fill(row) } } as unknown as Play;
+    expect(resultOf(used, true).summary).toBe('Out of guesses');
+    const gaveUp = { ...play, view: { ...play.view, answer: null, rows: [row] } } as unknown as Play;
+    expect(resultOf(gaveUp, true).summary).toBe('Gave up after 1 guess');
     expect(HELD).toMatch(/^Sign in to see the answer/);
   });
 
