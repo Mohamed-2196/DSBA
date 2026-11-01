@@ -74,8 +74,8 @@ def _plays(db: Session, day: dt.date, game: str) -> tuple[int, int]:
 
 
 def _in_order(puzzle: Any, items: Sequence[DailyItem]) -> list[DailyItem]:
-    """The items a day's puzzle took, in the order the puzzle shows them: groups by level, the word search's words
-    alphabetical, the quiz's questions as it asks them."""
+    """The items a day's puzzle took, in the order the puzzle shows them: groups by level, the quiz's questions as it
+    asks them, else by key."""
     preview = editor.preview_of(puzzle)
 
     def place(item: DailyItem) -> tuple[int, str]:
@@ -297,9 +297,15 @@ def describe(before: PreviewPuzzle, after: PreviewPuzzle) -> list[str]:
                 f"{b} replaces {a} in “{new.label}”." for a, b in zip(old.words, new.words, strict=True) if a != b
             ]
     elif isinstance(before, PreviewSearch) and isinstance(after, PreviewSearch):
+        if before.clue != after.clue:
+            lines.append(f"The clue is “{after.clue}”, not “{before.clue}”.")
+        if before.title != after.title:
+            lines.append(f"The theme shown at the end is “{after.title}”, not “{before.title}”.")
+        if before.spangram != after.spangram:
+            lines.append(f"The spangram is {after.spangram}, not {before.spangram}.")
         gone = [w for w in before.words if w not in after.words]
         came = [w for w in after.words if w not in before.words]
-        lines += [f"{b} replaces {a} in the word list." for a, b in zip(gone, came, strict=False)]
+        lines += [f"{b} replaces {a} in the theme words." for a, b in zip(gone, came, strict=False)]
         if before.grid != after.grid:
             lines.append("The grid is laid out again, so the words sit in new places.")
     elif isinstance(before, PreviewQuiz) and isinstance(after, PreviewQuiz):

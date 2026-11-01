@@ -1,266 +1,395 @@
-"""Word search: eight words from the week's theme hidden in a 10 by 10 grid, in any of eight directions. A find is a
-straight line from a word's first letter to its last; the server reads the letters on that line."""
+"""Data Mine, as DSBA Daily plays it: the theme's words fill a 6 by 8 grid of letters exactly, each letter used by one
+word, each word a chain of letters that touch (diagonals too). The player traces them. One of them, the spangram,
+names the theme and runs from one side of the grid to the other. Any other real word of four letters or more is a
+find of its own: three of them earn a hint, which outlines the letters of a theme word not found yet.
+
+An item is one puzzle: a clue, the theme's name shown at the end, the spangram and the other words, 48 letters in all,
+and their grid. The grid is laid out once, when the item is saved (layout(), which takes up to a few seconds), or comes
+ready-made in a content file and is checked (laid_out()); no two paths cross diagonally, so the board stays readable."""
 
 from __future__ import annotations
 
 import datetime as dt
+import gzip
 import random
-import string
+from collections.abc import Sequence
 from dataclasses import dataclass, field
+from functools import cache
+from itertools import pairwise
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.core.errors import conflict
-from app.schemas.daily import Cell, FindMove, HintMove, Mark, Move, Picture, SearchFound, SearchView
+from app.schemas.daily import Cell, HintMove, Mark, Move, Picture, SearchFound, SearchView, TraceMove
+from app.seed.loader import DAILY
 from app.services.daily import content
-from app.services.daily.content import CantFixError, Entry, NotReadyError, Uses
+from app.services.daily.content import Entry, Uses
 from app.services.daily.games.base import ContentGame, Status, bad_move, rows_of
 
-SIZE = 10
-WORDS = 8
-MIN_LETTERS, MAX_LETTERS = 4, SIZE  # a word's length
-MAX_HIDDEN = 60  # letters in the day's eight words together, so they fit the grid with room to spare
-CHOICES = 20_000  # the most words choose() weighs for a day before it calls the theme not ready
+ROWS, COLS = 8, 6
+LETTERS = ROWS * COLS  # a puzzle's words, the spangram with them, fill the grid exactly
+MIN_LETTERS, MAX_LETTERS = 4, 12  # a word's length
+WORDS = (3, 9)  # theme words besides the spangram
+PER_HINT = 3  # other words a hint takes
 HINT_COST = 10
-MISS_FREE = 3  # misses that cost nothing
-MISS_COST = 2
-FLOOR = 30
-DIRECTIONS = ((0, 1), (1, 0), (1, 1), (-1, 1), (0, -1), (-1, 0), (-1, -1), (1, -1))
+FLOOR = 40  # points for a finished grid, however many hints
+ATTEMPTS = 400  # fresh starts generate() makes before it gives up
+STEPS = 20_000  # moves one start may take
+
+Spot = tuple[int, int]
+Path = tuple[Spot, ...]
 
 
-@dataclass(frozen=True)
-class Placed:
-    word: str
-    start: tuple[int, int]
-    end: tuple[int, int]
+@cache
+def dictionary() -> frozenset[str]:
+    """English words of 4 to 12 letters (seed/data/daily/dictionary.txt.gz, from the MIT-licensed `word-list`): what
+    counts as a word that isn't the theme's."""
+    with gzip.open(DAILY / "dictionary.txt.gz", "rt", encoding="utf-8") as f:
+        return frozenset(f.read().split())
+
+
+# ── The grid ───────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+def _in(r: int, c: int) -> bool:
+    return 0 <= r < ROWS and 0 <= c < COLS
+
+
+def _touch(a: Spot, b: Spot) -> bool:
+    return a != b and abs(a[0] - b[0]) <= 1 and abs(a[1] - b[1]) <= 1
+
+
+def is_path(cells: Sequence[Spot]) -> bool:
+    """In the grid, each letter touching the one before, none used twice."""
+    if not cells or len(set(cells)) != len(cells) or not all(_in(r, c) for r, c in cells):
+        return False
+    return all(_touch(cells[i - 1], cells[i]) for i in range(1, len(cells)))
+
+
+def spans(cells: Sequence[Spot]) -> bool:
+    """Whether a path touches two opposite sides: left and right, or top and bottom."""
+    cols = {c for _, c in cells}
+    rows = {r for r, _ in cells}
+    return (0 in cols and COLS - 1 in cols) or (0 in rows and ROWS - 1 in rows)
+
+
+def _cross(a: int, b: int) -> tuple[int, int] | None:
+    """For a diagonal step between cells `a` and `b` (numbered row by row): its key and the key of the step that would
+    cross it in the same square of four cells. None for a straight step."""
+    ra, ca = divmod(a, COLS)
+    rb, cb = divmod(b, COLS)
+    if ra == rb or ca == cb:
+        return None
+    square = min(ra, rb) * COLS + min(ca, cb)
+    down = (ra - rb) * (ca - cb) > 0
+    return square * 2 + down, square * 2 + (not down)
+
+
+# Each cell's neighbours, cells numbered row by row.
+_NEAR = tuple(
+    tuple((r + dr) * COLS + (c + dc) for dr in (-1, 0, 1) for dc in (-1, 0, 1) if (dr or dc) and _in(r + dr, c + dc))
+    for r in range(ROWS)
+    for c in range(COLS)
+)
+
+
+def generate(spangram: str, words: Sequence[str], r: random.Random) -> tuple[list[str], dict[str, Path]] | None:
+    """Lays the spangram and the words out so they fill the grid exactly with no paths crossing: the grid's rows and
+    each word's path, or None when no layout turned up (or a word comes twice). The spangram goes first, from an
+    edge."""
+    order = [spangram, *sorted(words, key=len, reverse=True)]
+    if sum(map(len, order)) != LETTERS or len(set(order)) != len(order):
+        return None
+    for _ in range(ATTEMPTS):
+        made = _attempt(order, r)
+        if made is not None:
+            grid = [["?"] * COLS for _ in range(ROWS)]
+            for word, path in made.items():
+                for (row, col), letter in zip(path, word, strict=True):
+                    grid[row][col] = letter
+            return ["".join(row) for row in grid], made
+    return None
+
+
+def _attempt(order: list[str], r: random.Random) -> dict[str, Path] | None:
+    """One try at a layout, word by word, backing up when a word can't go on or would leave the rest no room."""
+    owner = [-1] * LETTERS
+    paths: list[list[int]] = []
+    crossed: set[int] = set()
+    steps = STEPS
+
+    def fillable(remaining: list[int]) -> bool:
+        """Every empty region can be filled exactly by some of the words left."""
+        sums = {0}
+        for length in remaining:
+            sums |= {s + length for s in sums}
+        seen = [False] * LETTERS
+        for cell in range(LETTERS):
+            if owner[cell] != -1 or seen[cell]:
+                continue
+            size, stack = 0, [cell]
+            seen[cell] = True
+            while stack:
+                at = stack.pop()
+                size += 1
+                for n in _NEAR[at]:
+                    if owner[n] == -1 and not seen[n]:
+                        seen[n] = True
+                        stack.append(n)
+            if size not in sums:
+                return False
+        return True
+
+    def free_count(cell: int) -> int:
+        return sum(owner[n] == -1 for n in _NEAR[cell])
+
+    def place(i: int) -> bool:
+        if i == len(order):
+            return True
+        word = order[i]
+        remaining = [len(w) for w in order[i + 1 :]]
+        empty = [cell for cell in range(LETTERS) if owner[cell] == -1]
+        if i == 0:  # the spangram starts on an edge it can cross the grid from
+            starts = [cell for cell in empty if cell % COLS == 0 or (len(word) >= ROWS and cell < COLS)]
+            r.shuffle(starts)
+            starts = starts[:8]
+        else:  # the tightest corners first: they are the hardest to fill later
+            starts = sorted(empty, key=free_count)[:6]
+            r.shuffle(starts)
+        for start in starts:
+            path = [start]
+            owner[start] = i
+            if extend(i, word, path, remaining):
+                return True
+            owner[start] = -1
+            if steps <= 0:
+                return False
+        return False
+
+    def extend(i: int, word: str, path: list[int], remaining: list[int]) -> bool:
+        nonlocal steps
+        steps -= 1
+        if steps <= 0:
+            return False
+        if len(path) == len(word):
+            if (i == 0 and not spans([divmod(c, COLS) for c in path])) or not fillable(remaining):
+                return False
+            paths.append(list(path))
+            if place(i + 1):
+                return True
+            paths.pop()
+            return False
+        last = path[-1]
+        options = [n for n in _NEAR[last] if owner[n] == -1]
+        r.shuffle(options)
+        for n in options:
+            cross = _cross(last, n)
+            if cross is not None and cross[1] in crossed:
+                continue
+            owner[n] = i
+            path.append(n)
+            if cross is not None:
+                crossed.add(cross[0])
+            if extend(i, word, path, remaining):
+                return True
+            if cross is not None:
+                crossed.discard(cross[0])
+            path.pop()
+            owner[n] = -1
+        return False
+
+    if not place(0):
+        return None
+    return {w: tuple(divmod(c, COLS) for c in p) for w, p in zip(order, paths, strict=True)}
+
+
+def layout(spangram: str, words: Sequence[str]) -> tuple[list[str], dict[str, Path]] | None:
+    """The grid an item is saved with (the same words always give the same grid), or None when the words don't make
+    one."""
+    return generate(spangram, words, random.Random(spangram))  # noqa: S311 - repeatable, not secret
+
+
+def laid_out(spangram: str, words: Sequence[str], grid: Sequence[str], paths: dict[str, Path]) -> bool:
+    """Whether a grid made elsewhere (a content file's) is a fair one for these words: every word's path spells it, the
+    paths share no letter and fill the grid, the spangram crosses it, and no two paths cross diagonally."""
+    if len(grid) != ROWS or any(len(row) != COLS or not row.isascii() or not row.isupper() for row in grid):
+        return False
+    every = [spangram, *words]
+    if sorted(paths) != sorted(every):
+        return False
+    used: set[Spot] = set()
+    crossed: set[int] = set()
+    for word in every:
+        path = paths[word]
+        if not is_path(path) or "".join(grid[r][c] for r, c in path) != word or used & set(path):
+            return False
+        used |= set(path)
+        for a, b in pairwise(path):
+            cross = _cross(a[0] * COLS + a[1], b[0] * COLS + b[1])
+            if cross is not None:
+                if cross[1] in crossed:
+                    return False
+                crossed.add(cross[0])
+    return len(used) == LETTERS and spans(paths[spangram])
+
+
+# ── The game ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
 
 @dataclass(frozen=True)
 class Puzzle:
+    clue: str
+    title: str  # the theme's name, shown once the play is over
+    spangram: str
+    words: tuple[str, ...]  # the theme's words besides the spangram
     grid: tuple[str, ...]
-    placed: tuple[Placed, ...]  # alphabetical
+    paths: dict[str, Path]  # every theme word's letters, the spangram's too, in spelling order
 
-    def word_at(self, start: Cell, end: Cell) -> str | None:
-        """The letters on the straight line from `start` to `end`, or None when it isn't one."""
-        dr, dc = end.row - start.row, end.col - start.col
-        if (dr and dc and abs(dr) != abs(dc)) or (dr == 0 and dc == 0):
-            return None
-        steps = max(abs(dr), abs(dc))
-        sr, sc = (dr > 0) - (dr < 0), (dc > 0) - (dc < 0)
-        cells = [(start.row + sr * i, start.col + sc * i) for i in range(steps + 1)]
-        if any(not (0 <= r < SIZE and 0 <= c < SIZE) for r, c in cells):
-            return None
-        return "".join(self.grid[r][c] for r, c in cells)
+    @property
+    def all_words(self) -> tuple[str, ...]:
+        return (*self.words, self.spangram)
 
 
 @dataclass
 class SearchState:
-    found: list[SearchFound] = field(default_factory=list)
-    hints: list[Cell] = field(default_factory=list)
-    misses: int = 0
+    found: list[str] = field(default_factory=list)  # theme words, in the order found
+    others: list[str] = field(default_factory=list)  # real words that aren't the theme's
+    hints: int = 0
+    hinted: str | None = None  # the theme word a hint outlines, until it's found
     gave_up: bool = False
 
 
-def _place(r: random.Random, words: list[str]) -> tuple[list[list[str]], list[Placed]] | None:
-    grid = [[""] * SIZE for _ in range(SIZE)]
-    placed: list[Placed] = []
-    for word in sorted(words, key=len, reverse=True):
-        spots = [
-            (row, col, d)
-            for row in range(SIZE)
-            for col in range(SIZE)
-            for d in DIRECTIONS
-            if 0 <= row + d[0] * (len(word) - 1) < SIZE and 0 <= col + d[1] * (len(word) - 1) < SIZE
-        ]
-        r.shuffle(spots)
-        for row, col, (dr, dc) in spots:
-            cells = [(row + dr * i, col + dc * i) for i in range(len(word))]
-            if all(grid[a][b] in ("", word[i]) for i, (a, b) in enumerate(cells)):
-                for i, (a, b) in enumerate(cells):
-                    grid[a][b] = word[i]
-                placed.append(Placed(word, cells[0], cells[-1]))
-                break
-        else:
-            return None
-    return grid, placed
+def _cells(path: Path) -> list[Cell]:
+    return [Cell(row=r, col=c) for r, c in path]
 
 
-def _fits(chosen: list[Entry], entry: Entry) -> bool:
-    """No word inside another (a find of one would read as the other), and room in the grid."""
-    word = entry.data["word"]
-    others = [c.data["word"] for c in chosen]
-    return all(word not in o and o not in word for o in others) and len(word) + sum(map(len, others)) <= MAX_HIDDEN
-
-
-def _can_finish(chosen: list[Entry], rest: list[Entry]) -> bool:
-    """Whether the words left could still fill the day's places: enough of them fit with those chosen, and the
-    shortest of them leave room in the grid."""
-    need = WORDS - len(chosen)
-    lengths = sorted(len(e.data["word"]) for e in rest if _fits(chosen, e))
-    letters = sum(len(e.data["word"]) for e in chosen)
-    return len(lengths) >= need and letters + sum(lengths[:need]) <= MAX_HIDDEN
-
-
-def _cell(at: tuple[int, int]) -> Cell:
-    return Cell(row=at[0], col=at[1])
+def _next_hint(puzzle: Puzzle, state: SearchState) -> str | None:
+    """The theme word a hint outlines: one not found yet, the spangram last."""
+    left = [w for w in puzzle.all_words if w not in state.found]
+    return next((w for w in left if w != puzzle.spangram), left[0] if left else None)
 
 
 class SearchGame(ContentGame[Puzzle, SearchState]):
     id = "search"
     title = "Data Mine"
-    tagline = "Find eight of the week's words hidden in the grid."
+    tagline = "Trace the week's hidden words through the grid."
     how_to = (
-        "Words run in any direction: across, down, diagonally, and backwards.",
-        "Drag from a word's first letter to its last, or tap the first letter and then the last.",
-        "A hint shows where a word starts.",
+        "The clue hints at the theme. Its words fill the grid: every letter belongs to one of them.",
+        "Drag through letters that touch, diagonals too, or tap them one by one and tap the last again.",
+        "One word, the spangram, names the theme and runs from one side of the grid to the other.",
+        f"Any other word of {MIN_LETTERS} letters or more counts too: every {PER_HINT} earn a hint.",
     )
-    scoring = (
-        f"100 points, less {HINT_COST} a hint and {MISS_COST} a wrong line after the first {MISS_FREE}. "
-        f"At least {FLOOR} when every word is found."
-    )
+    scoring = f"100 points, less {HINT_COST} a hint. At least {FLOOR} when every word is found."
     max_points = 100
-    moves = frozenset({"find", "hint", "give-up"})
-    max_moves = 200
+    moves = frozenset({"trace", "hint", "give-up"})
+    max_moves = 300
 
     def choose(self, pool: list[Entry], used: Uses, day: dt.date, seed: bytes) -> list[Entry]:
-        """Eight words that fit together, in the order content.ranked() gives: a word is taken only when the words
-        after it can still fill the places left, and a choice that leads nowhere is undone. So a day finds eight
-        whenever the theme has eight that fit, whatever the order, and the readiness check can ask any order."""
-        ranked = content.ranked(pool, used, day, self.id, seed)
-        weighed = 0
-
-        def pick(chosen: list[Entry], start: int) -> list[Entry] | None:
-            nonlocal weighed
-            if len(chosen) == WORDS:
-                return chosen
-            for at in range(start, len(ranked)):
-                entry = ranked[at]
-                weighed += 1
-                if weighed > CHOICES:
-                    raise NotReadyError("search: too many ways to weigh")
-                taken = [*chosen, entry]
-                if _fits(chosen, entry) and _can_finish(taken, ranked[at + 1 :]):
-                    found = pick(taken, at + 1)
-                    if found is not None:
-                        return found
-            return None
-
-        found = pick([], 0)
-        if found is None:
-            raise NotReadyError(f"search: the theme's words can't give {WORDS} that fit together")
-        return found
+        return content.spread(pool, used, day, 1, self.id, seed)
 
     def build(self, db: Session, day: dt.date, chosen: list[Entry], seed: bytes) -> Puzzle:
-        r = content.rng(seed, self.id, day, "grid")
-        words = [str(e.data["word"]) for e in chosen]
-        for _ in range(50):
-            made = _place(r, words)
-            if made is not None:
-                break
-        else:  # pragma: no cover - eight words of at most 60 letters fit a 10 by 10 grid in a few tries
-            raise NotReadyError("word search: no grid")
-        grid, placed = made
-        letters = string.ascii_uppercase
-        rows = tuple("".join(ch or r.choice(letters) for ch in row) for row in grid)
-        return Puzzle(rows, tuple(sorted(placed, key=lambda p: p.word)))
-
-    def rebuild(
-        self, db: Session, day: dt.date, puzzle: Puzzle, before: list[Entry], after: list[Entry], seed: bytes
-    ) -> Puzzle:
-        """The grid stays while the words do; a word fixed lays the grid out again."""
-        words = sorted(str(e.data["word"]) for e in after)
-        if words == sorted(p.word for p in puzzle.placed):
-            return puzzle
-        for e in after:
-            word = str(e.data["word"])
-            inside = next((w for w in words if w != word and word in w), None)
-            if inside is not None:
-                raise CantFixError(
-                    "data.word",
-                    f"“{word}” is inside “{inside}”, another of today's words: a find of one would read as both.",
-                )
-        letters = sum(map(len, words))
-        if letters > MAX_HIDDEN:
-            raise CantFixError(
-                "data.word", f"Today's eight words would come to {letters} letters, and the grid takes {MAX_HIDDEN}."
-            )
-        return self.build(db, day, sorted(after, key=lambda e: str(e.data["word"])), seed)
+        """The item's own grid, laid out when it was saved (rules.py), so making the day's puzzle takes no time."""
+        return self.load(db, chosen[0].data)
 
     def dump(self, puzzle: Puzzle) -> dict[str, Any]:
-        placed = [{"word": p.word, "start": list(p.start), "end": list(p.end)} for p in puzzle.placed]
-        return {"grid": list(puzzle.grid), "placed": placed}
+        return {
+            "clue": puzzle.clue,
+            "title": puzzle.title,
+            "spangram": puzzle.spangram,
+            "words": list(puzzle.words),
+            "grid": list(puzzle.grid),
+            "paths": {w: [list(at) for at in p] for w, p in puzzle.paths.items()},
+        }
 
     def load(self, db: Session, data: dict[str, Any]) -> Puzzle:
-        placed = (Placed(p["word"], (p["start"][0], p["start"][1]), (p["end"][0], p["end"][1])) for p in data["placed"])
-        return Puzzle(tuple(data["grid"]), tuple(placed))
+        paths = {w: tuple((at[0], at[1]) for at in p) for w, p in data["paths"].items()}
+        return Puzzle(data["clue"], data["title"], data["spangram"], tuple(data["words"]), tuple(data["grid"]), paths)
 
     def start(self, puzzle: Puzzle) -> SearchState:
         return SearchState()
 
     def apply(self, puzzle: Puzzle, state: SearchState, move: Move) -> str:
-        found = {f.word for f in state.found}
-        if isinstance(move, FindMove):
-            line = puzzle.word_at(move.start, move.end)
-            if line is None:
-                raise bad_move("Pick a straight line: across, down or diagonal.")
-            for word in (line, line[::-1]):
-                if any(p.word == word for p in puzzle.placed):
-                    if word in found:
-                        raise conflict("already_tried", "You've found that word already.")
-                    start, end = (move.start, move.end) if word == line else (move.end, move.start)
-                    state.found.append(SearchFound(word=word, start=start, end=end))
-                    return "found"
-            state.misses += 1
-            return "miss"
+        if isinstance(move, TraceMove):
+            return self._trace(puzzle, state, tuple((c.row, c.col) for c in move.cells))
         if isinstance(move, HintMove):
-            hinted = {(h.row, h.col) for h in state.hints}
-            left = [p for p in puzzle.placed if p.word not in found and p.start not in hinted]
-            if not left:
+            if state.hinted is not None and state.hinted not in state.found:
+                raise bad_move("Find the outlined word first.")
+            if len(state.others) // PER_HINT <= state.hints:
+                more = PER_HINT - len(state.others) % PER_HINT
+                raise bad_move(f"Find {more} more {'word' if more == 1 else 'words'} to earn a hint.")
+            hinted = _next_hint(puzzle, state)
+            if hinted is None:
                 raise bad_move("There's nothing left to hint.")
-            state.hints.append(_cell(left[0].start))
+            state.hinted = hinted
+            state.hints += 1
             return "hint"
         state.gave_up = True
         return "gave-up"
 
+    def _trace(self, puzzle: Puzzle, state: SearchState, path: Path) -> str:
+        if not is_path(path):
+            raise bad_move("Trace letters that touch, without using one twice.")
+        if len(path) < MIN_LETTERS:
+            raise bad_move(f"Words have at least {MIN_LETTERS} letters.")
+        word = "".join(puzzle.grid[r][c] for r, c in path)
+        if puzzle.paths.get(word) == path:
+            if word in state.found:
+                raise conflict("already_tried", "You've found that word already.")
+            state.found.append(word)
+            if state.hinted == word:
+                state.hinted = None
+            return "spangram" if word == puzzle.spangram else "found"
+        if word in state.others or word in state.found:
+            raise conflict("already_tried", f"You've found “{word}” already.")
+        if word not in dictionary():
+            raise bad_move(f"“{word}” isn't a word we know.")
+        state.others.append(word)
+        return "word"
+
     def status(self, puzzle: Puzzle, state: SearchState) -> Status:
-        if len(state.found) == len(puzzle.placed):
+        if len(state.found) == len(puzzle.all_words):
             return "won"
         return "lost" if state.gave_up else "playing"
 
     def points(self, puzzle: Puzzle, state: SearchState, variant: str) -> int:
         if self.status(puzzle, state) != "won":
             return 0
-        cost = len(state.hints) * HINT_COST + max(0, state.misses - MISS_FREE) * MISS_COST
-        return max(FLOOR, self.max_points - cost)
+        return max(FLOOR, self.max_points - state.hints * HINT_COST)
 
     def counts(self, state: SearchState) -> tuple[int, int]:
-        return state.misses, len(state.hints)
+        return 0, state.hints
 
     def view(self, puzzle: Puzzle, state: SearchState, over: bool) -> SearchView:
-        found = list(state.found)
+        found = [SearchFound(word=w, cells=_cells(puzzle.paths[w]), spangram=w == puzzle.spangram) for w in state.found]
         if over:
-            have = {f.word for f in found}
             found += [
-                SearchFound(word=p.word, start=_cell(p.start), end=_cell(p.end), revealed=True)
-                for p in puzzle.placed
-                if p.word not in have
+                SearchFound(word=w, cells=_cells(puzzle.paths[w]), spangram=w == puzzle.spangram, revealed=True)
+                for w in puzzle.all_words
+                if w not in state.found
             ]
+        hinted = state.hinted if state.hinted is not None and state.hinted not in state.found and not over else None
         return SearchView(
             kind="search",
+            clue=puzzle.clue,
+            rows=ROWS,
+            cols=COLS,
             grid=list(puzzle.grid),
-            words=[p.word for p in puzzle.placed],
+            total=len(puzzle.all_words),
             found=found,
-            hints=state.hints,
-            misses=state.misses,
+            others=len(state.others),
+            hints_left=len(state.others) // PER_HINT - state.hints,
+            hint_progress=len(state.others) % PER_HINT,
+            # The outlined word's letters in reading order, so the hint doesn't spell it out.
+            hint_cells=_cells(tuple(sorted(puzzle.paths[hinted]))) if hinted else [],
+            title=puzzle.title if over else None,
         )
 
     def share(self, puzzle: Puzzle, state: SearchState, status: Status) -> str:
-        n = len(state.found)
-        hints = len(state.hints)
-        head = f"{self.title} {n}/{len(puzzle.placed)} words, {hints} hint{'s' if hints != 1 else ''}"
-        return f"{head}\n{'🟩' * n}{'⬜' * (len(puzzle.placed) - n)}"
+        marks = ["💡"] * state.hints + ["🟡" if w == puzzle.spangram else "🔵" for w in state.found]
+        lines = ["".join(marks[i : i + 4]) for i in range(0, len(marks), 4)]
+        return "\n".join([self.title, f"“{puzzle.clue}”", *lines])
 
     def picture(self, puzzle: Puzzle, state: SearchState) -> Picture:
-        found: list[Mark] = ["hit"] * len(state.found)
-        return rows_of(found + ["miss"] * (len(puzzle.placed) - len(state.found)), 4)
+        marks: list[Mark] = ["l1" if w == puzzle.spangram else "l3" for w in state.found]
+        return rows_of(marks + ["miss"] * (len(puzzle.all_words) - len(state.found)), 4)

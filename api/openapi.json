@@ -39071,29 +39071,6 @@
         ],
         "title": "FileLink"
       },
-      "FindMove": {
-        "properties": {
-          "kind": {
-            "type": "string",
-            "const": "find",
-            "title": "Kind"
-          },
-          "start": {
-            "$ref": "#/components/schemas/Cell"
-          },
-          "end": {
-            "$ref": "#/components/schemas/Cell"
-          }
-        },
-        "type": "object",
-        "required": [
-          "kind",
-          "start",
-          "end"
-        ],
-        "title": "FindMove",
-        "description": "A straight line of letters in the word search, from its first letter to its last."
-      },
       "FollowRequest": {
         "properties": {
           "level": {
@@ -40561,7 +40538,7 @@
                   "$ref": "#/components/schemas/GroupMove"
                 },
                 {
-                  "$ref": "#/components/schemas/FindMove"
+                  "$ref": "#/components/schemas/TraceMove"
                 },
                 {
                   "$ref": "#/components/schemas/AnswerMove"
@@ -40580,12 +40557,12 @@
                 "propertyName": "kind",
                 "mapping": {
                   "answer": "#/components/schemas/AnswerMove",
-                  "find": "#/components/schemas/FindMove",
                   "give-up": "#/components/schemas/GiveUpMove",
                   "group": "#/components/schemas/GroupMove",
                   "guess": "#/components/schemas/GuessMove",
                   "hint": "#/components/schemas/HintMove",
-                  "place": "#/components/schemas/PlaceMove"
+                  "place": "#/components/schemas/PlaceMove",
+                  "trace": "#/components/schemas/TraceMove"
                 }
               }
             },
@@ -40837,7 +40814,7 @@
           "kind"
         ],
         "title": "HintMove",
-        "description": "A hint, for a few points: Sudoku fills `cell` (or a cell it picks), the word search shows where a word\nstarts, Nearest neighbour reveals a closer word."
+        "description": "A hint, for a few points: Sudoku fills `cell` (or a cell it picks), Data Mine outlines a theme word's letters,\nNearest neighbour reveals a closer word."
       },
       "HomeOut": {
         "properties": {
@@ -44292,7 +44269,7 @@
                     "$ref": "#/components/schemas/GroupMove"
                   },
                   {
-                    "$ref": "#/components/schemas/FindMove"
+                    "$ref": "#/components/schemas/TraceMove"
                   },
                   {
                     "$ref": "#/components/schemas/AnswerMove"
@@ -44311,12 +44288,12 @@
                   "propertyName": "kind",
                   "mapping": {
                     "answer": "#/components/schemas/AnswerMove",
-                    "find": "#/components/schemas/FindMove",
                     "give-up": "#/components/schemas/GiveUpMove",
                     "group": "#/components/schemas/GroupMove",
                     "guess": "#/components/schemas/GuessMove",
                     "hint": "#/components/schemas/HintMove",
-                    "place": "#/components/schemas/PlaceMove"
+                    "place": "#/components/schemas/PlaceMove",
+                    "trace": "#/components/schemas/TraceMove"
                   }
                 }
               },
@@ -44336,7 +44313,7 @@
                   "$ref": "#/components/schemas/GroupMove"
                 },
                 {
-                  "$ref": "#/components/schemas/FindMove"
+                  "$ref": "#/components/schemas/TraceMove"
                 },
                 {
                   "$ref": "#/components/schemas/AnswerMove"
@@ -44355,12 +44332,12 @@
                 "propertyName": "kind",
                 "mapping": {
                   "answer": "#/components/schemas/AnswerMove",
-                  "find": "#/components/schemas/FindMove",
                   "give-up": "#/components/schemas/GiveUpMove",
                   "group": "#/components/schemas/GroupMove",
                   "guess": "#/components/schemas/GuessMove",
                   "hint": "#/components/schemas/HintMove",
-                  "place": "#/components/schemas/PlaceMove"
+                  "place": "#/components/schemas/PlaceMove",
+                  "trace": "#/components/schemas/TraceMove"
                 }
               }
             },
@@ -48481,6 +48458,18 @@
             "const": "search",
             "title": "Game"
           },
+          "clue": {
+            "type": "string",
+            "title": "Clue"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "spangram": {
+            "type": "string",
+            "title": "Spangram"
+          },
           "words": {
             "items": {
               "type": "string"
@@ -48499,6 +48488,9 @@
         "type": "object",
         "required": [
           "game",
+          "clue",
+          "title",
+          "spangram",
           "words",
           "grid"
         ],
@@ -50471,19 +50463,84 @@
             "const": "search",
             "title": "Game"
           },
-          "word": {
+          "clue": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Clue"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Title"
+          },
+          "spangram": {
             "type": "string",
             "maxLength": 40,
-            "title": "Word"
+            "title": "Spangram"
+          },
+          "words": {
+            "items": {
+              "type": "string",
+              "maxLength": 160
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Words"
+          },
+          "grid": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grid"
+          },
+          "paths": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "items": {
+                    "prefixItems": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ],
+                    "type": "array",
+                    "maxItems": 2,
+                    "minItems": 2
+                  },
+                  "type": "array"
+                },
+                "type": "object",
+                "maxProperties": 12
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paths"
           }
         },
         "type": "object",
         "required": [
           "game",
-          "word"
+          "clue",
+          "title",
+          "spangram",
+          "words"
         ],
         "title": "SearchData",
-        "description": "Word search: a word to hide in the grid, 4 to 10 letters."
+        "description": "Data Mine: one puzzle. A clue, the theme's name shown at the end, the spangram that names it and runs across the\ngrid, and the other theme words: 48 letters in all, 4 to 12 a word, so they fill the 6 by 8 grid exactly."
       },
       "SearchFound": {
         "properties": {
@@ -50491,11 +50548,16 @@
             "type": "string",
             "title": "Word"
           },
-          "start": {
-            "$ref": "#/components/schemas/Cell"
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/Cell"
+            },
+            "type": "array",
+            "title": "Cells"
           },
-          "end": {
-            "$ref": "#/components/schemas/Cell"
+          "spangram": {
+            "type": "boolean",
+            "title": "Spangram"
           },
           "revealed": {
             "type": "boolean",
@@ -50506,8 +50568,8 @@
         "type": "object",
         "required": [
           "word",
-          "start",
-          "end"
+          "cells",
+          "spangram"
         ],
         "title": "SearchFound"
       },
@@ -50706,6 +50768,18 @@
             "const": "search",
             "title": "Kind"
           },
+          "clue": {
+            "type": "string",
+            "title": "Clue"
+          },
+          "rows": {
+            "type": "integer",
+            "title": "Rows"
+          },
+          "cols": {
+            "type": "integer",
+            "title": "Cols"
+          },
           "grid": {
             "items": {
               "type": "string"
@@ -50713,12 +50787,9 @@
             "type": "array",
             "title": "Grid"
           },
-          "words": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Words"
+          "total": {
+            "type": "integer",
+            "title": "Total"
           },
           "found": {
             "items": {
@@ -50727,26 +50798,51 @@
             "type": "array",
             "title": "Found"
           },
-          "hints": {
+          "others": {
+            "type": "integer",
+            "title": "Others"
+          },
+          "hintsLeft": {
+            "type": "integer",
+            "title": "Hintsleft"
+          },
+          "hintProgress": {
+            "type": "integer",
+            "title": "Hintprogress"
+          },
+          "hintCells": {
             "items": {
               "$ref": "#/components/schemas/Cell"
             },
             "type": "array",
-            "title": "Hints"
+            "title": "Hintcells"
           },
-          "misses": {
-            "type": "integer",
-            "title": "Misses"
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
           }
         },
         "type": "object",
         "required": [
           "kind",
+          "clue",
+          "rows",
+          "cols",
           "grid",
-          "words",
+          "total",
           "found",
-          "hints",
-          "misses"
+          "others",
+          "hintsLeft",
+          "hintProgress",
+          "hintCells",
+          "title"
         ],
         "title": "SearchView"
       },
@@ -54402,6 +54498,31 @@
         ],
         "title": "TourStep",
         "description": "A step of the tour a new student may take (\"Take the tour\" in the year prompt). Text between `backticks` shows\nas a key to press, and {mod} as the platform's key: \u2318 on a Mac, Ctrl elsewhere."
+      },
+      "TraceMove": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "trace",
+            "title": "Kind"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/Cell"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Cells"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "cells"
+        ],
+        "title": "TraceMove",
+        "description": "Data Mine: letters traced through the grid, in order, each touching the one before."
       },
       "UploadCreate": {
         "properties": {

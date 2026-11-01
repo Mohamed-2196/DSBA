@@ -1,4 +1,4 @@
-"""Groups, word search, the quiz and Nearest neighbour through the API; the leaderboard, badges and calendar."""
+"""Groups, Data Mine, the quiz and Nearest neighbour through the API; the leaderboard, badges and calendar."""
 
 from __future__ import annotations
 
@@ -66,37 +66,41 @@ def test_groups_hide_the_answers_until_the_end(client_for: ClientFor, db: Sessio
     assert view["found"] == []
 
 
-def cell(at: tuple[int, int]) -> dict[str, int]:
-    return {"row": at[0], "col": at[1]}
+def cells(path: tuple[tuple[int, int], ...]) -> list[dict[str, int]]:
+    return [{"row": r, "col": c} for r, c in path]
 
 
-def test_word_search_reads_lines_both_ways(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+def test_data_mine_finds_theme_words_and_the_spangram(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     c = client_for(make_user())
     p = puzzle(db, "search")
-    first = p.placed[0]
-    play = move(c, "search", {"kind": "find", "start": cell(first.end), "end": cell(first.start)}).json()["play"]
-    assert (play["result"], play["view"]["found"][0]["word"]) == ("found", first.word)
-    r = move(c, "search", {"kind": "find", "start": cell((0, 0)), "end": cell((1, 3))})
+    view = c.get(f"{API}/daily/{today()}/search").json()["play"]["view"]
+    assert (view["clue"], view["rows"], view["cols"], view["total"]) == (p.clue, 8, 6, len(p.all_words))
+    assert view["title"] is None  # the theme's name waits for the end
+    first = p.words[0]
+    play = move(c, "search", {"kind": "trace", "cells": cells(p.paths[first])}).json()["play"]
+    assert (play["result"], play["view"]["found"][0]["word"]) == ("found", first)
+    r = move(c, "search", {"kind": "trace", "cells": cells(((0, 0), (2, 2)))})
     assert r.status_code == 422
-    hint = move(c, "search", {"kind": "hint"}).json()["play"]
-    assert hint["view"]["hints"] == [cell(p.placed[1].start)]
-    for placed in p.placed[1:]:
-        play = move(c, "search", {"kind": "find", "start": cell(placed.start), "end": cell(placed.end)}).json()["play"]
-    assert (play["status"], play["points"]) == ("won", 90)
-    assert not any(f["revealed"] for f in play["view"]["found"])
-    assert play["picture"] == [["hit"] * 4, ["hit"] * 4]
+    r = move(c, "search", {"kind": "hint"})
+    assert "more words to earn a hint" in r.json()["error"]["message"]
+    for word in p.all_words[1:]:
+        play = move(c, "search", {"kind": "trace", "cells": cells(p.paths[word])}).json()["play"]
+    assert (play["result"], play["status"], play["points"]) == ("spangram", "won", 100)
+    assert play["view"]["title"] == p.title
+    assert play["picture"][-1][-1] == "l1"  # the spangram, gold
+    assert f"“{p.clue}”" in play["share"].splitlines()
 
 
-def test_word_search_given_up_reveals_the_words_left(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
+def test_data_mine_given_up_reveals_the_words_left(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     c = client_for(make_user())
     p = puzzle(db, "search")
-    first = p.placed[0]
-    move(c, "search", {"kind": "find", "start": cell(first.start), "end": cell(first.end)})
+    first = p.words[0]
+    move(c, "search", {"kind": "trace", "cells": cells(p.paths[first])})
     play = move(c, "search", {"kind": "give-up"}).json()["play"]
     view = play["view"]
-    assert [(f["word"], f["revealed"]) for f in view["found"]][:2] == [(first.word, False), (p.placed[1].word, True)]
-    assert len(view["found"]) == len(p.placed)
-    assert play["picture"] == [["hit", "miss", "miss", "miss"], ["miss"] * 4]  # what was found, not where
+    assert [(f["word"], f["revealed"]) for f in view["found"]][:2] == [(first, False), (p.words[1], True)]
+    assert len(view["found"]) == len(p.all_words)
+    assert play["picture"][0][:2] == ["l3", "miss"]  # what was found, not where
 
 
 def test_the_quiz_explains_each_answer_and_scores_right_ones(

@@ -43,10 +43,18 @@ class GroupData(ApiModel):
 
 
 class SearchData(ApiModel):
-    """Word search: a word to hide in the grid, 4 to 10 letters."""
+    """Data Mine: one puzzle. A clue, the theme's name shown at the end, the spangram that names it and runs across the
+    grid, and the other theme words: 48 letters in all, 4 to 12 a word, so they fill the 6 by 8 grid exactly."""
 
     game: Literal["search"]
-    word: str = Field(max_length=40)
+    clue: str = Field(max_length=120)
+    title: str = Field(max_length=80)
+    spangram: str = Field(max_length=40)
+    words: list[Text] = Field(max_length=12)
+    # The grid's rows, and each word's letters in spelling order as [row, column]: laid out when the item is saved, or
+    # given ready-made (a content file) and checked.
+    grid: list[str] | None = Field(default=None, max_length=8)
+    paths: dict[str, list[tuple[int, int]]] | None = Field(default=None, max_length=12)
 
 
 class QuizData(ApiModel):
@@ -262,6 +270,9 @@ class PreviewGroups(ApiModel):
 
 class PreviewSearch(ApiModel):
     game: Literal["search"]
+    clue: str
+    title: str
+    spangram: str
     words: list[str]
     grid: list[str]
 
