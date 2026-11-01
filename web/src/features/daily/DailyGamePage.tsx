@@ -235,9 +235,11 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
         </div>
       </header>
 
-      {out ? (
+      {out && game !== 'sudoku' ? (
         <p className="dg-theme">
-          Theme: <b>{themeName(out.theme.title)}</b>
+          {/* The week's theme (Sudoku has none); Data Mine's is a banner, as in DSBA Daily. */}
+          <span className="dg-theme__label">{game === 'search' ? 'Today’s theme' : 'Theme:'}</span>{' '}
+          <b>{themeName(out.theme.title)}</b>
         </p>
       ) : null}
 
