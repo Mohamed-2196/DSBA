@@ -1,92 +1,55 @@
-// Data Mine's geometry: straight lines across the grid, snapping a drag to the nearest of the eight directions,
-// and which cell sits under a point.
+// Data Mine's board, as DSBA Daily plays it: which letter a finger is over, and how a drag or a tap grows the traced
+// path (letters that touch, diagonals too, none twice). The server checks the word; these keep the tracing honest.
 
 export interface Pos {
   row: number;
   col: number;
 }
 
-const DIRECTIONS: readonly (readonly [number, number])[] = [
-  [0, 1],
-  [1, 1],
-  [1, 0],
-  [1, -1],
-  [0, -1],
-  [-1, -1],
-  [-1, 0],
-  [-1, 1],
-];
-
 export const samePos = (a: Pos | null | undefined, b: Pos | null | undefined): boolean =>
   !!a && !!b && a.row === b.row && a.col === b.col;
 
 export const posKey = (p: Pos): string => `${p.row},${p.col}`;
 
-/** The cells on the straight line from `start` to `end` (across, down or diagonal), or null when it isn't one. */
-export function lineCells(start: Pos, end: Pos): Pos[] | null {
-  const dr = end.row - start.row;
-  const dc = end.col - start.col;
-  if (dr !== 0 && dc !== 0 && Math.abs(dr) !== Math.abs(dc)) return null;
-  const steps = Math.max(Math.abs(dr), Math.abs(dc));
-  const sr = Math.sign(dr);
-  const sc = Math.sign(dc);
-  return Array.from({ length: steps + 1 }, (_, i) => ({ row: start.row + sr * i, col: start.col + sc * i }));
+/** Two different letters next to each other, diagonals too. */
+export const touches = (a: Pos, b: Pos): boolean =>
+  !samePos(a, b) && Math.abs(a.row - b.row) <= 1 && Math.abs(a.col - b.col) <= 1;
+
+/** The letter under a point given as fractions of the board (0-1 across, 0-1 down), or null between letters: only
+ *  near a letter's centre counts, so a diagonal drag doesn't clip the letters beside it. */
+export function cellAt(x: number, y: number, rows: number, cols: number): Pos | null {
+  const cx = x * cols;
+  const cy = y * rows;
+  const col = Math.floor(cx);
+  const row = Math.floor(cy);
+  if (row < 0 || row >= rows || col < 0 || col >= cols) return null;
+  if (Math.hypot(cx - (col + 0.5), cy - (row + 0.5)) > 0.42) return null;
+  return { row, col };
 }
 
-/**
- * The end of a line from `start` towards `to` (a point in cell units, fractions allowed), kept to one of the eight
- * directions and inside a `size` by `size` grid: what a drag selects while it's on its way.
- */
-export function snapEnd(start: Pos, to: { row: number; col: number }, size: number): Pos {
-  const dr = to.row - start.row;
-  const dc = to.col - start.col;
-  if (Math.hypot(dr, dc) < 0.5) return start;
-  let best: { ur: number; uc: number; t: number; miss: number } | null = null;
-  for (const [ur, uc] of DIRECTIONS) {
-    const t = Math.round((dr * ur + dc * uc) / (ur * ur + uc * uc));
-    if (t <= 0) continue;
-    const miss = (start.row + ur * t - to.row) ** 2 + (start.col + uc * t - to.col) ** 2;
-    if (!best || miss < best.miss) best = { ur, uc, t, miss };
-  }
-  if (!best) return start;
-  const { ur, uc } = best;
-  let { t } = best;
-  const inside = (n: number) => {
-    const r = start.row + ur * n;
-    const c = start.col + uc * n;
-    return r >= 0 && r < size && c >= 0 && c < size;
-  };
-  while (t > 0 && !inside(t)) t -= 1;
-  return { row: start.row + ur * t, col: start.col + uc * t };
+/** The path a drag makes when the finger reaches `cell`: one letter longer, one shorter (back over the last letter),
+ *  or as it was. `usable` says whether a letter is free (not in a word found already). */
+export function dragTo(path: readonly Pos[], cell: Pos, usable: (p: Pos) => boolean): Pos[] {
+  const last = path[path.length - 1];
+  if (!last || samePos(last, cell)) return [...path];
+  if (path.length > 1 && samePos(path[path.length - 2], cell)) return path.slice(0, -1);
+  if (touches(last, cell) && usable(cell) && !path.some((p) => samePos(p, cell))) return [...path, cell];
+  return [...path];
 }
 
-/** The point (x, y) in cell units of a grid drawn in `rect`, `size` cells a side: 0.5 is the middle of a cell. */
-export function pointIn(
-  x: number,
-  y: number,
-  rect: { left: number; top: number; width: number; height: number },
-  size: number,
-): { row: number; col: number } {
-  return { row: ((y - rect.top) / rect.height) * size - 0.5, col: ((x - rect.left) / rect.width) * size - 0.5 };
+/** A tap: tapping the last letter again sends the word, a letter already in the path cuts it back to there, a letter
+ *  touching the last one adds it, and any other letter starts again from it. */
+export function tapAt(path: readonly Pos[], cell: Pos, usable: (p: Pos) => boolean): { path: Pos[]; send: boolean } {
+  const last = path[path.length - 1];
+  if (!last) return { path: [cell], send: false };
+  if (samePos(last, cell)) return path.length > 1 ? { path: [...path], send: true } : { path: [], send: false };
+  const at = path.findIndex((p) => samePos(p, cell));
+  if (at >= 0) return { path: path.slice(0, at + 1), send: false };
+  if (touches(last, cell) && usable(cell)) return { path: [...path, cell], send: false };
+  return { path: [cell], send: false };
 }
 
-/** The cell under a point in cell units, or null outside the grid. */
-export function cellAt(point: { row: number; col: number }, size: number): Pos | null {
-  const row = Math.round(point.row);
-  const col = Math.round(point.col);
-  return row >= 0 && row < size && col >= 0 && col < size ? { row, col } : null;
-}
-
-/** The colour slot (0-7) of the nth word found, so neighbouring finds look different. */
-export const findTone = (index: number): number => (index * 3) % 8;
-
-/** Each cell's colour under its letter: the slot of the last find whose line crosses it (words shown at the end
- * have none). Slot 0, the yellow, stays light in both themes, so its letters take dark text. */
-export function cellTones(found: readonly { start: Pos; end: Pos; revealed: boolean }[]): Map<string, number> {
-  const tones = new Map<string, number>();
-  found.forEach((f, i) => {
-    if (f.revealed) return;
-    for (const cell of lineCells(f.start, f.end) ?? []) tones.set(posKey(cell), findTone(i));
-  });
-  return tones;
+/** An SVG path through the letters' centres, `unit` a letter's size. */
+export function linePath(path: readonly Pos[], unit: number): string {
+  return path.map((p, i) => `${i ? 'L' : 'M'}${p.col * unit + unit / 2} ${p.row * unit + unit / 2}`).join(' ');
 }

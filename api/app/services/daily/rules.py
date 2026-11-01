@@ -29,6 +29,7 @@ ANSWER = re.compile(r"[A-Z]{5}")
 GROUP_WORD = re.compile(r"[A-Z]{2,12}")
 SEARCH_WORD = re.compile(rf"[A-Z]{{{search_game.MIN_LETTERS},{search_game.MAX_LETTERS}}}")
 SPANGRAM_LETTERS = min(search_game.ROWS, search_game.COLS)  # the fewest that cross the grid
+SPANGRAM = re.compile(rf"[A-Z]{{{SPANGRAM_LETTERS},{search_game.MAX_SPANGRAM}}}")
 VOCABULARY_WORD = re.compile(r"[a-z]{2,24}")
 GROUP_WORDS = (4, 8)
 OPTIONS = (2, 6)
@@ -185,10 +186,11 @@ def _check_search(data: SearchData) -> Checked:
         raise invalid("data.title", "Name the theme in 2 to 60 characters. Players see it at the end.")
     least, most = search_game.MIN_LETTERS, search_game.MAX_LETTERS
     spangram = data.spangram.strip().upper()
-    if not SEARCH_WORD.fullmatch(spangram) or len(spangram) < SPANGRAM_LETTERS:
+    if not SPANGRAM.fullmatch(spangram):
         raise invalid(
             "data.spangram",
-            f"The spangram is {max(least, SPANGRAM_LETTERS)} to {most} letters, A to Z, so it can cross the grid.",
+            f"The spangram is {SPANGRAM_LETTERS} to {search_game.MAX_SPANGRAM} letters, A to Z, so it can cross the "
+            "grid.",
         )
     words = [w.strip().upper() for w in data.words if w.strip()]
     bad = next((w for w in words if not SEARCH_WORD.fullmatch(w)), None)

@@ -132,28 +132,6 @@
   color: var(--ink);
   font-weight: 600;
 }
-.dg--search .dg-theme {
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  margin: var(--sp-12) var(--sp-16) 0;
-  padding: var(--sp-10, 10px) var(--sp-16);
-  border-radius: 12px;
-  background: var(--dd-search-soft);
-}
-.dg--search .dg-theme__label {
-  color: var(--dd-search);
-  font-size: var(--fs-12);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.dg--search .dg-theme b {
-  font-family: var(--font-display);
-  font-size: var(--fs-18);
-  font-weight: 700;
-}
-
 /* ── The note: why a play won't count ─────────────────────────────────────────────────────────────── */
 .dg-notice {
   flex: 0 0 auto;

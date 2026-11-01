@@ -275,6 +275,7 @@ class PreviewSearch(ApiModel):
     spangram: str
     words: list[str]
     grid: list[str]
+    paths: dict[str, list[tuple[int, int]]]  # each word's letters in spelling order, the spangram's too: [row, column]
 
 
 class PreviewQuestion(ApiModel):

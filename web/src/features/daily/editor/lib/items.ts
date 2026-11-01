@@ -42,10 +42,13 @@ export const GAMES: readonly GameInfo[] = [
   {
     id: 'search',
     label: 'Data Mine',
-    noun: 'word',
-    about: 'Eight words a day hidden in a 10 by 10 grid. Words are 4 to 10 letters.',
-    importHint: 'Words separated by new lines, commas or spaces.',
-    importExample: 'HISTOGRAM\nOUTLIER, SAMPLE',
+    noun: 'puzzle',
+    about:
+      'One puzzle a day: a clue, a spangram that names the theme, and theme words that fill a 6 by 8 grid exactly (48 letters in all, 4 to 12 a word). The hub lays the grid out when you save.',
+    importHint:
+      'Rows with a header: clue, title, spangram, words (the theme words besides the spangram). The spangram and the words come to 48 letters.',
+    importExample:
+      'clue,title,spangram,words\nNumbers that tell a story,Statistics,STATISTICS,MEDIAN VARIANCE SAMPLE OUTLIER POISSON SKEW',
   },
   {
     id: 'quiz',
@@ -86,6 +89,8 @@ export function blankData(game: ContentGame): ItemData {
       return { game, label: '', level: 1, words: [] };
     case 'quiz':
       return { game, question: '', options: ['', '', '', ''], answer: 0, explanation: '', moduleId: null };
+    case 'search':
+      return { game, clue: '', title: '', spangram: '', words: [] };
     default:
       return { game, word: '' };
   }
@@ -100,16 +105,25 @@ export function parseWords(text: string): string[] {
   return [...new Set(words)];
 }
 
-/** What names an item in a list or a dialog: its word, its group's name or its question. */
+/** What names an item in a list or a dialog: its word, its group's name, its question or its spangram. */
 export function titleOf(data: ItemData): string {
   switch (data.game) {
     case 'groups':
       return data.label;
     case 'quiz':
       return data.question;
+    case 'search':
+      return data.spangram;
     default:
       return data.word;
   }
+}
+
+/** Letters a Data Mine puzzle's spangram and words come to: the grid takes exactly this many. */
+export const MINE_LETTERS = 48;
+
+export function mineLetters(spangram: string, words: readonly string[]): number {
+  return spangram.length + words.reduce((n, w) => n + w.length, 0);
 }
 
 /** The right option of a question. */

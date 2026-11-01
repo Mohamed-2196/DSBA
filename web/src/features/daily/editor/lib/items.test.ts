@@ -30,7 +30,8 @@ describe('titleOf', () => {
 
 describe('blankData', () => {
   it('starts each game’s item empty, with four options for a question', () => {
-    expect(blankData('search')).toEqual({ game: 'search', word: '' });
+    expect(blankData('search')).toEqual({ game: 'search', clue: '', title: '', spangram: '', words: [] });
+    expect(blankData('nearest')).toEqual({ game: 'nearest', word: '' });
     const quiz = blankData('quiz');
     expect(quiz.game === 'quiz' && quiz.options).toEqual(['', '', '', '']);
     expect(blankData('groups')).toEqual({ game: 'groups', label: '', level: 1, words: [] });

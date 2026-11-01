@@ -1118,6 +1118,7 @@ def preview_of(puzzle: Any) -> PreviewPuzzle:
             spangram=puzzle.spangram,
             words=list(puzzle.words),
             grid=list(puzzle.grid),
+            paths={w: list(p) for w, p in puzzle.paths.items()},
         )
     if isinstance(puzzle, nearest_game.Puzzle):
         return PreviewNearest(game="nearest", target=puzzle.target, closest=list(puzzle.by_rank[1 : CLOSEST + 1]))

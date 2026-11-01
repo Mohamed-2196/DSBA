@@ -130,7 +130,7 @@ NINE = ["ACE", "KING", "QUEEN", "JACK", "JOKER"]  # with UNIQUE, nine words: one
         ({"game": "groups", "label": "Odd", "level": 2, "words": [*UNIQUE, *NINE]}, "data.words", "4 to 8 words"),
         ({"game": "groups", "label": "colours", "level": 2, "words": UNIQUE}, "data.label", "group called"),
         ({"game": "groups", "label": "Odd", "level": 5, "words": UNIQUE}, "data.groups.level", ""),
-        (mine(spangram="ODDS"), "data.spangram", "6 to 12 letters"),
+        (mine(spangram="ODDS"), "data.spangram", "6 to 16 letters"),
         (mine(words=["MEAN", "ABC", "SKEWS"]), "data.words", "4 to 12 letters"),
         (mine(words=["MEDIAN", "VARIANCE"]), "data.words", "3 to 9 theme words"),
         (mine(words=["MEDIAN", "MEDIAN", "SAMPLE"]), "data.words", "once"),

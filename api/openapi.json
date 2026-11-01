@@ -48483,6 +48483,26 @@
             },
             "type": "array",
             "title": "Grid"
+          },
+          "paths": {
+            "additionalProperties": {
+              "items": {
+                "prefixItems": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Paths"
           }
         },
         "type": "object",
@@ -48492,7 +48512,8 @@
           "title",
           "spangram",
           "words",
-          "grid"
+          "grid",
+          "paths"
         ],
         "title": "PreviewSearch"
       },

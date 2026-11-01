@@ -14,7 +14,7 @@ interface Answers {
   day: string;
   word: string;
   groups: string[][];
-  search: { start: Cell; end: Cell; letters: [string, string] }[];
+  search: Cell[][]; // each theme word's letters in order, the spangram's too
   quiz: { answer: number; options: number }[];
   nearest: string;
 }
@@ -25,33 +25,12 @@ interface Preview {
     puzzle:
       | { game: 'word'; answer: string }
       | { game: 'groups'; groups: { words: string[] }[] }
-      | { game: 'search'; words: string[]; grid: string[] }
+      | { game: 'search'; spangram: string; words: string[]; paths: Record<string, [number, number][]> }
       | { game: 'quiz'; questions: { answer: number; options: string[] }[] }
       | { game: 'nearest'; target: string }
       | null;
     problem: string | null;
   }[];
-}
-
-/** Where each word lies in the grid: its first and last letters, in any of the eight directions. */
-function findWords(grid: string[], words: string[]): Answers['search'] {
-  const size = grid.length;
-  const at = (r: number, c: number) => (r >= 0 && c >= 0 && r < size && c < size ? grid[r][c] : '');
-  const steps = [-1, 0, 1].flatMap((dr) => [-1, 0, 1].map((dc) => [dr, dc] as const)).filter(([a, b]) => a || b);
-  return words.map((word) => {
-    for (let r = 0; r < size; r++)
-      for (let c = 0; c < size; c++)
-        for (const [dr, dc] of steps)
-          if ([...word].every((ch, i) => at(r + dr * i, c + dc * i) === ch)) {
-            const n = word.length - 1;
-            return {
-              start: { row: r, col: c },
-              end: { row: r + dr * n, col: c + dc * n },
-              letters: [word[0], word[n]],
-            };
-          }
-    throw new Error(`${word} isn't in the grid`);
-  });
 }
 
 /** The day's answers, from the preview (content editors only). A string says why there are none. */
@@ -76,10 +55,22 @@ async function todaysAnswers(admin: Page): Promise<Answers | string> {
     day,
     word: word.answer,
     groups: groups.groups.map((g) => g.words),
-    search: findWords(search.grid, search.words),
+    search: [...search.words, search.spangram].map((w) => (search.paths[w] ?? []).map(([row, col]) => ({ row, col }))),
     quiz: quiz.questions.map((q) => ({ answer: q.answer, options: q.options.length })),
     nearest: nearest.target,
   };
+}
+
+/** Data Mine: each word traced letter by letter with the keyboard (Enter on a letter taps it), then sent by tapping
+ *  its last letter again. The next word waits for the count of words found. */
+async function traceAll(page: Page, words: Cell[][]) {
+  for (const [i, cells] of words.entries()) {
+    const letter = (c: Cell) => page.locator(`[data-cell="${c.row},${c.col}"]`);
+    for (const c of cells) await letter(c).press('Enter');
+    await letter(cells[cells.length - 1]).press('Enter');
+    if (i < words.length - 1)
+      await expect(page.getByText(`${i + 1} of ${words.length} theme words found`)).toBeVisible();
+  }
 }
 
 /** A Sudoku's solution, by backtracking (the day's grids have one solution each). */
@@ -165,15 +156,8 @@ test('a guest plays every game to a finish', async ({ guest }) => {
   await expect(result(page)).toContainText('All four groups, 0 mistakes');
 
   await open(page, 'search');
-  for (const [i, { start, end, letters }] of a.search.entries()) {
-    const cell = (p: Cell, l: string) =>
-      page.getByRole('button', { name: `${l}, row ${p.row + 1}, column ${p.col + 1}`, exact: true });
-    await cell(start, letters[0]).click();
-    await cell(end, letters[1]).click();
-    // The grid takes no taps while a line is being checked: the next word waits for this one.
-    await expect(page.getByText(`${i + 1} of ${a.search.length} found`)).toBeVisible();
-  }
-  await expect(result(page)).toContainText(`${a.search.length} words, 0 hints`);
+  await traceAll(page, a.search);
+  await expect(result(page)).toContainText(`${a.search.length} theme words, 0 hints`);
 
   await open(page, 'quiz');
   for (const [i, q] of a.quiz.entries()) {
@@ -302,15 +286,8 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
   await expect(result(page)).toContainText('All four groups');
 
   await open(page, 'search', true);
-  for (const [i, { start, end, letters }] of a.search.entries()) {
-    const cell = (p: Cell, l: string) =>
-      page.getByRole('button', { name: `${l}, row ${p.row + 1}, column ${p.col + 1}`, exact: true });
-    await cell(start, letters[0]).tap();
-    await cell(end, letters[1]).tap();
-    // The grid takes no taps while a line is being checked: the next word waits for this one.
-    await expect(page.getByText(`${i + 1} of ${a.search.length} found`)).toBeVisible();
-  }
-  await expect(result(page)).toContainText('Every word found');
+  await traceAll(page, a.search);
+  await expect(result(page)).toContainText('Mine cleared!');
 
   // The Daily Query: two right and three wrong is a loss that still earns points for the right ones.
   await open(page, 'quiz', true);

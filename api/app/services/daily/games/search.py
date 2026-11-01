@@ -29,7 +29,8 @@ from app.services.daily.games.base import ContentGame, Status, bad_move, rows_of
 
 ROWS, COLS = 8, 6
 LETTERS = ROWS * COLS  # a puzzle's words, the spangram with them, fill the grid exactly
-MIN_LETTERS, MAX_LETTERS = 4, 12  # a word's length
+MIN_LETTERS, MAX_LETTERS = 4, 12  # a theme word's length
+MAX_SPANGRAM = 16  # the spangram is often two words in one: ISLAMICFINANCE
 WORDS = (3, 9)  # theme words besides the spangram
 PER_HINT = 3  # other words a hint takes
 HINT_COST = 10

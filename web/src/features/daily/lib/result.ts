@@ -64,15 +64,16 @@ function describe(play: Play, won: boolean): Omit<Result, 'held'> {
           }
         : { headline: 'Not this time', summary: `${groupsFound(view).length} of 4 groups found`, answer: null };
     case 'search': {
-      const total = view.words.length;
+      // DSBA Daily's words: "Mine cleared!", and the theme's name once it's over.
       const found = view.found.filter((f) => !f.revealed).length;
+      const theme = view.title ? ` · ${view.title}` : '';
       return won
         ? {
-            headline: 'Every word found',
-            summary: `${plural(total, 'word')}, ${plural(play.hints, 'hint')}${time}`,
+            headline: 'Mine cleared!',
+            summary: `${plural(view.total, 'theme word')}, ${plural(play.hints, 'hint')}${time}${theme}`,
             answer: null,
           }
-        : { headline: 'Not this time', summary: `${found} of ${total} words found`, answer: null };
+        : { headline: 'Not this time', summary: `${found} of ${view.total} theme words found${theme}`, answer: null };
     }
     case 'quiz': {
       const right = view.answered.filter((a) => a.correct).length;

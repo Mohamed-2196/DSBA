@@ -124,17 +124,14 @@
   --dy-l4: #c3b4f0;
   --dy-on-level: #222222;
   --dy-on-l1: #222222;
-  /* Data Mine's finds, a colour each in turn (findTone), see-through so the letters show. The yellow takes dark
-     text, the others the page's ink. */
-  --dy-find-0: color-mix(in srgb, var(--highlight) 78%, transparent);
-  --dy-find-1: color-mix(in srgb, var(--mine-teal) 46%, transparent);
-  --dy-find-2: color-mix(in srgb, var(--mine-rose) 40%, transparent);
-  --dy-find-3: color-mix(in srgb, var(--mine-green) 44%, transparent);
-  --dy-find-4: color-mix(in srgb, var(--y2) 40%, transparent);
-  --dy-find-5: color-mix(in srgb, var(--mine-orange) 46%, transparent);
-  --dy-find-6: color-mix(in srgb, var(--mine-violet) 40%, transparent);
-  --dy-find-7: color-mix(in srgb, var(--y1) 46%, transparent);
-  --dy-on-find-0: var(--highlight-ink);
+  /* Data Mine, as DSBA Daily colours it: a found theme word, the spangram, and the letters being traced. */
+  --dy-mine-found: #a9d3f2;
+  --dy-on-mine-found: #12324f;
+  --dy-mine-span: #f4cf5a;
+  --dy-on-mine-span: #3d2c00;
+  --dy-mine-pick: #1d469e;
+  --dy-on-mine-pick: #ffffff;
+  --dy-mine-glow: rgb(29 70 158 / 35%);
   /* A tile or key: raised a little off the page. */
   --dy-tile: transparent; /* DSBA Daily's empty tiles: an outline only */
   --dy-tile-edge: var(--line-strong);
@@ -156,6 +153,13 @@
 [data-theme='dark'] .dy {
   --dy-miss: #3d465c;
   --dy-on-miss: #ffffff;
+  --dy-mine-found: #2d5f8a;
+  --dy-on-mine-found: #f2f7fc;
+  --dy-mine-span: #d4a72c;
+  --dy-on-mine-span: #1f1600;
+  --dy-mine-pick: #94b3f2;
+  --dy-on-mine-pick: #0e1424;
+  --dy-mine-glow: rgb(148 179 242 / 45%);
 }
 
 /* ── Glyphs: each game drawn small, in its own pieces ────────────────────────────────────────────── */

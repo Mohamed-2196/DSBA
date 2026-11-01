@@ -86,19 +86,20 @@ describe('resultOf', () => {
     expect(resultOf(play).summary).toBe('1 of 4 groups found');
   });
 
-  it('counts the words the player found, not the ones revealed', () => {
-    const cell = { row: 0, col: 0 };
+  it('counts the theme words the player found, not the ones revealed, and names the theme', () => {
+    const cells = [{ row: 0, col: 0 }];
     const found = [
-      { word: 'TABLE', start: cell, end: cell, revealed: false },
-      { word: 'QUERY', start: cell, end: cell, revealed: true },
+      { word: 'TABLE', cells, spangram: false, revealed: false },
+      { word: 'QUERY', cells, spangram: true, revealed: true },
     ];
+    const view = { kind: 'search', clue: 'Rows and columns', rows: 8, cols: 6, grid: [], total: 2, found };
     const play = {
       ...base,
       game: 'search',
       status: 'lost',
-      view: { kind: 'search', grid: [], words: ['QUERY', 'TABLE'], found, hints: [], misses: 0 },
+      view: { ...view, others: 0, hintsLeft: 0, hintProgress: 0, hintCells: [], title: 'Databases' },
     } as unknown as Play;
-    expect(resultOf(play).summary).toBe('1 of 2 words found');
+    expect(resultOf(play).summary).toBe('1 of 2 theme words found · Databases');
   });
 
   it('times a solved Sudoku', () => {

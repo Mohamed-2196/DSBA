@@ -13,8 +13,9 @@ const PAIRS: readonly (readonly [fill: string, text: string, use: string])[] = [
   ['--dy-l2', '--dy-on-level', 'Correlations: level 2, green'],
   ['--dy-l3', '--dy-on-level', 'Correlations: level 3, blue'],
   ['--dy-l4', '--dy-on-level', 'Correlations: level 4, purple'],
-  ['--dy-find-0', '--dy-on-find-0', 'Data Mine: the first find, yellow'],
-  ...[1, 2, 3, 4, 5, 6, 7].map((n) => [`--dy-find-${n}`, '--ink', `Data Mine: find colour ${n + 1}`] as const),
+  ['--dy-mine-found', '--dy-on-mine-found', 'Data Mine: a theme word found, blue'],
+  ['--dy-mine-span', '--dy-on-mine-span', 'Data Mine: the spangram, gold'],
+  ['--dy-mine-pick', '--dy-on-mine-pick', 'Data Mine: the letters being traced'],
 ];
 
 function Sample({ fill, text, theme }: { fill: string; text: string; theme: 'light' | 'dark' }) {
