@@ -721,6 +721,17 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'information_systems',
       year: 2,
       chapters: [
+        { title: 'Introduction', videoIds: ['MDttSkM5j38','a7GSmaZPAvA','OPAWy1v9Gnw','PLRU5YMNncPaqDMu5qyzMHseHXzeSppHj0'] },
+        { title: 'The role of technology in organisations', videoIds: ['qMZSYVVIyxo','nQ4Q3iN7TMM','yX4kO8rVpHo','kerDFvln7hU','SGYmPMcgDPg','VbyR4t2lTP8'] },
+        { title: 'Information technology and business strategies', videoIds: ['o7Ik1OB4TaE','mYF2_FBCvXw','SI5lYaZaUlg','I_6AVRGLXGA','hj7Kw3fDNaw','vm6DqTcUTIA','Lh1IZNmQDUY','NxT8Dc4yeW8'] },
+        { title: 'Project management', videoIds: ['H_FX0uYUtdo','cHUP61KU3xE','-TDh-5n90vk','2124ZV4wbQ8','zpT0tBGW4-E','j8obKof2MDM','OiuHQQAgaFE','YCVQHwas1-4'] },
+        { title: 'Outsourcing', videoIds: ['Du0jGBX6IfU','VHD3-gRFiQo','GOAIbuqni8E','luJ4-QAzbEM','9Fmjs4OTqRA','36zducUX16w','-3Z3fjo7nmk','WhsFyQHpb6s'] },
+        { title: 'ICT governance', videoIds: ['7CMUfDZ0Kzk','5U5f17vO1Y0','cU8iGQ5hUQQ','YtDKSxEKCEU','Ei3-1KgjARA','c3QfSmKo4QA','bO3GpAjVvD8'] },
+        { title: 'E-business', videoIds: ['FhpWKUWjOuc','mEH7Zb4pt3w','N6kmGlk_L7A','g33O3gD0sU4','B4ZSGQW0UMI','kEq4gcF-DwE','e5B9pfuVrMU'] },
+        { title: 'Enterprise resource planning systems', videoIds: ['Da1hUqzoiAo','FZbG0EF0rW8','KfW2WKKzULw','ujCvxGTGfag','KND3XZJIrHs','MFoyQrk-Taw','GeC7MjwBkDs','_wGH97O_VCs'] },
+        { title: 'Managing business intelligence and big data', videoIds: ['-I23qGB6JdY','oF_2uDb7DvQ','7rs0i-9nOjo','zf-d-O7hVhM','8pHzROP1D-w','edouxOBrIGk','kPPFNrlN3zo','L1n9LheMEq0'] },
+        { title: 'Knowledge management', videoIds: ['3_eI5r55XhU','wj8vHRaLjjo','Rr02SdqmY2A','SmqLyOLIjos','xT3EpF2EsbQ','_9_6ok5-_jc','sVtMC3GkMr0','K4hHKKDKQmg'] },
+        { title: 'Conclusions: moral, ethical and legal issues', videoIds: ['Xki2fRA0bY8','s2QLL8WawoQ','2iPDpV8ojHA','NcHSD3fWJiQ','hIXhnWUmMvw','O9UifQLRXRw','iI2WXaWTmO8'] }
       ]
     },
   ];
