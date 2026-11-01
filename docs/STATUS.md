@@ -1,7 +1,7 @@
 # Status
 
 This is the handoff between sessions: where the work stands, what's next and what Mohamed still has to decide.
-Update it whenever you finish or start something. Last updated 2026-11-01, after the Year 3 and IS2184 content.
+Update it whenever you finish or start something. Last updated 2026-11-01, after the Year 3 and IS2184 content and the Home feedback.
 
 ## Where things stand
 
@@ -242,6 +242,20 @@ The password and cover release passed both GitHub CI jobs. Railway's
   Noora's script mode and the rest of the app work without it. Google credentials remain absent.
 - The deployment check now fails when storage is unhealthy, so broken file access cannot pass the health check
   as a warning. Recovery instructions are in DEPLOYMENT section 12.
+
+### Home and navigation, 2026-11-01 (Mohamed's feedback)
+
+Details in `docs/feedback/2026-11-01-home-and-navigation.md` (H-1 to H-7). Home's default is Results day, Carry on, Up
+next and A past question a day; the desk shelf (Modules, Notebook, Forum, Calendar) is Home's one way into the modules
+beside the main navigation. My modules and New files are gone; the other blocks stay in Customise Home. A past
+question a day works by module: each module's Overview has one from the chapters a student ticks, and Home asks the
+module put there, else the next exam's module in the six weeks before it (`preferences.dailyQuestion`, no migration;
+guests in the browser). `GET /library/daily-question` replaces `GET /home`'s `dailyQuestion`; `GET /library/facets`
+and `HomeShelf.newFiles` are gone. There is no Library page: `/library` opens Modules; "Upload a file" opens over any
+page; module Files tabs list every file with Add a link and Ask for it; uploads and starred files are under Account →
+Your files. "Powered by BIBF Innovation Hub" is in the sidebar's foot, More, the footer and About. On Railway dev, if
+Site settings were ever saved, set Home's blocks in Manage → Site settings → Home and the tour (the seed only drops
+removed blocks). The e2e specs were updated but not run (they need Docker).
 
 ### Year 3 and IS2184 content, 2026-11-01
 
