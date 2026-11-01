@@ -269,3 +269,18 @@
 .dw-eg .dw-tile {
   font-size: var(--fs-18);
 }
+
+/* The rules' example, as DSBA Daily shows it: each row's marked tile turns over to its colour, one row after
+   another. */
+@media (prefers-reduced-motion: no-preference) {
+  .dg-rules .dw-eg .dw-tile:is(.is-hit, .is-near, .is-miss) {
+    animation: dw-turn 500ms ease-in-out both;
+    animation-delay: var(--eg-at, 500ms);
+  }
+  .dg-rules__example > :nth-child(2) .dw-eg {
+    --eg-at: 1100ms;
+  }
+  .dg-rules__example > :nth-child(3) .dw-eg {
+    --eg-at: 1700ms;
+  }
+}

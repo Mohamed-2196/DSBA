@@ -9,6 +9,7 @@ import { Page, PageHeader, QueryError, Skeleton, TabPanel, Tabs, glyph, Icon } f
 import { newDay, useDailyToday } from './api';
 import { ArchiveView } from './components/ArchiveView';
 import { Countdown } from './components/Countdown';
+import { CountUp } from './components/CountUp';
 import { GameCard } from './components/GameCard';
 import { LeaderboardView } from './components/LeaderboardView';
 import { StatsView } from './components/StatsView';
@@ -97,7 +98,9 @@ function Head({ today }: { today: DailyToday }) {
         <ul className="dd-stats" aria-label="Today so far">
           <li className="dd-stat">
             <Icon glyph={glyph.flame} active className="dd-stat__icon is-flame" aria-hidden="true" />
-            <span className="dd-stat__value dy-num">{streak?.current ?? 0}</span>
+            <span className="dd-stat__value dy-num">
+              <CountUp value={streak?.current ?? 0} />
+            </span>
             <span className="dd-stat__label">
               Day streak
               {streak?.freezeReady && streak.current > 0 ? (
@@ -110,7 +113,9 @@ function Head({ today }: { today: DailyToday }) {
           </li>
           <li className="dd-stat">
             <Icon glyph={glyph.star} className="dd-stat__icon is-star" aria-hidden="true" />
-            <span className="dd-stat__value dy-num">{today.points}</span>
+            <span className="dd-stat__value dy-num">
+              <CountUp value={today.points} />
+            </span>
             <span className="dd-stat__label">Points today</span>
           </li>
           <li className="dd-stat">

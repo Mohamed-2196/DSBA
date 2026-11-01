@@ -23,6 +23,7 @@ import {
   Skeleton,
 } from '../../ui';
 import { useDailyMove, useDailyPlay, useDailyToday } from './api';
+import { Confetti } from './components/Confetti';
 import { Flash, type FlashMessage, type FlashTone } from './components/Flash';
 import { GameTile } from './components/GameGlyph';
 import { ResultDialog } from './components/ResultDialog';
@@ -146,6 +147,7 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
     backToGame();
   };
 
+  const [confetti, setConfetti] = useState(0); // a win's burst, as DSBA Daily celebrates
   const { mutateAsync } = move;
   const play = useCallback(
     async (m: Move): Promise<MoveResult> => {
@@ -153,6 +155,7 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
       try {
         const next = await mutateAsync(m);
         const delay = m.kind === 'give-up' ? 300 : plugin.resultDelay;
+        if (before && !isOver(before) && next.play.status === 'won') setConfetti((c) => c + 1);
         if (before && !isOver(before) && isOver(next.play.status) && delay !== null) {
           setFinishing(true);
           window.clearTimeout(resultTimer.current);
@@ -291,6 +294,8 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
           />
         ) : null}
       </section>
+
+      <Confetti fire={confetti} />
 
       {out && over && !finishing ? <DoneStrip out={out} secret={secret} onOpen={() => setResultOpen(true)} /> : null}
 

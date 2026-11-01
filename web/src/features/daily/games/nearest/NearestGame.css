@@ -230,3 +230,21 @@
   --dn-warm: var(--y3);
   --dn-cold: var(--ink-3);
 }
+
+/* Each closeness bar grows to its length: a new guess's, and the rules' three in turn (as DSBA Daily's bars do). */
+@media (prefers-reduced-motion: no-preference) {
+  .dn-row.is-fresh .dn-meter__fill,
+  .dg-rules .dn-eg .dn-meter__fill {
+    transform-origin: left;
+    animation: dd-grow 600ms var(--ease) both;
+  }
+  .dg-rules .dn-eg .dn-row:nth-child(1) .dn-meter__fill {
+    animation-delay: 400ms;
+  }
+  .dg-rules .dn-eg .dn-row:nth-child(2) .dn-meter__fill {
+    animation-delay: 600ms;
+  }
+  .dg-rules .dn-eg .dn-row:nth-child(3) .dn-meter__fill {
+    animation-delay: 800ms;
+  }
+}

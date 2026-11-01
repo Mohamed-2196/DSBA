@@ -263,3 +263,27 @@
   grid-auto-rows: var(--cell);
   width: max-content;
 }
+
+/* The rules' example: the line draws itself through DATA, as a finger would. */
+@media (prefers-reduced-motion: no-preference) {
+  .dg-rules .ds-eg .ds-line {
+    --len: 4.25; /* the diagonal of a 4 by 4 grid, from centre to centre */
+    stroke-dasharray: var(--len);
+    animation: ds-draw 700ms var(--ease) 500ms both;
+  }
+  .dg-rules .ds-eg .ds-cell.is-tone-0 {
+    animation: dd-pop 280ms var(--ease) both;
+  }
+  .dg-rules .ds-eg .ds-cell.is-tone-0:nth-child(2) {
+    animation-delay: 500ms;
+  }
+  .dg-rules .ds-eg .ds-cell.is-tone-0:nth-child(7) {
+    animation-delay: 680ms;
+  }
+  .dg-rules .ds-eg .ds-cell.is-tone-0:nth-child(12) {
+    animation-delay: 860ms;
+  }
+  .dg-rules .ds-eg .ds-cell.is-tone-0:nth-child(17) {
+    animation-delay: 1040ms;
+  }
+}
