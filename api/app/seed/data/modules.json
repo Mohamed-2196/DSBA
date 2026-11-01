@@ -4200,7 +4200,638 @@
         "url": "https://drive.google.com/drive/folders/1HbOmDlowIBqImfoWlN7ss2EOImXtMxxM"
       }
     ],
-    "chapters": []
+    "chapters": [
+      {
+        "id": "44imjn6d",
+        "title": "Introduction",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "r7n8cysq",
+            "kind": "youtube",
+            "videoId": "MDttSkM5j38",
+            "title": "edX MIS 1-01: MISs: at the frontier between IT and business",
+            "channel": "Orçun Madran"
+          },
+          {
+            "id": "nz4yd78r",
+            "kind": "youtube",
+            "videoId": "a7GSmaZPAvA",
+            "title": "edX MIS 1-02: Can't live without MIS (neither with)",
+            "channel": "Orçun Madran"
+          },
+          {
+            "id": "2cjisv3c",
+            "kind": "youtube",
+            "videoId": "OPAWy1v9Gnw",
+            "title": "CIS 511: Chapter 1: Information Systems in Global Business Today",
+            "channel": "Joseph H.Schuessler"
+          },
+          {
+            "id": "39vgyxzs",
+            "kind": "youtube-playlist",
+            "videoId": "PLRU5YMNncPaqDMu5qyzMHseHXzeSppHj0",
+            "title": "BCIS 5311: Managing Information Systems",
+            "channel": "Joseph H.Schuessler"
+          }
+        ]
+      },
+      {
+        "id": "czacvht6",
+        "title": "The role of technology in organisations",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "3w9vb9ub",
+            "kind": "youtube",
+            "videoId": "qMZSYVVIyxo",
+            "title": "Differences between Information Technology (IT) and Information System (IS)",
+            "channel": "Our Kaleidoscope Journey"
+          },
+          {
+            "id": "kwez7agr",
+            "kind": "youtube",
+            "videoId": "nQ4Q3iN7TMM",
+            "title": "Types of Information Systems (TPS, MIS, and DSS)",
+            "channel": "Our Kaleidoscope Journey"
+          },
+          {
+            "id": "kbki3epv",
+            "kind": "youtube",
+            "videoId": "yX4kO8rVpHo",
+            "title": "CIS 511: Chapter 2: Global E-Business and Collaboration",
+            "channel": "Joseph H.Schuessler"
+          },
+          {
+            "id": "z9k4e9ny",
+            "kind": "youtube",
+            "videoId": "kerDFvln7hU",
+            "title": "Lewin, Stage Model of Change Unfreezing   Changing   Refreezing AnimatedPart 5",
+            "channel": "Teaching"
+          },
+          {
+            "id": "vgcm7dbk",
+            "kind": "youtube",
+            "videoId": "SGYmPMcgDPg",
+            "title": "Kotter's 8 Steps for Leading Change",
+            "channel": "Kotter"
+          },
+          {
+            "id": "imi2nzih",
+            "kind": "youtube",
+            "videoId": "VbyR4t2lTP8",
+            "title": "Chapter 11 - Managing Organizational Change, Resistance, and Conflict - Part 1",
+            "channel": "Eric Magidson"
+          }
+        ]
+      },
+      {
+        "id": "9mydiipv",
+        "title": "Information technology and business strategies",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "j7bpfdx9",
+            "kind": "youtube",
+            "videoId": "o7Ik1OB4TaE",
+            "title": "What Is Strategy? It’s a Lot Simpler Than You Think",
+            "channel": "Harvard Business Review"
+          },
+          {
+            "id": "yy8m6hnq",
+            "kind": "youtube",
+            "videoId": "mYF2_FBCvXw",
+            "title": "The Five Competitive Forces That Shape Strategy",
+            "channel": "Harvard Business Review"
+          },
+          {
+            "id": "hrkykite",
+            "kind": "youtube",
+            "videoId": "SI5lYaZaUlg",
+            "title": "Value Chain Analysis EXPLAINED | B2U | Business To You",
+            "channel": "Business To You"
+          },
+          {
+            "id": "3275tjfa",
+            "kind": "youtube",
+            "videoId": "I_6AVRGLXGA",
+            "title": "How to Perform a SWOT Analysis",
+            "channel": "OnStrategy I Virtual Strategist"
+          },
+          {
+            "id": "m35ezpma",
+            "kind": "youtube",
+            "videoId": "hj7Kw3fDNaw",
+            "title": "SMART Goals (Explained) - Specific, Measurable, Attainable, Realistic, Time-Bound",
+            "channel": "Helpful Professor Explains!"
+          },
+          {
+            "id": "4uz5ffvf",
+            "kind": "youtube",
+            "videoId": "vm6DqTcUTIA",
+            "title": "Digital Strategy",
+            "channel": "MIT Corporate Relations"
+          },
+          {
+            "id": "4qpvmafr",
+            "kind": "youtube",
+            "videoId": "Lh1IZNmQDUY",
+            "title": "The IT Doesn't Matter Debate",
+            "channel": "Reinhardt Botha"
+          },
+          {
+            "id": "t477rmbr",
+            "kind": "youtube",
+            "videoId": "NxT8Dc4yeW8",
+            "title": "CIS 511: Chapter 3: Information Systems, Organizations, and Strategy",
+            "channel": "Joseph H.Schuessler"
+          }
+        ]
+      },
+      {
+        "id": "kxzwbsfh",
+        "title": "Project management",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "5h9fknnz",
+            "kind": "youtube",
+            "videoId": "H_FX0uYUtdo",
+            "title": "Project Management PMBoK Knowledge Areas Overview",
+            "channel": "Terrena Hooper"
+          },
+          {
+            "id": "6f7py5ea",
+            "kind": "youtube",
+            "videoId": "cHUP61KU3xE",
+            "title": "Project Management in Under 5: What is Project Integration?",
+            "channel": "Online PM Courses - Mike Clayton"
+          },
+          {
+            "id": "z6cmatsq",
+            "kind": "youtube",
+            "videoId": "-TDh-5n90vk",
+            "title": "Project Scheduling - PERT/CPM | Finding Critical Path",
+            "channel": "Joshua Emmanuel"
+          },
+          {
+            "id": "7tkrqgqm",
+            "kind": "youtube",
+            "videoId": "2124ZV4wbQ8",
+            "title": "Project Scheduling 2 -Calculating variance and probabilities -PERT/CPM",
+            "channel": "Joshua Emmanuel"
+          },
+          {
+            "id": "m3thyn9c",
+            "kind": "youtube",
+            "videoId": "zpT0tBGW4-E",
+            "title": "Network Charts: What's the Difference between PERT and CPM?",
+            "channel": "Online PM Courses - Mike Clayton"
+          },
+          {
+            "id": "2c3b4syv",
+            "kind": "youtube",
+            "videoId": "j8obKof2MDM",
+            "title": "What is Project Portfolio Management? PM in Under 5",
+            "channel": "Online PM Courses - Mike Clayton"
+          },
+          {
+            "id": "twc4k8m2",
+            "kind": "youtube",
+            "videoId": "OiuHQQAgaFE",
+            "title": "How Big Things Get Done: a conversation with Professor Bent Flyvbjerg",
+            "channel": "Sydney Executive Plus"
+          },
+          {
+            "id": "8iarrpzy",
+            "kind": "youtube",
+            "videoId": "YCVQHwas1-4",
+            "title": "CIS 511: Chapter 14: Managing Projects",
+            "channel": "Joseph H.Schuessler"
+          }
+        ]
+      },
+      {
+        "id": "q4qnvjzi",
+        "title": "Outsourcing",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "ejyvmv6a",
+            "kind": "youtube",
+            "videoId": "Du0jGBX6IfU",
+            "title": "edX MIS 1-03: Make vs. Buy",
+            "channel": "Orçun Madran"
+          },
+          {
+            "id": "2rpyecec",
+            "kind": "youtube",
+            "videoId": "VHD3-gRFiQo",
+            "title": "edX MIS 1-04: Outsourcing, Offshoring",
+            "channel": "Orçun Madran"
+          },
+          {
+            "id": "yw5egtjv",
+            "kind": "youtube",
+            "videoId": "GOAIbuqni8E",
+            "title": "SILVERMAN / The Foundations of Transaction Cost Economics",
+            "channel": "Learn IOE"
+          },
+          {
+            "id": "qyaemqia",
+            "kind": "youtube",
+            "videoId": "luJ4-QAzbEM",
+            "title": "SILVERMAN / Basic Predictions of Transaction Cost Economics",
+            "channel": "Learn IOE"
+          },
+          {
+            "id": "77skjfds",
+            "kind": "youtube",
+            "videoId": "9Fmjs4OTqRA",
+            "title": "Leading Strategy Paper Series: Prahalad and Hamel 1990 \"The core competence of the corporation\"",
+            "channel": "Glenn Parry"
+          },
+          {
+            "id": "9ji7pp3n",
+            "kind": "youtube",
+            "videoId": "36zducUX16w",
+            "title": "Cloud Computing Services Models - IaaS PaaS SaaS Explained",
+            "channel": "Ecourse Review"
+          },
+          {
+            "id": "pam46q6p",
+            "kind": "youtube",
+            "videoId": "-3Z3fjo7nmk",
+            "title": "edX MIS 2-08: Benefits of Private, Public and Hybrid Clouds",
+            "channel": "Orçun Madran"
+          },
+          {
+            "id": "htu54i96",
+            "kind": "youtube",
+            "videoId": "WhsFyQHpb6s",
+            "title": "BIS 3233 - Chapter 13: Acquiring Information Systems and Applications",
+            "channel": "Andrew Miller"
+          }
+        ]
+      },
+      {
+        "id": "ujj8xtah",
+        "title": "ICT governance",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "muvszex4",
+            "kind": "youtube",
+            "videoId": "7CMUfDZ0Kzk",
+            "title": "The basics of Corporate Governance",
+            "channel": "Practice Tests Academy"
+          },
+          {
+            "id": "7a4uebfz",
+            "kind": "youtube",
+            "videoId": "5U5f17vO1Y0",
+            "title": "What is IT governance?",
+            "channel": "TECHtalk"
+          },
+          {
+            "id": "d2962t2g",
+            "kind": "youtube",
+            "videoId": "cU8iGQ5hUQQ",
+            "title": "IT Governance Part 1 of 2",
+            "channel": "CIOclassroom"
+          },
+          {
+            "id": "zb9y9msr",
+            "kind": "youtube",
+            "videoId": "YtDKSxEKCEU",
+            "title": "IT Alignment Part 1 of 2",
+            "channel": "CIOclassroom"
+          },
+          {
+            "id": "vdstcidd",
+            "kind": "youtube",
+            "videoId": "Ei3-1KgjARA",
+            "title": "COBIT Explained - ITpreneurs Ask-the-Expert",
+            "channel": "ITpreneurs"
+          },
+          {
+            "id": "kuz6tsq8",
+            "kind": "youtube",
+            "videoId": "c3QfSmKo4QA",
+            "title": "ITSM & ITIL Explained Simply | Beginner’s Guide",
+            "channel": "Knewget"
+          },
+          {
+            "id": "t7dv2heu",
+            "kind": "youtube",
+            "videoId": "bO3GpAjVvD8",
+            "title": "PDCA Cycle Explained (Deming Cycle | Shewhart Cycle | PDSA)",
+            "channel": "EPM"
+          }
+        ]
+      },
+      {
+        "id": "htuw2xad",
+        "title": "E-business",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "8r4r5qdj",
+            "kind": "youtube",
+            "videoId": "FhpWKUWjOuc",
+            "title": "e-Commerce Vs e-Business: Difference between them with definition, types & comparison chart",
+            "channel": "Key Differences"
+          },
+          {
+            "id": "hiks9jzy",
+            "kind": "youtube",
+            "videoId": "mEH7Zb4pt3w",
+            "title": "CIS 511: Chapter 10: E-Commerce: Digital Markets, Digital Goods",
+            "channel": "Joseph H.Schuessler"
+          },
+          {
+            "id": "prby3j6e",
+            "kind": "youtube",
+            "videoId": "N6kmGlk_L7A",
+            "title": "Chapter 4 | B2B E-Commerce: Models, Marketplaces & Strategies | BCIS 5379",
+            "channel": "Joseph H.Schuessler"
+          },
+          {
+            "id": "4fhmwmzd",
+            "kind": "youtube",
+            "videoId": "g33O3gD0sU4",
+            "title": "What is E Procurement | E Tendering | How to Implement | Types and Benefits",
+            "channel": "10 Min For Supply Chain"
+          },
+          {
+            "id": "yw9mkfq6",
+            "kind": "youtube",
+            "videoId": "B4ZSGQW0UMI",
+            "title": "Business Model Innovation",
+            "channel": "HSGUniStGallen"
+          },
+          {
+            "id": "y2rv4kbz",
+            "kind": "youtube",
+            "videoId": "kEq4gcF-DwE",
+            "title": "Network Effects 101",
+            "channel": "Stanford eCorner"
+          },
+          {
+            "id": "x4yf8jb7",
+            "kind": "youtube",
+            "videoId": "e5B9pfuVrMU",
+            "title": "How Platforms Change Structure and Strategy with Marshall Van Alstyne",
+            "channel": "MIT Initiative on the Digital Economy"
+          }
+        ]
+      },
+      {
+        "id": "frkjcp99",
+        "title": "Enterprise resource planning systems",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "4n2sbges",
+            "kind": "youtube",
+            "videoId": "Da1hUqzoiAo",
+            "title": "What is Enterprise Resource Planning (ERP) Software?",
+            "channel": "IBM Technology"
+          },
+          {
+            "id": "iqcny4wz",
+            "kind": "youtube",
+            "videoId": "FZbG0EF0rW8",
+            "title": "Enterprise Wide Systems - CRM, ERP and SCM (Business Information Systems)",
+            "channel": "Our Kaleidoscope Journey"
+          },
+          {
+            "id": "rr2k992f",
+            "kind": "youtube",
+            "videoId": "KfW2WKKzULw",
+            "title": "edX MIS 4-07: Pros and Cons of the ERP approach",
+            "channel": "Orçun Madran"
+          },
+          {
+            "id": "j588asn6",
+            "kind": "youtube",
+            "videoId": "ujCvxGTGfag",
+            "title": "edX MIS 5-03: Adapting the current practice. BPR",
+            "channel": "Orçun Madran"
+          },
+          {
+            "id": "wa2fm54a",
+            "kind": "youtube",
+            "videoId": "KND3XZJIrHs",
+            "title": "edX MIS 5-06: ERP implementation approaches: Big Bang, Roll out, Modular",
+            "channel": "Orçun Madran"
+          },
+          {
+            "id": "3g2rstqy",
+            "kind": "youtube",
+            "videoId": "MFoyQrk-Taw",
+            "title": "edX MIS 5-07: ERP implementation challenges and costs",
+            "channel": "Orçun Madran"
+          },
+          {
+            "id": "44jdszwh",
+            "kind": "youtube",
+            "videoId": "GeC7MjwBkDs",
+            "title": "ERP Failure Case Study - Nike",
+            "channel": "Third Stage Consulting Group"
+          },
+          {
+            "id": "4edv6a73",
+            "kind": "youtube",
+            "videoId": "_wGH97O_VCs",
+            "title": "CIS 511: Chapter 9: Achieving Operational Excellence and Customer Intimacy: Enterprise Applications",
+            "channel": "Joseph H.Schuessler"
+          }
+        ]
+      },
+      {
+        "id": "48qu7x6x",
+        "title": "Managing business intelligence and big data",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "ve6t5kec",
+            "kind": "youtube",
+            "videoId": "-I23qGB6JdY",
+            "title": "What is Business Intelligence?  BI for Beginners",
+            "channel": "Adam Finer - Learn BI"
+          },
+          {
+            "id": "tqfkirjm",
+            "kind": "youtube",
+            "videoId": "oF_2uDb7DvQ",
+            "title": "What is ETL | What is Data Warehouse | OLTP vs OLAP",
+            "channel": "codebasics"
+          },
+          {
+            "id": "e2naymgt",
+            "kind": "youtube",
+            "videoId": "7rs0i-9nOjo",
+            "title": "What is Data Mining?",
+            "channel": "IBM Technology"
+          },
+          {
+            "id": "4mfupzhq",
+            "kind": "youtube",
+            "videoId": "zf-d-O7hVhM",
+            "title": "The Balanced Scorecard explained",
+            "channel": "Sim Institute"
+          },
+          {
+            "id": "6nd5cq3b",
+            "kind": "youtube",
+            "videoId": "8pHzROP1D-w",
+            "title": "Kenneth Cukier: Big data is better data",
+            "channel": "TED"
+          },
+          {
+            "id": "izaizs62",
+            "kind": "youtube",
+            "videoId": "edouxOBrIGk",
+            "title": "Big Data's Big Deal - Viktor Mayer-Schonberger",
+            "channel": "Oxford Mathematics"
+          },
+          {
+            "id": "emn6yb56",
+            "kind": "youtube",
+            "videoId": "kPPFNrlN3zo",
+            "title": "What is the CIA Triad",
+            "channel": "IBM Technology"
+          },
+          {
+            "id": "22xyhdnb",
+            "kind": "youtube",
+            "videoId": "L1n9LheMEq0",
+            "title": "CIS 511: Chapter 12: Enhancing Decision Making",
+            "channel": "Joseph H.Schuessler"
+          }
+        ]
+      },
+      {
+        "id": "ra9dbmxr",
+        "title": "Knowledge management",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "9mn2f8jr",
+            "kind": "youtube",
+            "videoId": "3_eI5r55XhU",
+            "title": "What is Knowledge Management?",
+            "channel": "IBM Technology"
+          },
+          {
+            "id": "ycx3auxe",
+            "kind": "youtube",
+            "videoId": "wj8vHRaLjjo",
+            "title": "Innovation for knowledge-creating companies. Tacit & explicit explained.",
+            "channel": "Thomas P Seager, PhD"
+          },
+          {
+            "id": "gn2yddt8",
+            "kind": "youtube",
+            "videoId": "Rr02SdqmY2A",
+            "title": "Knowledge Management - The SECI Model (Nonaka & Takeuchi 1996) || Tacit and Explicit Knowledge",
+            "channel": "Deva Andre (Dev)"
+          },
+          {
+            "id": "8tfdzufc",
+            "kind": "youtube",
+            "videoId": "SmqLyOLIjos",
+            "title": "Communities of Practice (Etienne and Beverly Wenger-Trayner)",
+            "channel": "Skills Academia Reseach & Insights Collective"
+          },
+          {
+            "id": "iixwrvjv",
+            "kind": "youtube",
+            "videoId": "xT3EpF2EsbQ",
+            "title": "What is Social Network Analysis?",
+            "channel": "Mod•U: Powerful Concepts in Social Science"
+          },
+          {
+            "id": "kpic5bhv",
+            "kind": "youtube",
+            "videoId": "_9_6ok5-_jc",
+            "title": "How Web 2.0 is changing the way we work: An interview with MIT's Andrew McAfee",
+            "channel": "McKinsey & Company"
+          },
+          {
+            "id": "rw2sqz2m",
+            "kind": "youtube",
+            "videoId": "sVtMC3GkMr0",
+            "title": "Introduction to Knowledge Management: KM Essentials",
+            "channel": "APQC"
+          },
+          {
+            "id": "u52g2vfi",
+            "kind": "youtube",
+            "videoId": "K4hHKKDKQmg",
+            "title": "CIS 511: Chapter 11: Managing Knowledge",
+            "channel": "Joseph H.Schuessler"
+          }
+        ]
+      },
+      {
+        "id": "dtjtecub",
+        "title": "Conclusions: moral, ethical and legal issues",
+        "addedIn": "2026-11",
+        "videos": [
+          {
+            "id": "zv8mrvgt",
+            "kind": "youtube",
+            "videoId": "Xki2fRA0bY8",
+            "title": "What is the difference between Ethics, Morality and the Law?",
+            "channel": "The Ethics Centre"
+          },
+          {
+            "id": "p32pqbii",
+            "kind": "youtube",
+            "videoId": "s2QLL8WawoQ",
+            "title": "The philosophy of information and information ethics - Lecture",
+            "channel": "ORBITS - Luciano Floridi"
+          },
+          {
+            "id": "zkujknez",
+            "kind": "youtube",
+            "videoId": "2iPDpV8ojHA",
+            "title": "Data Privacy and Consent | Fred Cate | TEDxIndianaUniversity",
+            "channel": "TEDx Talks"
+          },
+          {
+            "id": "sczn2928",
+            "kind": "youtube",
+            "videoId": "NcHSD3fWJiQ",
+            "title": "What are the 7 principles of GDPR?",
+            "channel": "Privacy Kitchen"
+          },
+          {
+            "id": "dk76um3y",
+            "kind": "youtube",
+            "videoId": "hIXhnWUmMvw",
+            "title": "Shoshana Zuboff on surveillance capitalism | VPRO Documentary",
+            "channel": "vpro documentary"
+          },
+          {
+            "id": "dprzp877",
+            "kind": "youtube",
+            "videoId": "O9UifQLRXRw",
+            "title": "Custodians of the Internet: Tarleton Gillespie at #CSMIT2018",
+            "channel": "Citizens and Technology Lab"
+          },
+          {
+            "id": "bzmmtrcr",
+            "kind": "youtube",
+            "videoId": "iI2WXaWTmO8",
+            "title": "CIS 511: Chapter 4: Ethical and Social Issues in Information Systems",
+            "channel": "Joseph H.Schuessler"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "machine-learning",

@@ -438,7 +438,9 @@ def test_a_job_waits_for_the_text_and_the_budget_and_skips_a_module_without_chap
     assert "budget" in job.reason
     assert claude.sent == []
 
-    bare = written(db, paper(db, "MT1186 2024", module_id="information-systems"))  # IS2184 has no chapters
+    modules["information-systems"].chapters.clear()  # a module without chapters: every seeded one has some
+    db.commit()
+    bare = written(db, paper(db, "IS2184 2024", module_id="information-systems"))
     paper_tagging.queue(db, bare)
     db.commit()
     assert paper_tagging.run_one(db, connect_to(claude))
