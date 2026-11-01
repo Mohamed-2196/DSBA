@@ -231,6 +231,7 @@ const toggleChapter = (index) => {
 
   const cheatSheetLinks = {
     programming_data_science: 'https://docs.google.com/document/d/1fiO4uLqivuYNF_SPDIYxiXClRDWwlI9U/edit?usp=drive_link&ouid=114257845455063086777&rtpof=true&sd=true',
+    asset_pricing: 'https://drive.google.com/drive/folders/17C5VR-6c4gmSPf7DMwCwKYKWwe33PdIt',
   };
 
   const paidExamsLinks = {
@@ -244,6 +245,12 @@ const toggleChapter = (index) => {
     business_analytics: 'https://drive.google.com/drive/folders/1TJ6rBkb7rrXbUMfPEuhWtBN2ZLAbCZYT?usp',
     econometrics: 'https://drive.google.com/drive/folders/1jMpqxGHOG20U7MwMS-5o9WSdSZPUMkFZ?usp',
     information_systems: 'https://drive.google.com/drive/folders/1RWlgsFWuWi1gX0iCZyNmdbcVfbzKyuEk?usp',
+    machine_learning: 'https://drive.google.com/drive/folders/1jaBexBbTJJ6qpg4BWczknscTOhog9tbM',
+    market_research: 'https://drive.google.com/drive/folders/1qKa9WrB07QRw_Gql24kXYx6zZNonVY4R',
+    microeconomics: 'https://drive.google.com/drive/folders/1hFW628n6-1PX8dRx9Aihh0ZkChylCyaO',
+    asset_pricing: 'https://drive.google.com/drive/folders/1X_LLB6t_oxNn0ylYuGJo-PSs6n90mFH1',
+    marketing_management: 'https://drive.google.com/drive/folders/1omDrsqcu-BtKJArE9xEuPuE9AyW8hvbH',
+    further_maths_economists: 'https://drive.google.com/drive/folders/1feW7jQ4Ry4zM5srvvuFsdIMch7kqY6DG',
   };
 
   const materialsLink = subjectMaterialsLinks[code];
