@@ -170,7 +170,7 @@ test('a guest plays every game to a finish', async ({ guest }) => {
 
   // Nearest Neighbour and Sudoku end with "Give up": a guest's answer waits for an account, or for tomorrow.
   await open(page, 'nearest');
-  await page.getByRole('textbox', { name: 'Your guess' }).fill('data');
+  await page.getByRole('textbox', { name: 'Type a word' }).fill('data');
   await page.getByRole('button', { name: 'Guess', exact: true }).click();
   await expect(page.getByRole('list', { name: 'Your guesses, closest first' })).toContainText('data');
   for (const game of ['nearest', 'sudoku']) {
@@ -302,7 +302,7 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
   await expect(result(page)).toContainText('+40 points');
 
   await open(page, 'nearest', true);
-  await page.getByRole('textbox', { name: 'Your guess' }).fill(a.nearest);
+  await page.getByRole('textbox', { name: 'Type a word' }).fill(a.nearest);
   await page.getByRole('button', { name: 'Guess', exact: true }).tap();
   await expect(result(page)).toContainText('Found it');
 
