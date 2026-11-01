@@ -291,6 +291,7 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
             paused={paused}
             showResult={() => setResultOpen(true)}
             onVariant={onVariant}
+            askGiveUp={() => setConfirmGiveUp(true)}
           />
         ) : null}
       </section>

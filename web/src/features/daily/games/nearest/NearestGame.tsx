@@ -1,22 +1,22 @@
-// Nearest Neighbour: find the secret word by meaning. Every guess comes back with its rank (1 is the secret word),
-// listed closest first with a bar for how close it is; the latest guess stays at the top so the change is easy to
-// read. A hint shows a word closer than the best so far.
+// Nearest Neighbour, as DSBA Daily lays it out: the guess count, the box with its button, the latest guess pinned
+// under it, then every guess closest first, each a row whose bar fills with how close it is (green close, yellow
+// warm, red far); Hint and Give up at the foot. 1 is the secret word.
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { Button, cx, glyph, Icon } from '../../../../ui';
-import { BAND_LABEL, band, bestRank, byCloseness, closeness } from '../../lib/nearest';
+import { BAND_LABEL, band, byCloseness, closeness } from '../../lib/nearest';
 import type { NearestGuess } from '../../types';
 import type { GameProps } from '../registry';
 import './NearestGame.css';
 
-export function NearestGame({ out, busy, play, flash }: GameProps) {
+export function NearestGame({ out, busy, play, flash, askGiveUp }: GameProps) {
   const { play: state } = out;
   const view = state.view.kind === 'nearest' ? state.view : null;
   const guesses = view?.guesses ?? [];
   const vocabulary = view?.vocabulary ?? 500;
   const over = state.status === 'won' || state.status === 'lost';
-  const best = bestRank(guesses);
   const latest = guesses[guesses.length - 1];
   const sorted = byCloseness(guesses);
+  const best = sorted[0]?.rank ?? null;
 
   const [word, setWord] = useState('');
   const [fresh, setFresh] = useState<string | null>(null);
@@ -36,7 +36,8 @@ export function NearestGame({ out, busy, play, flash }: GameProps) {
     if (!guess || busy || over) return;
     const tried = guesses.find((g) => g.word === guess);
     if (tried) {
-      flash(`You’ve tried “${guess}”: #${tried.rank}`, 'info');
+      flash(`Already guessed “${guess}”`, 'info');
+      after(tried);
       setWord('');
       return;
     }
@@ -47,9 +48,9 @@ export function NearestGame({ out, busy, play, flash }: GameProps) {
       return;
     }
     setWord('');
+    input.current?.focus();
     if (r.out.play.view.kind !== 'nearest') return;
     const g = r.out.play.view.guesses[r.out.play.view.guesses.length - 1];
-    after(g);
     if (g?.rank === 1) flash('Found it', 'good');
     else if (g && g.rank <= 10) flash('Very close', 'info');
   };
@@ -64,12 +65,23 @@ export function NearestGame({ out, busy, play, flash }: GameProps) {
   };
 
   const plain = guesses.filter((g) => !g.hint).length;
+  const hints = guesses.length - plain;
   return (
     <div className="dn">
+      <p className="dn-count">
+        #{state.number} · Guesses: <b className="dy-num">{plain}</b>
+        {hints > 0 ? (
+          <>
+            {' '}
+            · Hints: <b className="dy-num">{hints}</b>
+          </>
+        ) : null}
+      </p>
+
       {!over ? (
         <form className="dn-form" onSubmit={(e) => void submit(e)}>
           <label className="visually-hidden" htmlFor="dn-guess">
-            Your guess
+            Type a word
           </label>
           <input
             ref={input}
@@ -85,44 +97,28 @@ export function NearestGame({ out, busy, play, flash }: GameProps) {
             enterKeyHint="go"
             disabled={busy}
           />
-          <Button type="submit" variant="primary" disabled={!word.trim()} loading={busy}>
-            Guess
-          </Button>
           <Button
-            variant="secondary"
-            leadingIcon={<Icon glyph={glyph.sparkle} />}
-            onClick={() => void hint()}
-            disabled={busy || best === 1 || (best !== null && best <= 2)}
+            type="submit"
+            variant="primary"
+            className="dn-go"
+            aria-label="Guess"
+            disabled={!word.trim()}
+            loading={busy && !!word}
           >
-            Hint
+            <Icon glyph={glyph.forward} />
           </Button>
         </form>
       ) : view?.answer ? (
-        <div className={cx('dn-answer', state.status === 'won' && 'is-won')}>
-          <span className="dn-answer__label">The secret word</span>
+        <div className="dn-answer">
+          <span className="dn-answer__label">{state.status === 'won' ? 'You found it!' : 'The word was…'}</span>
           <strong className="dn-answer__word">{view.answer}</strong>
         </div>
       ) : null}
 
-      {best !== null ? (
-        <div className="dn-best" aria-live="polite">
-          <div className="dn-best__head">
-            <span>
-              Closest so far: <strong className="dy-num">#{best}</strong>
-            </span>
-            <span>
-              {plain} {plain === 1 ? 'guess' : 'guesses'}
-              {state.hints ? `, ${state.hints} ${state.hints === 1 ? 'hint' : 'hints'}` : ''}
-            </span>
-          </div>
-          <Meter rank={best} vocabulary={vocabulary} />
-        </div>
-      ) : null}
-
-      {latest && guesses.length > 1 && !over && sorted[0] !== latest ? (
-        <div className="dn-latest">
-          <span className="dn-latest__label">Last guess</span>
-          <Row guess={latest} vocabulary={vocabulary} fresh={fresh === latest.word} />
+      {latest && !over && latest.rank !== 1 ? (
+        <div className="dn-latest" key={latest.word}>
+          <p className="dn-latest__label">Latest</p>
+          <Row guess={latest} vocabulary={vocabulary} />
         </div>
       ) : null}
 
@@ -130,47 +126,68 @@ export function NearestGame({ out, busy, play, flash }: GameProps) {
         <ol className="dn-list" aria-label="Your guesses, closest first">
           {sorted.map((g) => (
             <li key={g.word}>
-              <Row guess={g} vocabulary={vocabulary} fresh={fresh === g.word && guesses.length === 1} />
+              <Row guess={g} vocabulary={vocabulary} fresh={fresh === g.word} />
             </li>
           ))}
         </ol>
       ) : (
         <div className="dn-empty">
           <p className="dn-empty__title">Guess any word to begin</p>
-          <p className="dn-empty__body">
-            Each guess shows how close it is in meaning. #1 is the secret word, and the lower the number, the closer you
-            are.
-          </p>
+          <p className="dn-empty__body">Each guess shows how close it is in meaning. #1 is the secret word.</p>
         </div>
       )}
+
+      {!over ? (
+        <div className="dn-foot">
+          <Button
+            variant="secondary"
+            className="dn-foot__hint"
+            leadingIcon={<Icon glyph={glyph.bulb} />}
+            onClick={() => void hint()}
+            disabled={busy || best === 1 || (best !== null && best <= 2)}
+          >
+            Hint
+          </Button>
+          <Button
+            variant="ghost"
+            leadingIcon={<Icon glyph={glyph.flag} />}
+            onClick={askGiveUp}
+            disabled={busy || !guesses.length}
+          >
+            Give up
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function Meter({ rank, vocabulary }: { rank: number; vocabulary: number }) {
-  const b = band(rank);
-  return (
-    <span
-      className={cx('dn-meter', `is-${b}`)}
-      style={{ '--fill': `${Math.max(4, Math.round(closeness(rank, vocabulary) * 100))}%` } as CSSProperties}
-      aria-hidden="true"
-    >
-      <span className="dn-meter__fill" />
-    </span>
-  );
-}
-
-function Row({ guess, vocabulary, fresh }: { guess: NearestGuess; vocabulary: number; fresh: boolean }) {
+/** One guess: its word and rank over a bar that fills with how close it is, as DSBA Daily draws it. */
+function Row({ guess, vocabulary, fresh = false }: { guess: NearestGuess; vocabulary: number; fresh?: boolean }) {
   const b = band(guess.rank);
+  const fill = Math.max(0.03, closeness(guess.rank, vocabulary));
   return (
-    <div className={cx('dn-row', `is-${b}`, fresh && 'is-fresh')}>
+    <div className={cx('dn-row', `is-${b}`, fresh && 'is-fresh')} style={{ '--fill': fill } as CSSProperties}>
+      <span className="dn-row__bar" aria-hidden="true" />
       <span className="dn-row__word">
         {guess.word}
-        {guess.hint ? <span className="dn-row__hint">Hint</span> : null}
+        {guess.hint ? (
+          <>
+            <Icon glyph={glyph.bulb} className="dn-row__hint" />
+            <span className="visually-hidden">, from a hint</span>
+          </>
+        ) : null}
       </span>
-      <Meter rank={guess.rank} vocabulary={vocabulary} />
       <span className="dn-row__rank dy-num">
-        <span className="visually-hidden">{BAND_LABEL[b]}, rank </span>#{guess.rank}
+        <span className="visually-hidden">{BAND_LABEL[b]}, rank </span>
+        {b === 'found' ? (
+          <>
+            <Icon glyph={glyph.sparkle} />
+            <span className="visually-hidden">1</span>
+          </>
+        ) : (
+          guess.rank.toLocaleString('en')
+        )}
       </span>
     </div>
   );
@@ -187,7 +204,7 @@ export function NearestExample() {
     <div className="dg-eg">
       <div className="dn-eg" aria-hidden="true">
         {examples.map((g) => (
-          <Row key={g.word} guess={g} vocabulary={483} fresh={false} />
+          <Row key={g.word} guess={g} vocabulary={483} />
         ))}
       </div>
       <p className="dg-eg__caption">
