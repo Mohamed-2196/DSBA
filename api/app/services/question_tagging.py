@@ -42,7 +42,7 @@ from anthropic.types.message_create_params import MessageCreateParamsNonStreamin
 from anthropic.types.messages import MessageBatch, MessageBatchIndividualResponse
 from anthropic.types.messages.batch_create_params import Request
 from pydantic import BaseModel, ValidationError
-from sqlalchemy import delete, exists, func, select, update
+from sqlalchemy import Select, delete, exists, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import InstrumentedAttribute, Session
 from sqlalchemy.sql.elements import ColumnElement
@@ -776,21 +776,33 @@ def export_tags(db: Session) -> list[dict[str, Any]]:
     return out
 
 
+_PAPERS = select(LibraryItem).where(LibraryItem.status == ItemStatus.published, LibraryItem.kind == PAST_PAPER)
+
+
 def _find_paper(db: Session, entry: dict[str, Any]) -> LibraryItem | None:
-    """The published past paper an entry names here: by its import key, else by its bytes in its module (the first
-    copy, as the library lists it)."""
-    papers = select(LibraryItem).where(LibraryItem.status == ItemStatus.published, LibraryItem.kind == PAST_PAPER)
+    """The published past paper an entry names here, by its import key, else by its bytes in its module; when the
+    same file came in twice, the copy the library lists (the first: library.duplicate())."""
     if entry.get("importKey"):
-        item = db.scalar(papers.where(LibraryItem.import_key == entry["importKey"]))
+        item = db.scalar(_PAPERS.where(LibraryItem.import_key == entry["importKey"]))
         if item is not None:
-            return item
+            if item.content_hash is None:
+                return item
+            return db.scalar(_same_file(item).where(~duplicate()).limit(1)) or item
     if entry.get("contentHash") and entry.get("module"):
         return db.scalar(
-            papers.where(
+            _PAPERS.where(
                 LibraryItem.content_hash == entry["contentHash"], LibraryItem.module_id == entry["module"], ~duplicate()
             ).limit(1)
         )
     return None
+
+
+def _same_file(item: LibraryItem) -> Select[tuple[LibraryItem]]:
+    """The published past papers of the item's module with its bytes, the item among them."""
+    return _PAPERS.where(
+        LibraryItem.content_hash == item.content_hash,
+        LibraryItem.module_id.is_not_distinct_from(item.module_id),
+    )
 
 
 def _removed(db: Session, item_id: uuid.UUID | None = None) -> set[tuple[str, str | None, int, str]]:
@@ -845,6 +857,9 @@ def import_tags(db: Session, entries: Sequence[dict[str, Any]]) -> int:
         item = _find_paper(db, entry)
         if item is None or item.module_id is None:
             continue
+        if item.content_hash is not None:  # a second copy of the file keeps no tags the seed gave it before
+            for copy in db.scalars(_same_file(item).where(LibraryItem.id != item.id)):
+                _drop_stale(db, copy.id, [])
         if item.module_id not in chapters:
             chapters[item.module_id] = set(db.scalars(select(Chapter.id).where(Chapter.module_id == item.module_id)))
         known = chapters[item.module_id]

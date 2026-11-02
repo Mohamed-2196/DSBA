@@ -682,3 +682,28 @@ def test_the_seed_replaces_a_papers_stale_tags_from_claude_and_keeps_the_rest(
         db.scalar(select(PaperQuestion.id).where(PaperQuestion.item_id == item.id, PaperQuestion.question == 2))
         == kept_id
     )
+
+
+def test_the_seeds_tags_go_on_the_copy_the_library_lists_when_a_file_came_in_twice(
+    db: Session, modules: dict[str, Module]
+) -> None:
+    a, b = chapter_ids(db)[:2]
+    listed = paper(db, "EC1002 2005 Exam ZA", content=b"the 2005 paper")
+    second = paper(db, "EC1002 2005 Examiners ZA", content=b"the 2005 paper")  # the same file under another name
+    second.created_at = listed.created_at + timedelta(minutes=1)
+    qt.save_tags(db, second.id, [qt.Tag(1, 1, (a,), 0.9)])  # an earlier seed tagged the copy the library hides
+    db.commit()
+    entry = {
+        "module": MODULE,
+        "title": second.title,
+        "importKey": second.import_key,  # the seed names the second copy
+        "contentHash": second.content_hash,
+        "model": qt.MODEL,
+        "questions": [{"question": 1, "page": 1, "chapters": [b]}],
+    }
+
+    assert qt.import_tags(db, [entry]) == 1
+    db.commit()
+    assert tags_of(db, listed) == {(1, b, 1, qt.MODEL)}
+    assert tags_of(db, second) == set()
+    assert qt.import_tags(db, [entry]) == 0  # again: nothing twice
