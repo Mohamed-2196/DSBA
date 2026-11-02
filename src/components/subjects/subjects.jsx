@@ -513,6 +513,7 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'statistics',
       year: 1,
       chapters: [
+        { title: 'Data Visualisation and Descriptive Statistics', videoIds: ['ZxV-kf0yBss','Rx8wSEDq5Hs','qBigTkBLU6g','2Y2l9QJCe6M','NM_iOLUwZFA','Cx2tGUze60s','Ky7QeVgv-BA','2-dJCrgKnaY','sbsY6neZ07g'] },
         { title: 'Probability Theory', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/985fd6c54dbe7e139c1c86a60304c7b18c82f606-1726548801542', 'https://vc.bibf.com/playback/presentation/2.3/7b9eb7f7dba2c8737fe8c658c07f0cc83d6b9176-1726736271504', 'https://vc.bibf.com/playback/presentation/2.3/f23f058bda0a399f33ed962e9406ad9a2ff955ba-1726981115673', 'https://vc.bibf.com/playback/presentation/2.3/97d19cc5cfa22d422046f8c33277c38d567c111e-1727153828299', 'https://vc.bibf.com/playback/presentation/2.3/4ea00ab33d08eb7103035f77dd958d783a742395-1727341013389','https://vc.bibf.com/playback/presentation/2.3/1e139c2089d0b1ba102b6ca80ee7a9b21ef67ab4-1727605984348'] },
         { title: 'Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/1ab1ae7381a6fcc1e3d8ea709204fd7e31a085ac-1727778272013','https://vc.bibf.com/playback/presentation/2.3/21023752c3eab8780f489dd8c5298e006878f34b-1727946137711','https://vc.bibf.com/playback/presentation/2.3/9d3bac605dea955b6533fde9301faa8e480d0fb8-1728210609891' ,'https://vc.bibf.com/playback/presentation/2.3/b3d7809b66aef56d8ab4594f897be4403ff86e17-1728383138486', 'https://vc.bibf.com/playback/presentation/2.3/d1d0f95143107da7ad7b1e95dd9cec11103f40e0-1728550959309', 'https://vc.bibf.com/playback/presentation/2.3/d26b5547690da25c7c95c9b6f9d883b8f02989db-1728815259448', ]},
         { title: 'Common Distributions of Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/0754a89ffc88893c6ad0cc4fe7b4439154f7111e-1728988079422','https://vc.bibf.com/playback/presentation/2.3/cc8c86ebe35fbbb9b38217614313e2841dcdb44a-1729155587247','https://vc.bibf.com/playback/presentation/2.3/b4e5534d626065c284710f5249839e6f12d8b62f-1729420169390' ,'https://vc.bibf.com/playback/presentation/2.3/94ffd40d5ebaa19edef4b22db42c07c279b70fe6-1729592969374', 'https://vc.bibf.com/playback/presentation/2.3/54bb14a2f0aa8f2233027114100b4f7e99153ed7-1729760497898', 'https://vc.bibf.com/playback/presentation/2.3/35aa8fdc99ebc6c514900e0d10d6475efc1e6f0c-1730024840073', ]},
@@ -712,7 +713,8 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
         {title: 'OLS Asymptotics', videoIds: ["nORu6KPc7o4"]},
         {title: 'Heteroskedasticity', videoIds: ["DMzBRYqAHrE"]},
         {title: 'Time series', videoIds: ["EhvPfZYJCkE" ]},
-        {title: 'Instrumental variables estimation', videoIds: ["GsL3OZTIcfo"]}
+        {title: 'Instrumental variables estimation', videoIds: ["GsL3OZTIcfo"]},
+        { title: 'Binary response models and maximum likelihood', videoIds: ['WWpYD6Y7OEc','Q0BH-5OGwBc','XschJ-KO6BU','yPCQZeGWJjw','I_dhPETvll8','Z582V53dfr8','WflqTUOvdik','lJMO5kqWwIo','BF037e0I9pA'] }
       ]
     },
     {
