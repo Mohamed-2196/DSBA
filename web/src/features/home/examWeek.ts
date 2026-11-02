@@ -32,6 +32,15 @@ export function examWeekExam(session: ExamSession | null, settings: ExamWeek | n
   return exam && exam.days >= 0 && exam.days <= settings.daysBefore ? exam : null;
 }
 
+/**
+ * The date Up next opens with: the session's next date, unless exam week already leads Home with that same exam (on a
+ * phone), so the exam isn't said twice. Its day stays out of Up next's list either way.
+ */
+export function upNextDate(session: ExamSession | null, led: SessionEvent | null): SessionEvent | null {
+  if (!session) return null;
+  return led && session.next.id === led.id ? null : session.next;
+}
+
 /** "today", "tomorrow", "Thursday" within the week, "3 Nov" after: the heading's day. */
 export function examDayWord(days: number, date: Date): string {
   if (days <= 0) return 'today';

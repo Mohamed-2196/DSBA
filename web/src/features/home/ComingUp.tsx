@@ -1,10 +1,12 @@
 // Home's "Coming up": the next exam (or mock, or other date) said plainly, with how many days are left, then the
-// next dates on the calendar for the year (the calendar's own list, less the date above it).
+// next dates on the calendar for the year (the calendar's own list, less the date above it). On a phone in exam week,
+// when the exam-week card above already shows that exam, it opens straight with the list.
 import { Link } from 'react-router-dom';
 import type { CohortYear } from '../../state';
 import { Deskmate, QueryError, Skeleton } from '../../ui';
 import { UpcomingEvents, typeLabel } from '../calendar/public';
 import { formatDay, formatLongDay } from '../../lib/dates';
+import { upNextDate } from './examWeek';
 import type { ExamSession, SessionEvent } from './session';
 import { numberWord } from './time';
 
@@ -63,6 +65,7 @@ function NextDate({ next, session }: { next: SessionEvent; session: ExamSession 
 
 export function ComingUp({
   session,
+  led = null,
   year,
   loading,
   error,
@@ -70,6 +73,8 @@ export function ComingUp({
   retrying,
 }: {
   session: ExamSession | null;
+  /** the exam exam week leads Home with on a phone: Up next doesn't open with it again */
+  led?: SessionEvent | null;
   year: CohortYear;
   loading: boolean;
   error: unknown;
@@ -99,9 +104,10 @@ export function ComingUp({
         retrying={retrying}
       />
     );
-  } else if (session) {
-    head = <NextDate next={session.next} session={session} />;
-  } else head = null;
+  } else {
+    const next = upNextDate(session, led);
+    head = session && next ? <NextDate next={next} session={session} /> : null;
+  }
   return (
     <div className="home-coming">
       {head}

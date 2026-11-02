@@ -9,6 +9,7 @@ import {
   moduleDatesAhead,
   mostAskedChapter,
   practiceLinks,
+  upNextDate,
 } from './examWeek';
 import type { ExamSession, SessionEvent } from './session';
 
@@ -78,6 +79,17 @@ describe('examWeekExam', () => {
     expect(examWeekExam(session(sessionEvent({ type: 'mock' }, 1)), on)).toBeNull();
     expect(examWeekExam(null, on)).toBeNull();
     expect(examWeekExam({ ...session(exam), kind: 'event' }, on)).toBeNull();
+  });
+});
+
+describe('upNextDate', () => {
+  it('opens Up next with the next date, but not with the exam exam week already leads with', () => {
+    const exam = sessionEvent({ id: 'x' }, 1);
+    const mock = sessionEvent({ id: 'm', type: 'mock' }, 1);
+    expect(upNextDate(session(exam), null)?.id).toBe('x');
+    expect(upNextDate(session(exam), exam)).toBeNull();
+    expect(upNextDate(session(mock, exam), exam)?.id).toBe('m');
+    expect(upNextDate(null, exam)).toBeNull();
   });
 });
 

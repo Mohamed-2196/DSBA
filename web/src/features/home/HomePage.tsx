@@ -175,6 +175,7 @@ export default function HomePage() {
           >
             <ComingUp
               session={session}
+              led={examWeekLeads}
               year={activeYear}
               loading={home.isPending}
               error={home.isError ? home.error : null}
