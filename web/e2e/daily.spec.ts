@@ -189,6 +189,11 @@ test('a guest plays every game to a finish', async ({ guest }) => {
     await page.getByRole('dialog', { name: 'Give up?' }).getByRole('button', { name: 'Give up' }).click();
     await expect(result(page)).toContainText('Not this time');
   }
+
+  // A guest's points aren't kept, so the day's finale with its total stays for those signed in.
+  await page.goto('/daily');
+  await expect(page.getByText('6 of 6 done')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'All 6 done today!' })).toHaveCount(0);
 });
 
 test('a guest’s hub counts the puzzles they finished', async ({ guest }) => {

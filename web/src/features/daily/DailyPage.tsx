@@ -156,9 +156,12 @@ function Head({ today }: { today: DailyToday }) {
 }
 
 function TodayView({ today }: { today: DailyToday }) {
+  const { me } = useAuth();
+  // The day's finale counts up its points, so only someone signed in, whose points are kept, sees it.
+  const finished = today.games.length > 0 && today.done === today.games.length;
   return (
     <>
-      {today.games.length > 0 && today.done === today.games.length ? <DailyReport today={today} /> : null}
+      {finished && me ? <DailyReport today={today} /> : null}
       <ul className="dh-games" aria-label="Today’s puzzles">
         {today.games.map((g) => (
           <li key={g.info.id}>
