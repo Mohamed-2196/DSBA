@@ -318,6 +318,38 @@
             "videoId": "osvoVuESEKY",
             "title": "The Edgeworth Box",
             "channel": "Katherine Silz-Carson"
+          },
+          {
+            "id": "9nq9ve6w",
+            "kind": "youtube",
+            "videoId": "894I5bb5bos",
+            "title": "Partial vs General Equilibrium in Economics",
+            "channel": "Ashley Hodgson",
+            "addedIn": "2026-11d"
+          },
+          {
+            "id": "n9szvaee",
+            "kind": "youtube",
+            "videoId": "7QFAQJBq1uk",
+            "title": "An Introduction to the Edgeworth Box Diagram",
+            "channel": "Economicsfun",
+            "addedIn": "2026-11d"
+          },
+          {
+            "id": "6a3puj7d",
+            "kind": "youtube",
+            "videoId": "Bjg-KPQhWyM",
+            "title": "Edgeworth Box",
+            "channel": "Ashley Hodgson",
+            "addedIn": "2026-11d"
+          },
+          {
+            "id": "enpbudpe",
+            "kind": "youtube",
+            "videoId": "d3YtlAd7-tY",
+            "title": "From Pareto Efficiency to Redistribution: The Welfare Theorems Explained",
+            "channel": "In Case of Econ Struggles",
+            "addedIn": "2026-11d"
           }
         ],
         "keywords": [
@@ -868,6 +900,55 @@
             "videoId": "nG2fesHT0Ss",
             "title": "International-Marketing-Strategy (1)",
             "channel": "Mohamed Khalil"
+          }
+        ]
+      },
+      {
+        "id": "skmfmztw",
+        "title": "Organisation of International Business",
+        "addedIn": "2026-11d",
+        "videos": [
+          {
+            "id": "z62ph9m8",
+            "kind": "youtube",
+            "videoId": "jviFsd4hhfE",
+            "title": "Centralization vs Decentralization",
+            "channel": "Alexander Lyon Communication Coach"
+          },
+          {
+            "id": "2snd5xjx",
+            "kind": "youtube",
+            "videoId": "ZtdxJ2YnC44",
+            "title": "Ch12 Strategizing, Structuring, and Learning Around the World",
+            "channel": "Thierry Brusselle"
+          },
+          {
+            "id": "hsc57hw2",
+            "kind": "youtube",
+            "videoId": "Ux16-Y5zZzg",
+            "title": "International Business - Lecture 30",
+            "channel": "Krassimir Petrov"
+          },
+          {
+            "id": "43wwirxb",
+            "kind": "youtube",
+            "videoId": "hJ9wbFgmtKM",
+            "title": "Are Multinational Organizations Sacrificing Simplicity For Complex Models?",
+            "channel": "Management Courses - Mike Clayton"
+          },
+          {
+            "id": "s3jdd5mq",
+            "kind": "youtube",
+            "videoId": "OY3g2wyXUWw",
+            "title": "International Business - Lecture 31",
+            "channel": "Krassimir Petrov"
+          },
+          {
+            "id": "92b7u9rw",
+            "kind": "youtube",
+            "videoId": "CJXft25tRYs",
+            "title": "The Organization of International Business",
+            "channel": "Business and Leadership at Bethel University"
           }
         ]
       },
@@ -4164,6 +4245,76 @@
           "f test",
           "p value",
           "confidence interval"
+        ]
+      },
+      {
+        "id": "i3xv6ibs",
+        "title": "Multiple Regression Analysis: Further Issues and Dummy Variables",
+        "addedIn": "2026-11d",
+        "videos": [
+          {
+            "id": "6sivcyxk",
+            "kind": "youtube",
+            "videoId": "-kOyvpSRq6E",
+            "title": "6.2b Regression Model with Quadratic terms",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "ejb56qvd",
+            "kind": "youtube",
+            "videoId": "kE_I-5rxtEA",
+            "title": "6.2c Regression model with Interaction terms",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "usb4uawu",
+            "kind": "youtube",
+            "videoId": "r-DzqemVeto",
+            "title": "6.3 Goodness of fit and selection of regressors",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "jzn3ktg6",
+            "kind": "youtube",
+            "videoId": "zT2FJV9HYrU",
+            "title": "7.1 Describing Qualitative Information",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "suc8v3jf",
+            "kind": "youtube",
+            "videoId": "CG2sKEjEqOg",
+            "title": "7.2 A Single Dummy Independent variable",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "m3ct8kxb",
+            "kind": "youtube",
+            "videoId": "mQug4A6BrSY",
+            "title": "7.3 Using dummy variables for multiple categories",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "zmwf45qx",
+            "kind": "youtube",
+            "videoId": "akH7xapNmkk",
+            "title": "7.3a Incorporating ordinal information using dummy variables",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "xhzct29v",
+            "kind": "youtube",
+            "videoId": "sBXOX-GRshU",
+            "title": "7.4b Interactions involving dummy variables: allowing for different slopes",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "76zqf7t4",
+            "kind": "youtube",
+            "videoId": "5teRbycIErE",
+            "title": "7.4c Testing for differences in regression functions across groups: the Chow test or F-test",
+            "channel": "Dr. Venoo Kakar"
+          }
         ]
       },
       {

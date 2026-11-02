@@ -486,12 +486,23 @@
      "Externalities and solutions; taxes to correct them",
      "Monopoly power as market failure",
      "Pollution, congestion and climate change",
-     "Why markets cannot provide public goods"
+     "Why markets cannot provide public goods",
+     "Distinguish partial and general equilibrium; solve two linked markets",
+     "Use an Edgeworth box to show gains from exchange and the contract curve",
+     "State the first and second theorems of welfare economics"
     ],
     "topics": [
      {
       "id": "equity-and-efficiency",
       "title": "Equity and efficiency"
+     },
+     {
+      "id": "general-equilibrium",
+      "title": "General equilibrium"
+     },
+     {
+      "id": "edgeworth-box-and-contract-curve",
+      "title": "Edgeworth box and contract curve"
      },
      {
       "id": "distortion-of-the-market",
@@ -525,7 +536,14 @@
      "public good",
      "non-rival",
      "non-excludable",
-     "free rider"
+     "free rider",
+     "partial equilibrium",
+     "exchange economy",
+     "Edgeworth box",
+     "initial endowment",
+     "contract curve",
+     "first theorem of welfare economics",
+     "second theorem of welfare economics"
     ]
    },
    {
@@ -1663,6 +1681,79 @@
      "channel length, exclusivity and quality",
      "cross-functional teams",
      "innovation hubs"
+    ]
+   },
+   {
+    "id": "skmfmztw",
+    "title": "Organisation of International Business",
+    "guide": "Chapter 11: The Organisation of International Business",
+    "outcomes": [
+     "describe the relationship between multinational strategy, structure and their evolution",
+     "weigh the arguments for centralised and decentralised decision-making in a firm operating across countries",
+     "match each international strategy to the structure that best supports it: international division, geographic area, global product division or global matrix",
+     "critically evaluate the strengths and weaknesses of the four structures and what a firm must change in its structure to fit its strategy",
+     "explain integrating mechanisms and the role of knowledge management, including explicit and tacit knowledge, in coordinating sub-units",
+     "define organisational architecture and apply the idea of fit between environment, strategy, structure and architecture to real cases, taking a contingency approach"
+    ],
+    "topics": [
+     {
+      "id": "centralised-versus-decentralised-decision-making",
+      "title": "Centralised versus decentralised decision-making"
+     },
+     {
+      "id": "fitting-structure-to-international-strategy",
+      "title": "Fitting structure to international strategy"
+     },
+     {
+      "id": "international-division-structure",
+      "title": "International division structure"
+     },
+     {
+      "id": "geographic-area-structure",
+      "title": "Geographic area structure"
+     },
+     {
+      "id": "global-product-division-structure",
+      "title": "Global product division structure"
+     },
+     {
+      "id": "global-matrix-structure",
+      "title": "Global matrix structure"
+     },
+     {
+      "id": "evolution-of-structure-stopford-wells-and-contin",
+      "title": "Evolution of structure (Stopford-Wells) and contingency"
+     },
+     {
+      "id": "integrating-mechanisms-and-knowledge-management",
+      "title": "Integrating mechanisms and knowledge management"
+     },
+     {
+      "id": "organisational-architecture-and-fit",
+      "title": "Organisational architecture and fit"
+     }
+    ],
+    "terms": [
+     "organisation structure",
+     "centralisation versus decentralisation",
+     "goal displacement",
+     "home replication (international) strategy",
+     "localisation (multi-domestic) strategy",
+     "global standardisation strategy",
+     "transnational strategy",
+     "international division",
+     "geographic area structure",
+     "global product division",
+     "global matrix structure (dual reporting)",
+     "Stopford-Wells framework",
+     "contingency approach",
+     "integrating mechanisms",
+     "knowledge management",
+     "explicit versus tacit knowledge",
+     "knowledge networks and communities of practice",
+     "organisational architecture",
+     "control systems and incentives",
+     "strategy-structure-organisation fit"
     ]
    },
    {
@@ -3217,7 +3308,7 @@
    {
     "id": "48isg7ra",
     "title": "Multiple Regression Analysis: Estimation",
-    "guide": "Chapter 4: Multiple regression analysis: Estimation (Wooldridge Ch. 3); Chapter 6 for quadratics and dummy variables is a related extension",
+    "guide": "Chapter 4: Multiple regression analysis: Estimation (Wooldridge Ch. 3)",
     "outcomes": [
      "discuss the advantage of the multiple regression model over the simple one",
      "understand the derivation of the OLS estimator in multiple regression",
@@ -3327,6 +3418,72 @@
      "joint hypothesis test",
      "F statistic",
      "test for significance of the regression"
+    ]
+   },
+   {
+    "id": "i3xv6ibs",
+    "title": "Multiple Regression Analysis: Further Issues and Dummy Variables",
+    "guide": "Chapter 6: Multiple regression analysis: Further issues and use of qualitative information (Wooldridge 6.2b, 6.2c, 6.3a, 6.3c, 7.1-7.4)",
+    "outcomes": [
+     "understand how to formulate and interpret models with quadratic and/or interaction terms",
+     "motivate the use of the adjusted R-squared",
+     "define a dummy variable and describe an impact it has on the regression specification and the interpretation of regression coefficients when it is used as a regressor",
+     "describe how multiple dummy variables can be used to create further more refined categories in practice",
+     "know how the choice of the base category affects the interpretation of the regression results (including the interpretation of parameters and t tests)",
+     "explain the dummy variable trap and how it can be avoided",
+     "motivate and describe a setting where a dummy variable is interacted with a continuous regressor",
+     "describe and perform the Chow test in two equivalent ways (and also two variations of the Chow test - allowing or not intercepts to be different)"
+    ],
+    "topics": [
+     {
+      "id": "models-with-quadratics-and-turning-points",
+      "title": "Models with quadratics and turning points"
+     },
+     {
+      "id": "models-with-interaction-terms",
+      "title": "Models with interaction terms"
+     },
+     {
+      "id": "adjusted-r-squared-and-selection-of-regressors",
+      "title": "Adjusted R-squared and selection of regressors"
+     },
+     {
+      "id": "describing-qualitative-information",
+      "title": "Describing qualitative information"
+     },
+     {
+      "id": "a-single-dummy-variable-and-the-dummy-variable-t",
+      "title": "A single dummy variable and the dummy variable trap"
+     },
+     {
+      "id": "dummy-variables-for-multiple-and-ordinal-categor",
+      "title": "Dummy variables for multiple and ordinal categories"
+     },
+     {
+      "id": "interactions-involving-dummy-variables",
+      "title": "Interactions involving dummy variables"
+     },
+     {
+      "id": "chow-test-for-differences-across-groups",
+      "title": "Chow test for differences across groups"
+     }
+    ],
+    "terms": [
+     "quadratic function",
+     "turning point",
+     "interaction term",
+     "interaction effect",
+     "centering of variables",
+     "adjusted R-squared",
+     "over-controlling (bad controls)",
+     "dummy variable",
+     "base (benchmark) group",
+     "difference in intercepts",
+     "dummy variable trap",
+     "ordinal variable",
+     "difference in slopes",
+     "difference in both intercepts and slopes",
+     "Chow test"
     ]
    },
    {
