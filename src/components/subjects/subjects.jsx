@@ -231,6 +231,7 @@ const toggleChapter = (index) => {
 
   const cheatSheetLinks = {
     programming_data_science: 'https://docs.google.com/document/d/1fiO4uLqivuYNF_SPDIYxiXClRDWwlI9U/edit?usp=drive_link&ouid=114257845455063086777&rtpof=true&sd=true',
+    asset_pricing: 'https://drive.google.com/drive/folders/17C5VR-6c4gmSPf7DMwCwKYKWwe33PdIt',
   };
 
   const paidExamsLinks = {
@@ -244,6 +245,12 @@ const toggleChapter = (index) => {
     business_analytics: 'https://drive.google.com/drive/folders/1TJ6rBkb7rrXbUMfPEuhWtBN2ZLAbCZYT?usp',
     econometrics: 'https://drive.google.com/drive/folders/1jMpqxGHOG20U7MwMS-5o9WSdSZPUMkFZ?usp',
     information_systems: 'https://drive.google.com/drive/folders/1RWlgsFWuWi1gX0iCZyNmdbcVfbzKyuEk?usp',
+    machine_learning: 'https://drive.google.com/drive/folders/1jaBexBbTJJ6qpg4BWczknscTOhog9tbM',
+    market_research: 'https://drive.google.com/drive/folders/1qKa9WrB07QRw_Gql24kXYx6zZNonVY4R',
+    microeconomics: 'https://drive.google.com/drive/folders/1hFW628n6-1PX8dRx9Aihh0ZkChylCyaO',
+    asset_pricing: 'https://drive.google.com/drive/folders/1X_LLB6t_oxNn0ylYuGJo-PSs6n90mFH1',
+    marketing_management: 'https://drive.google.com/drive/folders/1omDrsqcu-BtKJArE9xEuPuE9AyW8hvbH',
+    further_maths_economists: 'https://drive.google.com/drive/folders/1feW7jQ4Ry4zM5srvvuFsdIMch7kqY6DG',
   };
 
   const materialsLink = subjectMaterialsLinks[code];
@@ -506,6 +513,7 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'statistics',
       year: 1,
       chapters: [
+        { title: 'Data Visualisation and Descriptive Statistics', videoIds: ['ZxV-kf0yBss','Rx8wSEDq5Hs','qBigTkBLU6g','2Y2l9QJCe6M','NM_iOLUwZFA','Cx2tGUze60s','Ky7QeVgv-BA','2-dJCrgKnaY','sbsY6neZ07g'] },
         { title: 'Probability Theory', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/985fd6c54dbe7e139c1c86a60304c7b18c82f606-1726548801542', 'https://vc.bibf.com/playback/presentation/2.3/7b9eb7f7dba2c8737fe8c658c07f0cc83d6b9176-1726736271504', 'https://vc.bibf.com/playback/presentation/2.3/f23f058bda0a399f33ed962e9406ad9a2ff955ba-1726981115673', 'https://vc.bibf.com/playback/presentation/2.3/97d19cc5cfa22d422046f8c33277c38d567c111e-1727153828299', 'https://vc.bibf.com/playback/presentation/2.3/4ea00ab33d08eb7103035f77dd958d783a742395-1727341013389','https://vc.bibf.com/playback/presentation/2.3/1e139c2089d0b1ba102b6ca80ee7a9b21ef67ab4-1727605984348'] },
         { title: 'Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/1ab1ae7381a6fcc1e3d8ea709204fd7e31a085ac-1727778272013','https://vc.bibf.com/playback/presentation/2.3/21023752c3eab8780f489dd8c5298e006878f34b-1727946137711','https://vc.bibf.com/playback/presentation/2.3/9d3bac605dea955b6533fde9301faa8e480d0fb8-1728210609891' ,'https://vc.bibf.com/playback/presentation/2.3/b3d7809b66aef56d8ab4594f897be4403ff86e17-1728383138486', 'https://vc.bibf.com/playback/presentation/2.3/d1d0f95143107da7ad7b1e95dd9cec11103f40e0-1728550959309', 'https://vc.bibf.com/playback/presentation/2.3/d26b5547690da25c7c95c9b6f9d883b8f02989db-1728815259448', ]},
         { title: 'Common Distributions of Random Variables', videoIds: ['https://vc.bibf.com/playback/presentation/2.3/0754a89ffc88893c6ad0cc4fe7b4439154f7111e-1728988079422','https://vc.bibf.com/playback/presentation/2.3/cc8c86ebe35fbbb9b38217614313e2841dcdb44a-1729155587247','https://vc.bibf.com/playback/presentation/2.3/b4e5534d626065c284710f5249839e6f12d8b62f-1729420169390' ,'https://vc.bibf.com/playback/presentation/2.3/94ffd40d5ebaa19edef4b22db42c07c279b70fe6-1729592969374', 'https://vc.bibf.com/playback/presentation/2.3/54bb14a2f0aa8f2233027114100b4f7e99153ed7-1729760497898', 'https://vc.bibf.com/playback/presentation/2.3/35aa8fdc99ebc6c514900e0d10d6475efc1e6f0c-1730024840073', ]},
@@ -705,7 +713,8 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
         {title: 'OLS Asymptotics', videoIds: ["nORu6KPc7o4"]},
         {title: 'Heteroskedasticity', videoIds: ["DMzBRYqAHrE"]},
         {title: 'Time series', videoIds: ["EhvPfZYJCkE" ]},
-        {title: 'Instrumental variables estimation', videoIds: ["GsL3OZTIcfo"]}
+        {title: 'Instrumental variables estimation', videoIds: ["GsL3OZTIcfo"]},
+        { title: 'Binary response models and maximum likelihood', videoIds: ['WWpYD6Y7OEc','Q0BH-5OGwBc','XschJ-KO6BU','yPCQZeGWJjw','I_dhPETvll8','Z582V53dfr8','WflqTUOvdik','lJMO5kqWwIo','BF037e0I9pA'] }
       ]
     },
     {
@@ -714,6 +723,17 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'information_systems',
       year: 2,
       chapters: [
+        { title: 'Introduction', videoIds: ['MDttSkM5j38','a7GSmaZPAvA','OPAWy1v9Gnw','PLRU5YMNncPaqDMu5qyzMHseHXzeSppHj0'] },
+        { title: 'The role of technology in organisations', videoIds: ['qMZSYVVIyxo','nQ4Q3iN7TMM','yX4kO8rVpHo','kerDFvln7hU','SGYmPMcgDPg','VbyR4t2lTP8'] },
+        { title: 'Information technology and business strategies', videoIds: ['o7Ik1OB4TaE','mYF2_FBCvXw','SI5lYaZaUlg','I_6AVRGLXGA','hj7Kw3fDNaw','vm6DqTcUTIA','Lh1IZNmQDUY','NxT8Dc4yeW8'] },
+        { title: 'Project management', videoIds: ['H_FX0uYUtdo','cHUP61KU3xE','-TDh-5n90vk','2124ZV4wbQ8','zpT0tBGW4-E','j8obKof2MDM','OiuHQQAgaFE','YCVQHwas1-4'] },
+        { title: 'Outsourcing', videoIds: ['Du0jGBX6IfU','VHD3-gRFiQo','GOAIbuqni8E','luJ4-QAzbEM','9Fmjs4OTqRA','36zducUX16w','-3Z3fjo7nmk','WhsFyQHpb6s'] },
+        { title: 'ICT governance', videoIds: ['7CMUfDZ0Kzk','5U5f17vO1Y0','cU8iGQ5hUQQ','YtDKSxEKCEU','Ei3-1KgjARA','c3QfSmKo4QA','bO3GpAjVvD8'] },
+        { title: 'E-business', videoIds: ['FhpWKUWjOuc','mEH7Zb4pt3w','N6kmGlk_L7A','g33O3gD0sU4','B4ZSGQW0UMI','kEq4gcF-DwE','e5B9pfuVrMU'] },
+        { title: 'Enterprise resource planning systems', videoIds: ['Da1hUqzoiAo','FZbG0EF0rW8','KfW2WKKzULw','ujCvxGTGfag','KND3XZJIrHs','MFoyQrk-Taw','GeC7MjwBkDs','_wGH97O_VCs'] },
+        { title: 'Managing business intelligence and big data', videoIds: ['-I23qGB6JdY','oF_2uDb7DvQ','7rs0i-9nOjo','zf-d-O7hVhM','8pHzROP1D-w','edouxOBrIGk','kPPFNrlN3zo','L1n9LheMEq0'] },
+        { title: 'Knowledge management', videoIds: ['3_eI5r55XhU','wj8vHRaLjjo','Rr02SdqmY2A','SmqLyOLIjos','xT3EpF2EsbQ','_9_6ok5-_jc','sVtMC3GkMr0','K4hHKKDKQmg'] },
+        { title: 'Conclusions: moral, ethical and legal issues', videoIds: ['Xki2fRA0bY8','s2QLL8WawoQ','2iPDpV8ojHA','NcHSD3fWJiQ','hIXhnWUmMvw','O9UifQLRXRw','iI2WXaWTmO8'] }
       ]
     },
   ];
@@ -838,16 +858,16 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       code: 'further_maths_economists',
       year: 3,
       chapters: [
-        { title: 'Matrices, vectors and systems of linear equations', videoIds: ['csgNflj69-Y','y6bVhgmy2rw','T2Gtt8WygiU','biyQzy2yRUA','P5GJJ02OG08','CcbyMH3Noow','gPnWm-IXoAY','kWorj5BBy9k','RdLo-9jh2EM'] },
-        { title: 'Vector spaces, basis, dimension', videoIds: ['EP2ghkO0lSk','tM4TDL9Hj8U','9kDpbZCK62Y','4C9GKyfUQkc'] },
-        { title: 'Linear transformations, change of basis', videoIds: ['is1cg5yhdds','vyYrvhbDhW4','HZa1RwFHgwU'] },
-        { title: 'Diagonalisation', videoIds: ['TQvxWaQnrqI','WTLl03D4TNA','DUuTx2nbizM'] },
+        { title: 'Matrices, vectors and systems of linear equations', videoIds: ['csgNflj69-Y','y6bVhgmy2rw','T2Gtt8WygiU','biyQzy2yRUA','P5GJJ02OG08','CcbyMH3Noow','gPnWm-IXoAY','kWorj5BBy9k','RdLo-9jh2EM','srxexLishgY','uQhTuRlWMxw','8o5Cmfpeo6g','9Q1q7s1jTzU','HPE1yPYklh0'] },
+        { title: 'Vector spaces, basis, dimension', videoIds: ['EP2ghkO0lSk','tM4TDL9Hj8U','9kDpbZCK62Y','4C9GKyfUQkc','3_MxBlWQsgs','OFALIHBY5Bw','QN00isODmEs','_CpshMm-5p0','vpl8EZwrqPk'] },
+        { title: 'Linear transformations, change of basis', videoIds: ['is1cg5yhdds','vyYrvhbDhW4','HZa1RwFHgwU','yZ52iqxaiCc','kYB8IZa5AuE','Ts3o2I8_Mxc','PiuhTj0zCf4','s4c5LQ5a4ek'] },
+        { title: 'Diagonalisation', videoIds: ['TQvxWaQnrqI','WTLl03D4TNA','DUuTx2nbizM','PFDu9oVAE-g','nNwZA1X-C3c','ieWyx2mlZyk','FOoi8h47Tw4','UCc9q_cAhho'] },
         { title: 'Applications of diagonalisation', videoIds: ['13r9QY6cmjc','IZqwi0wJovM','8e_ux_E0dJ0','UO_dgXa5szg','XXjoh8L1HkE','E-sBhLIjPaM','07V_UNLz0qs','wJxPKj5DpMc'] },
-        { title: 'Inner products and orthogonality', videoIds: ['6nqMegdbxik','zHbfZWZJTGc','wHAJzemKQW4'] },
-        { title: 'Mathematical analysis', videoIds: ['GJpezCUMOxA','QRGIhqz9vh4','cTnlHZD5ss4','4NURDmE79VU','O98eOlHyWmQ','dcUKdwHRSD8','PJIJ39zThYM','if2Xq4GVuvY'] },
-        { title: 'Functions of several variables', videoIds: ['wqtr4Udz8AY','tIpKfDc295M','N_ZRcLheNv0','-HMxX8o6zOc','bohL918kXQk','J08-L2buigM','mRNg-Q9f9W4','s0dZVmPN3Ww'] },
+        { title: 'Inner products and orthogonality', videoIds: ['6nqMegdbxik','zHbfZWZJTGc','wHAJzemKQW4','LyGKycYT2v0','ywjA25xFuew','MKXahTrgVso','r2PogGDl8_U','0MtwqhIwdrI','zti01DiImiQ','-i4CBed-zec'] },
+        { title: 'Mathematical analysis', videoIds: ['GJpezCUMOxA','QRGIhqz9vh4','cTnlHZD5ss4','4NURDmE79VU','O98eOlHyWmQ','dcUKdwHRSD8','PJIJ39zThYM','if2Xq4GVuvY','051WWg9twO0','dWLhfYUb3wc','hYY9piVkB6g','kVQNhAIFZYc'] },
+        { title: 'Functions of several variables', videoIds: ['wqtr4Udz8AY','tIpKfDc295M','N_ZRcLheNv0','-HMxX8o6zOc','bohL918kXQk','J08-L2buigM','mRNg-Q9f9W4','s0dZVmPN3Ww','X7Oi-fyM_aU'] },
         { title: 'Optimisation of functions of several variables', videoIds: ['_Ffcr98c7EE','Zly5elxZ9w8','yuqB-d5MjZA','m-G3K2GPmEQ','HIm3Z0L90Co','2syXAny8PfE','natJ8yyIvQg','FX7kcDvEsJk'] },
-        { title: 'Theory of linear programming, and applications', videoIds: ['D0IlfUDcEvs','VKXsoFoTrx8','0TD9EQcheZM','lSM_TQehx00','bPLNyYFLLT4','sx9cWFLDFmw','q6zKM13aVUI','wG-dm40Zn9s'] },
+        { title: 'Theory of linear programming, and applications', videoIds: ['D0IlfUDcEvs','VKXsoFoTrx8','0TD9EQcheZM','lSM_TQehx00','bPLNyYFLLT4','sx9cWFLDFmw','q6zKM13aVUI','wG-dm40Zn9s','XrQpLcKXvgY'] },
       ]
     },
   ];
