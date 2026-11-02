@@ -38,10 +38,10 @@ from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCover, IssueSection
 from app.seed.loader import (
     BROKEN_CHAPTERS,
-    BROKEN_LESSONS,
     REFILED,
     RETIRED_FILES,
     RETIRED_FOLDERS,
+    RETIRED_LESSONS,
     SEED_LESSONS,
     SEED_ORDER,
     daily_guess_words,
@@ -165,7 +165,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
         **files,
         "broken-chapters": 0,
         "new-lessons": 0,
-        "broken-lessons": 0,
+        "retired-lessons": 0,
         "unit-codes": 0,
         "chapter-order": 0,
         "chapter-words": 0,  # the modules arrive with their words
@@ -198,7 +198,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
         "modules": 0,
         "broken-chapters": 0,
         "new-lessons": 0,
-        "broken-lessons": 0,
+        "retired-lessons": 0,
         "unit-codes": 0,
         "chapter-order": 0,
         "chapter-words": 0,
@@ -313,7 +313,7 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
         "modules": 0,
         "broken-chapters": 0,
         "new-lessons": 0,
-        "broken-lessons": 0,
+        "retired-lessons": 0,
         "unit-codes": 0,
         "chapter-order": 0,
         "chapter-words": 0,
@@ -484,17 +484,17 @@ def test_the_seeds_later_chapters_and_lessons_reach_a_catalogue_loaded_before_th
     assert db.get(Chapter, gone_chapter) is None
 
 
-def test_the_seed_removes_a_broken_lesson_and_moves_students_notes_to_its_stand_in(
+def test_the_seed_removes_a_retired_lesson_and_moves_students_notes_to_its_stand_in(
     db: Session, client_for: Clients, make_user: Callable[..., User], set_feature: Callable[..., None]
 ) -> None:
     files = read("modules")
     lessons = {v["id"]: c for m in files for c in m.get("chapters") or [] for v in c["videos"]}
-    assert not any(lesson_id in lessons for lesson_id in BROKEN_LESSONS)
-    assert all(stand_in in lessons for stand_in in BROKEN_LESSONS.values())
+    assert not any(lesson_id in lessons for lesson_id in RETIRED_LESSONS)
+    assert all(stand_in in lessons for stand_in in RETIRED_LESSONS.values())
     first_load(db)
 
     # an install seeded before: the broken lesson is still in its chapter, with a student's note on it
-    broken_id, stand_in = next(iter(BROKEN_LESSONS.items()))
+    broken_id, stand_in = next(iter(RETIRED_LESSONS.items()))
     stand_in_lesson = db.get(Lesson, stand_in)
     assert stand_in_lesson is not None
     chapter = stand_in_lesson.chapter
@@ -511,7 +511,7 @@ def test_the_seed_removes_a_broken_lesson_and_moves_students_notes_to_its_stand_
     assert module is not None
     version = module.version
 
-    assert load_all(db, only="broken-lessons") == {"broken-lessons": 1}
+    assert load_all(db, only="retired-lessons") == {"retired-lessons": 1}
     db.commit()
     db.expire_all()
     assert db.get(Lesson, broken_id) is None
@@ -524,7 +524,7 @@ def test_the_seed_removes_a_broken_lesson_and_moves_students_notes_to_its_stand_
     module = db.get(Module, stand_in_lesson.chapter.module_id)
     assert module is not None
     assert module.version == version + 1
-    assert load_all(db, only="broken-lessons") == {"broken-lessons": 0}
+    assert load_all(db, only="retired-lessons") == {"retired-lessons": 0}
 
 
 def test_the_seed_puts_a_modules_chapters_in_its_new_order_once_and_then_leaves_them_to_content_managers(
@@ -560,7 +560,9 @@ def test_the_seed_puts_a_modules_chapters_in_its_new_order_once_and_then_leaves_
     assert [c.id for c in module.chapters] == seed
     assert [c.position for c in module.chapters] == list(range(len(seed)))
     assert module.version == version + 1
-    entry = db.scalars(select(AuditEntry).where(AuditEntry.action == SEED_ORDER)).one()
+    entry = db.scalars(
+        select(AuditEntry).where(AuditEntry.action == SEED_ORDER, AuditEntry.target_id == "business")
+    ).one()
     assert (entry.actor_id, entry.target_id, entry.data["moved"], entry.data["via"]) == (None, "business", 2, "cli")
 
     # a content manager's own order afterwards stays

@@ -3651,75 +3651,18 @@
     ]
    },
    {
-    "id": "s7m9nt7j",
-    "title": "Time series",
-    "guide": "Chapter 14: Autocorrelation in time series regression (Wooldridge 12.1-12.3), with the time series setting in Chapter 13 (Wooldridge Ch. 10-11) and Chapter 15 (trends, unit roots) as related material",
-    "outcomes": [
-     "describe the consequences of serial correlation in the error for OLS with strictly or contemporaneously exogenous regressors",
-     "give the intuition for heteroskedasticity and serial correlation adjustment of standard errors",
-     "describe the consequences of serial correlation when lags of the dependent variable are regressors",
-     "outline testing for serial correlation under strict exogeneity and under contemporaneous exogeneity",
-     "estimate time series regressions and test for serial correlation in software"
-    ],
-    "topics": [
-     {
-      "id": "properties-of-ols-with-serially-correlated-error",
-      "title": "Properties of OLS with serially correlated errors"
-     },
-     {
-      "id": "serial-correlation-robust-inference-after-ols",
-      "title": "Serial correlation-robust inference after OLS"
-     },
-     {
-      "id": "testing-for-autocorrelation",
-      "title": "Testing for autocorrelation"
-     },
-     {
-      "id": "r-application-for-time-series-models",
-      "title": "R application for time series models"
-     },
-     {
-      "id": "related-static-and-finite-distributed-lag-models",
-      "title": "Related: static and finite distributed lag models, stationarity and weak dependence (Ch. 13)"
-     },
-     {
-      "id": "related-trends-unit-roots-cointegration-ch-15",
-      "title": "Related: trends, unit roots, cointegration (Ch. 15)"
-     }
-    ],
-    "terms": [
-     "serial correlation (autocorrelation)",
-     "AR(1) errors",
-     "HAC standard errors",
-     "serial correlation-robust inference",
-     "strict exogeneity",
-     "contemporaneous exogeneity",
-     "lagged dependent variable",
-     "static model",
-     "finite distributed lag model",
-     "long run propensity",
-     "covariance stationary",
-     "weakly dependent",
-     "MA(1)",
-     "unit root",
-     "Dickey-Fuller test",
-     "cointegration",
-     "error correction model"
-    ]
-   },
-   {
     "id": "kfec5xg7",
     "title": "Instrumental variables estimation",
-    "guide": "Chapter 9: Instrumental variable estimation and two-stage least squares (Wooldridge Ch. 15); also Chapter 10: Measurement error (IV solution) and Chapter 11: Simultaneous equation models (Wooldridge Ch. 16)",
+    "guide": "Chapter 9: Instrumental variable estimation and two-stage least squares (Wooldridge 15.1-15.2, 15.3a, 15.3d, 15.5a)",
     "outcomes": [
-     "understand endogeneity in linear regression and its consequences for OLS",
-     "explain instrumental variables in simple and multiple regression",
-     "describe the principles and properties of IV estimators and the challenges of the IV approach",
-     "explain overidentification and two-stage least squares",
+     "understand what is meant by the presence of endogeneity in linear regression models",
+     "explain the consequences of endogeneity for OLS estimation",
+     "explain the concept of instrumental variables in both simple and multiple regression models",
+     "understand the properties of instrumental variables estimators and major challenges associated with the IV approach",
+     "explain what is meant by overidentification and describe principles underlying the use of two-stage least squares estimation",
      "describe a test for endogeneity of an explanatory variable",
-     "discuss choices of instruments and conduct IV/2SLS in software",
-     "understand simultaneity bias and identification in simultaneous equations (Ch. 11)",
-     "understand classical errors-in-variables and the IV fix (Ch. 10)"
+     "discuss whether endogeneity may be present in a given empirical model",
+     "discuss choices and properties of instrumental variables in practice and conduct IV/2SLS estimation using statistical software"
     ],
     "topics": [
      {
@@ -3743,8 +3686,8 @@
       "title": "Testing for endogeneity"
      },
      {
-      "id": "related-measurement-error-simultaneous-equations",
-      "title": "Related: measurement error; simultaneous equations models and identification"
+      "id": "r-application-for-iv-and-2sls",
+      "title": "R application for IV and 2SLS"
      }
     ],
     "terms": [
@@ -3755,17 +3698,131 @@
      "reduced form equation",
      "exclusion restriction",
      "IV estimator",
+     "method of moments estimator",
+     "weak instrument",
      "first stage",
      "two stage least squares (2SLS)",
      "exact identification",
      "overidentification",
-     "Hausman endogeneity test",
-     "classical errors-in-variables",
+     "Hausman endogeneity test"
+    ]
+   },
+   {
+    "id": "zrnn3q4e",
+    "title": "Measurement error",
+    "guide": "Chapter 10: Measurement error (Wooldridge 9.4a, 9.4b, 15.4)",
+    "outcomes": [
+     "understand the concept of classical errors-in-variables (CEV)",
+     "discuss the impact of measurement error of the dependent variable on OLS",
+     "discuss the impact of measurement error of the explanatory variable on OLS",
+     "derive the consequences of CEV in the simple regression model",
+     "discuss the IV solution to classical measurement error in explanatory variables"
+    ],
+    "topics": [
+     {
+      "id": "classical-errors-in-variables-cev-assumption",
+      "title": "Classical errors-in-variables (CEV) assumption"
+     },
+     {
+      "id": "measurement-error-in-the-dependent-variable",
+      "title": "Measurement error in the dependent variable"
+     },
+     {
+      "id": "measurement-error-in-an-explanatory-variable",
+      "title": "Measurement error in an explanatory variable"
+     },
+     {
+      "id": "attenuation-bias-in-the-simple-regression-model",
+      "title": "Attenuation bias in the simple regression model"
+     },
+     {
+      "id": "iv-solutions-to-errors-in-variables-problems",
+      "title": "IV solutions to errors-in-variables problems"
+     }
+    ],
+    "terms": [
+     "measurement error",
+     "classical errors-in-variables (CEV)",
      "attenuation bias",
-     "simultaneity bias",
+     "measurement error in the dependent variable",
+     "measurement error in an explanatory variable",
+     "composite error term",
+     "endogeneity",
+     "inconsistency",
+     "plim",
+     "loss of precision (larger variance)",
+     "second measurement as an instrument",
+     "instrument exogeneity (validity)",
+     "instrument relevance",
+     "two stage least squares (2SLS)"
+    ]
+   },
+   {
+    "id": "wvms9ehf",
+    "title": "Simultaneous equation models",
+    "guide": "Chapter 11: Simultaneous equation models (Wooldridge 16.1-16.3)",
+    "outcomes": [
+     "understand the need for supply (demand) shifters to identify the demand (supply) equation graphically",
+     "explain the concepts of a structural equation and a reduced form equation in the simultaneous equations framework",
+     "explain the problem of simultaneity bias when OLS is applied to a single structural equation in isolation",
+     "derive the correlation between the jointly determined explanatory variable and the structural equation error",
+     "derive an expression for the large-sample simultaneity bias in the slope coefficients when OLS is used to fit a simple regression in a simultaneous equations model",
+     "discuss the order and rank condition of identification in a two-equation system",
+     "explain what is meant by a just identified, unidentified, and overidentified equation",
+     "discuss 2SLS estimation of the structural form equations in SEM"
+    ],
+    "topics": [
+     {
+      "id": "the-nature-of-simultaneous-equations-models",
+      "title": "The nature of simultaneous equations models"
+     },
+     {
+      "id": "structural-equations-endogenous-and-exogenous-va",
+      "title": "Structural equations, endogenous and exogenous variables"
+     },
+     {
+      "id": "reduced-form-equations",
+      "title": "Reduced form equations"
+     },
+     {
+      "id": "simultaneity-bias-in-ols",
+      "title": "Simultaneity bias in OLS"
+     },
+     {
+      "id": "the-identification-problem-demand-and-supply-shi",
+      "title": "The identification problem: demand and supply shifters"
+     },
+     {
+      "id": "order-and-rank-conditions-for-identification",
+      "title": "Order and rank conditions for identification"
+     },
+     {
+      "id": "just-identified-overidentified-and-unidentified",
+      "title": "Just identified, overidentified and unidentified equations"
+     },
+     {
+      "id": "estimating-a-structural-equation-by-2sls",
+      "title": "Estimating a structural equation by 2SLS"
+     }
+    ],
+    "terms": [
+     "simultaneous equations model (SEM)",
+     "endogenous and exogenous variables",
      "structural equation",
+     "structural error",
+     "simultaneity",
+     "simultaneity bias",
+     "reduced form equation",
+     "reduced form parameters",
+     "demand and supply shifters",
+     "identified equation",
+     "exclusion restrictions",
+     "just identified equation",
+     "overidentified equation",
+     "unidentified equation",
      "order condition",
-     "rank condition"
+     "rank condition",
+     "two stage least squares (2SLS)"
     ]
    },
    {
@@ -3841,6 +3898,206 @@
      "Percent correctly predicted",
      "z test (asymptotic t test)",
      "Likelihood ratio (LR) test"
+    ]
+   },
+   {
+    "id": "s7m9nt7j",
+    "title": "Time series",
+    "guide": "Chapter 13: Regression analysis with time series data (Wooldridge 10.1-10.3, 11.1-11.2), with Chapter 15 (trends, seasonality, unit roots, cointegration) as related material",
+    "outcomes": [
+     "understand essential differences between time series data and cross-sectional data",
+     "describe a general form of finite distributed lag (FDL or just DL) models, interpret their coefficients and explain how to express immediate and cumulative effects on the response variable",
+     "formulate and interpret models with lagged dependent variables as regressors",
+     "explain which conditions guarantee the unbiasedness of OLS in regressions with time series data, explain the strict exogeneity assumption, and describe what economic situations it eliminates",
+     "understand notions of stationarity, covariance stationarity and weak dependence",
+     "analyse covariance stationarity and weak dependence properties of an AR(1) process",
+     "analyse covariance stationarity and weak dependence properties of an MA(1) process",
+     "explain which conditions guarantee the consistency of OLS in regressions with time series data, formulate the contemporaneous exogeneity assumption, and describe how it is different from the strict exogeneity assumption"
+    ],
+    "topics": [
+     {
+      "id": "the-nature-of-time-series-data",
+      "title": "The nature of time series data"
+     },
+     {
+      "id": "static-and-finite-distributed-lag-models",
+      "title": "Static and finite distributed lag models"
+     },
+     {
+      "id": "models-with-lagged-dependent-variables-ar-adl",
+      "title": "Models with lagged dependent variables (AR, ADL)"
+     },
+     {
+      "id": "finite-sample-properties-of-ols-ts-1-ts-6",
+      "title": "Finite sample properties of OLS: TS.1-TS.6"
+     },
+     {
+      "id": "strict-exogeneity-and-its-limitations",
+      "title": "Strict exogeneity and its limitations"
+     },
+     {
+      "id": "stationary-and-weakly-dependent-time-series",
+      "title": "Stationary and weakly dependent time series"
+     },
+     {
+      "id": "ar-1-and-ma-1-processes",
+      "title": "AR(1) and MA(1) processes"
+     },
+     {
+      "id": "asymptotic-properties-of-ols-contemporaneous-exo",
+      "title": "Asymptotic properties of OLS: contemporaneous exogeneity"
+     }
+    ],
+    "terms": [
+     "stochastic process",
+     "static model",
+     "finite distributed lag (FDL) model",
+     "impact propensity",
+     "long run propensity (LRP)",
+     "lag distribution",
+     "autoregressive distributed lag (ADL) model",
+     "strict exogeneity",
+     "TS.1-TS.6",
+     "serial correlation (autocorrelation)",
+     "stationary (strictly stationary) process",
+     "covariance stationary",
+     "weakly dependent (asymptotically uncorrelated)",
+     "AR(1) process",
+     "MA(1) process",
+     "contemporaneous exogeneity",
+     "TS.1'-TS.5'",
+     "trends and seasonality",
+     "unit root",
+     "cointegration"
+    ]
+   },
+   {
+    "id": "z3jpk5vt",
+    "title": "Autocorrelation in time series regression",
+    "guide": "Chapter 14: Autocorrelation in time series regression (Wooldridge 12.1-12.3, skipping 12.3b)",
+    "outcomes": [
+     "describe the consequences of serial correlation in the regression error for the OLS estimation in models with strictly exogenous or contemporaneously exogenous regressors",
+     "give the intuition for heteroskedasticity and serial correlation adjustment of standard errors",
+     "describe the consequences of serial correlation in the regression error for the OLS estimation in models with lags of the dependent variable as regressors",
+     "outline an approach to testing for serial correlation in regression errors in models under strict exogeneity",
+     "outline an approach to testing for serial correlation in regression errors in models under contemporaneous exogeneity",
+     "use statistical software to estimate time series regressions and conduct a test for serial correlation in regression errors"
+    ],
+    "topics": [
+     {
+      "id": "properties-of-ols-with-serially-correlated-error",
+      "title": "Properties of OLS with serially correlated errors"
+     },
+     {
+      "id": "serial-correlation-robust-inference-after-ols",
+      "title": "Serial correlation-robust inference after OLS"
+     },
+     {
+      "id": "serial-correlation-with-lagged-dependent-variabl",
+      "title": "Serial correlation with lagged dependent variables"
+     },
+     {
+      "id": "testing-for-autocorrelation",
+      "title": "Testing for autocorrelation"
+     },
+     {
+      "id": "testing-for-higher-order-serial-correlation",
+      "title": "Testing for higher order serial correlation"
+     },
+     {
+      "id": "r-application-for-time-series-models",
+      "title": "R application for time series models"
+     }
+    ],
+    "terms": [
+     "serial correlation (autocorrelation)",
+     "AR(1) errors",
+     "strict exogeneity",
+     "contemporaneous exogeneity",
+     "OLS not BLUE (inefficiency)",
+     "heteroskedasticity and autocorrelation consistent (HAC) standard errors",
+     "serial correlation-robust inference",
+     "truncation lag",
+     "lagged dependent variable",
+     "inconsistency of OLS",
+     "MA(1) error",
+     "t test for AR(1) serial correlation",
+     "F test for AR(q) serial correlation"
+    ]
+   },
+   {
+    "id": "wvyeiupu",
+    "title": "Trends, seasonality and highly persistent time series",
+    "guide": "Chapter 15: Trends, seasonality and highly persistent time series in regression (Wooldridge 10.5 skipping 10.5d, 11.3, 18.2-18.4)",
+    "outcomes": [
+     "explain the spurious regression problem",
+     "understand the importance of including a time trend in regressions with deterministically trending variables",
+     "understand what we mean by a detrended time series and a seasonally adjusted time series",
+     "understand the concept of a highly persistent (strongly dependent) time series process",
+     "explain the terminology of a unit root process, an integrated process and the order of integration",
+     "discuss the Dickey-Fuller (DF) and augmented Dickey-Fuller (ADF) unit root tests and explain their difference",
+     "conduct a unit root test on the residuals to test for cointegration (Engle-Granger test)",
+     "construct an error correction model (ECM) and describe the advantage over differencing"
+    ],
+    "topics": [
+     {
+      "id": "trending-series-and-the-spurious-regression-prob",
+      "title": "Trending series and the spurious regression problem"
+     },
+     {
+      "id": "time-trends-in-regression-and-detrending",
+      "title": "Time trends in regression and detrending"
+     },
+     {
+      "id": "seasonality-and-seasonal-dummies",
+      "title": "Seasonality and seasonal dummies"
+     },
+     {
+      "id": "highly-persistent-series-random-walk-with-drift",
+      "title": "Highly persistent series: random walk (with drift)"
+     },
+     {
+      "id": "unit-roots-i-1-processes-and-differencing",
+      "title": "Unit roots, I(1) processes and differencing"
+     },
+     {
+      "id": "dickey-fuller-and-augmented-dickey-fuller-tests",
+      "title": "Dickey-Fuller and augmented Dickey-Fuller tests"
+     },
+     {
+      "id": "spurious-regression-vs-cointegration-engle-grang",
+      "title": "Spurious regression vs cointegration: Engle-Granger test"
+     },
+     {
+      "id": "error-correction-models-and-engle-granger-two-st",
+      "title": "Error correction models and Engle-Granger two-step"
+     },
+     {
+      "id": "r-application-for-nonstationary-time-series",
+      "title": "R application for nonstationary time series"
+     }
+    ],
+    "terms": [
+     "nonstationary process",
+     "spurious regression problem",
+     "time trend (linear and exponential)",
+     "detrending",
+     "trend-stationary process",
+     "seasonality",
+     "seasonal dummies",
+     "seasonally adjusted (deseasonalised) process",
+     "strong dependence (persistence)",
+     "random walk",
+     "random walk with drift",
+     "unit root",
+     "first difference",
+     "integrated of order d, I(d)",
+     "difference-stationary process",
+     "Dickey-Fuller (DF) and augmented Dickey-Fuller (ADF) tests",
+     "cointegration",
+     "Engle-Granger test",
+     "error correction model (ECM)",
+     "Engle-Granger two-step procedure"
     ]
    }
   ],

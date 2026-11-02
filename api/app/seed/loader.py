@@ -114,8 +114,12 @@ def load_modules(db: Session) -> int:
 # Chapters the first catalogue held by mistake, each with its lessons' stand-ins in the chapter it repeats:
 # MN1178's second "International Project Management", whose only lesson was a half-downloaded file.
 BROKEN_CHAPTERS: dict[str, dict[str, str]] = {"fjdyedyg": {"6z8mmrtu": "me34n26c"}}
-# Lessons whose video is gone (YouTube refuses the id), each with the lesson that stands in for it.
-BROKEN_LESSONS: dict[str, str] = {"q6nv536p": "v2m4nyhh"}  # MN1178 international HRM: the first of its new lessons
+# Lessons the seed takes out, each with the lesson that stands in for it: a video that is gone (YouTube refuses the id)
+# or one that moved to a chapter of its own.
+RETIRED_LESSONS: dict[str, str] = {
+    "q6nv536p": "v2m4nyhh",  # MN1178 international HRM: the broken video; the first of its new lessons
+    "3fgvbn25": "ruqengyv",  # EC2020: the serial-correlation lecture, from Time series to Autocorrelation (ch 14)
+}
 
 
 def _to_stand_in(db: Session, lesson_id: str, stand_in: str) -> None:
@@ -153,12 +157,12 @@ def remove_broken_chapters(db: Session) -> int:
     return n
 
 
-def remove_broken_lessons(db: Session) -> int:
-    """BROKEN_LESSONS, removed wherever they still are, after the new lessons came (a stand-in is usually one of
+def remove_retired_lessons(db: Session) -> int:
+    """RETIRED_LESSONS, removed wherever they still are, after the new lessons came (a stand-in is usually one of
     them): their notes and cards move to the stand-in (_to_stand_in), watched marks and tags go with the lesson. The
     chapter's lessons are numbered again and the module's version goes up. How many lessons it removed."""
     n = 0
-    for lesson_id, stand_in in BROKEN_LESSONS.items():
+    for lesson_id, stand_in in RETIRED_LESSONS.items():
         lesson = db.get(Lesson, lesson_id)
         if lesson is None:
             continue
@@ -242,6 +246,7 @@ SEED_ORDER = "module.seed_order"
 # that it did), after which the order is the content managers' again.
 CHAPTER_ORDERS: dict[str, tuple[str, ...]] = {
     "2026-11e": ("business",),  # MN1178: the guide's ch 14 (international HRM) before ch 15 (project management)
+    "2026-11f": ("econometrics",),  # EC2020: the guide's chapters 2-15 in order (Time series after Binary response)
 }
 
 
@@ -622,7 +627,7 @@ SECTIONS: dict[str, Callable[[Session], int]] = {
     "modules": load_modules,
     "broken-chapters": remove_broken_chapters,
     "new-lessons": load_new_lessons,
-    "broken-lessons": remove_broken_lessons,
+    "retired-lessons": remove_retired_lessons,
     "unit-codes": load_unit_codes,
     "chapter-order": load_chapter_order,
     "chapter-words": load_chapter_words,

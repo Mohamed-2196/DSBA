@@ -8121,11 +8121,12 @@
     "page": 3,
     "anchor": "2. Consider a two equation model",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    },
    {
@@ -8137,8 +8138,8 @@
      "9xtetwaf"
     ],
     "topics": [
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
      "9xtetwaf:t-test-for-a-single-population-parameter"
     ]
    },
@@ -8174,11 +8175,12 @@
     "page": 6,
     "anchor": "6. (a) Consider a model",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:highly-persistent-series-random-walk-with-drift"
     ]
    },
    {
@@ -8186,13 +8188,13 @@
     "page": 6,
     "anchor": "7. (a) Consider a model",
     "chapters": [
-     "gazw7qiy",
-     "s7m9nt7j"
+     "z3jpk5vt",
+     "gazw7qiy"
     ],
     "topics": [
-     "gazw7qiy:consistency-of-ols",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
      "gazw7qiy:inconsistency-and-asymptotic-bias",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "gazw7qiy:consistency-of-ols"
     ]
    },
    {
@@ -8232,11 +8234,12 @@
     "page": 2,
     "anchor": "2. Consider the linear regression model",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -8257,11 +8260,13 @@
     "page": 4,
     "anchor": "4. The following model jointly determines monthly child support payments and monthly visita-",
     "chapters": [
-     "kfec5xg7"
+     "kfec5xg7",
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:iv-estimation-of-the-multiple-regression-model"
+     "kfec5xg7:iv-estimation-of-the-multiple-regression-model",
+     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
+     "wvms9ehf:order-and-rank-conditions-for-identification"
     ]
    },
    {
@@ -8307,12 +8312,13 @@
     "page": 7,
     "anchor": "8. An OLS regression of yt onxt andxt 1 gives the following results (with the standard errors",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols"
     ]
    },
    {
@@ -8320,11 +8326,12 @@
     "page": 8,
     "anchor": "9. Consider the model",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests"
     ]
    },
    {
@@ -8353,10 +8360,13 @@
     "page": 2,
     "anchor": "1. Consider the following regression model of a time series Yt:",
     "chapters": [
+     "z3jpk5vt",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "s7m9nt7j:strict-exogeneity-and-its-limitations",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl"
     ]
    },
    {
@@ -8375,11 +8385,11 @@
     "page": 2,
     "anchor": "3. Consider the following model for the energy drink industry in Britain:",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:simultaneity-bias-in-ols"
     ]
    },
    {
@@ -8387,12 +8397,11 @@
     "page": 3,
     "anchor": "4. Consider a linear regression model:",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -8412,11 +8421,13 @@
     "page": 4,
     "anchor": "6. Central Banks are paying attention to economic indicators in their fight against inflation. An",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:asymptotic-properties-of-ols-contemporaneous-exo",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl"
     ]
    },
    {
@@ -8438,11 +8449,12 @@
     "page": 6,
     "anchor": "8. We are interested in the relationship between the quarterly price level CP It and the quar",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -8473,12 +8485,12 @@
     "anchor": "1. (a) Prove that in the demand function of the form 12 u0QP Y e ββ=β where Q = quantity demanded,",
     "chapters": [
      "mtitgdpr",
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
      "mtitgdpr:units-of-measurement-and-functional-form-log-mod",
      "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -8513,12 +8525,12 @@
     "page": 5,
     "anchor": "5. (a) Explain what do you understand by the order condition of identification in the context of",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:iv-estimation-of-the-simple-regression-model"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    },
    {
@@ -8526,11 +8538,13 @@
     "page": 5,
     "anchor": "6. (a) A stationary AR(1) process",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:highly-persistent-series-random-walk-with-drift",
+     "s7m9nt7j:ar-1-and-ma-1-processes"
     ]
    }
   ]
@@ -8576,11 +8590,11 @@
     "anchor": "3. State whether the following claims are True or False. Briefly explain why (two to three",
     "chapters": [
      "48isg7ra",
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
      "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -8588,12 +8602,12 @@
     "page": 3,
     "anchor": "4. A researcher is interested in the relationship between the monthly unemployment rate",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -8604,8 +8618,9 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series",
+     "s7m9nt7j:strict-exogeneity-and-its-limitations",
+     "s7m9nt7j:asymptotic-properties-of-ols-contemporaneous-exo"
     ]
    },
    {
@@ -8614,11 +8629,11 @@
     "anchor": "6. An economist is interested in a regression model for the (logarithm of) output-per-capita yt",
     "chapters": [
      "kfec5xg7",
-     "s7m9nt7j"
+     "wvms9ehf"
     ],
     "topics": [
      "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:iv-estimation-of-the-multiple-regression-model",
+     "wvms9ehf:reduced-form-equations",
      "kfec5xg7:two-stage-least-squares"
     ]
    },
@@ -8627,11 +8642,12 @@
     "page": 6,
     "anchor": "7. The University of Michigan Consumer Sentiment Index, Ct, is a consumer confidence index",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -8712,11 +8728,12 @@
     "page": 3,
     "anchor": "4. Consider the following regression model",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:time-trends-in-regression-and-detrending"
     ]
    },
    {
@@ -8739,8 +8756,8 @@
      "kfec5xg7"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "kfec5xg7:iv-estimation-of-the-multiple-regression-model",
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "s7m9nt7j:asymptotic-properties-of-ols-contemporaneous-exo",
      "kfec5xg7:two-stage-least-squares"
     ]
    },
@@ -8748,12 +8765,13 @@
     "question": 7,
     "page": 5,
     "chapters": [
+     "wvms9ehf",
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls",
+     "kfec5xg7:testing-for-endogeneity"
     ]
    },
    {
@@ -8788,12 +8806,13 @@
     "page": 8,
     "anchor": "10. This question is based on \"An Empirical Comparison of Alternative Models of the Short-",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series"
     ]
    }
   ]
@@ -8822,33 +8841,36 @@
     "question": 2,
     "page": 3,
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl"
     ]
    },
    {
     "question": 3,
     "page": 3,
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:highly-persistent-series-random-walk-with-drift",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob"
     ]
    },
    {
     "question": 4,
     "page": 4,
     "chapters": [
-     "s7m9nt7j",
-     "9xtetwaf"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -8893,11 +8915,12 @@
     "question": 8,
     "page": 7,
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls",
+     "wvms9ehf:reduced-form-equations"
     ]
    }
   ]
@@ -8953,7 +8976,8 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:static-and-finite-distributed-lag-models"
     ]
    },
    {
@@ -8988,12 +9012,12 @@
     "page": 5,
     "anchor": "7 (a) Explain the problem of identification in the context of simultaneous equation models.",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    },
    {
@@ -9014,11 +9038,13 @@
     "page": 6,
     "anchor": "9. (a) Explain the meaning of spurious regression. (4 marks)",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob",
+     "s7m9nt7j:ar-1-and-ma-1-processes"
     ]
    },
    {
@@ -9026,11 +9052,13 @@
     "page": 7,
     "anchor": "10. Let the regression equation be",
     "chapters": [
+     "z3jpk5vt",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:testing-for-autocorrelation",
+     "s7m9nt7j:ar-1-and-ma-1-processes"
     ]
    }
   ]
@@ -9060,11 +9088,12 @@
     "page": 2,
     "anchor": "2. Consider the following demand curve for taxi in London in year t:",
     "chapters": [
+     "wvms9ehf",
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:the-identification-problem-demand-and-supply-shi",
      "kfec5xg7:iv-estimation-of-the-simple-regression-model"
     ]
    },
@@ -9073,13 +9102,13 @@
     "page": 2,
     "anchor": "3. Consider a linear regression model:",
     "chapters": [
-     "s7m9nt7j",
-     "9xtetwaf"
+     "z3jpk5vt",
+     "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols",
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols",
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -9128,12 +9157,13 @@
     "page": 5,
     "anchor": "7. An economist uses OLS to estimate the relationship between the monthly inflation rate",
     "chapters": [
-     "s7m9nt7j"
+     "9xtetwaf",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+     "9xtetwaf:t-test-for-a-single-population-parameter",
+     "9xtetwaf:testing-a-single-linear-combination-of-parameter",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -9153,11 +9183,12 @@
     "page": 7,
     "anchor": "9. We are interested in the relationship between the quarterly price level CP It and the quar",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    }
   ]
@@ -9174,13 +9205,13 @@
     "page": 2,
     "anchor": "1. (a) Show that least squares a pplied to a linear model with serially correlated errors can yield",
     "chapters": [
-     "s7m9nt7j",
-     "gazw7qiy"
+     "z3jpk5vt",
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "gazw7qiy:asymptotic-efficiency-of-ols",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang"
     ]
    },
    {
@@ -9188,10 +9219,13 @@
     "page": 2,
     "anchor": "2. (a) An econometrician believes that consum ption expenditure is dependent on the last two",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "9xtetwaf"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
     ]
    },
    {
@@ -9199,12 +9233,12 @@
     "page": 3,
     "anchor": "3. (a) A researcher is investigat ing the impact of advertising on sales using cross-section data",
     "chapters": [
+     "wvms9ehf",
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:two-stage-least-squares",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "kfec5xg7:iv-estimation-of-the-simple-regression-model"
     ]
    },
    {
@@ -9241,8 +9275,8 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:static-and-finite-distributed-lag-models"
     ]
    }
   ]
@@ -9260,11 +9294,12 @@
     "anchor": "1. Consider the following bivariate regression model relating the number of hours a stu",
     "chapters": [
      "mtitgdpr",
-     "kfec5xg7"
+     "zrnn3q4e"
     ],
     "topics": [
      "mtitgdpr:units-of-measurement-and-functional-form-log-mod",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable",
+     "zrnn3q4e:attenuation-bias-in-the-simple-regression-model"
     ]
    },
    {
@@ -9277,8 +9312,8 @@
     ],
     "topics": [
      "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "kfec5xg7:iv-estimation-of-the-simple-regression-model"
+     "kfec5xg7:iv-estimation-of-the-simple-regression-model",
+     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
     ]
    },
    {
@@ -9286,11 +9321,13 @@
     "page": 2,
     "anchor": "3. Consider a linear regression model:",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series",
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -9312,11 +9349,12 @@
     "page": 3,
     "anchor": "5. Consider two time series yt and xt observed for t = 1, . . . , T.",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob"
     ]
    },
    {
@@ -9341,9 +9379,9 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:finite-sample-properties-of-ols-ts-1-ts-6"
     ]
    },
    {
@@ -9351,12 +9389,12 @@
     "page": 6,
     "anchor": "8. Consider a simple market model for a regional electricity market. Let demand and supply",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    },
    {
@@ -9397,11 +9435,12 @@
     "question": 2,
     "page": 3,
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls",
+     "wvms9ehf:structural-equations-endogenous-and-exogenous-va"
     ]
    },
    {
@@ -9518,11 +9557,11 @@
     "anchor": "4. Write brief answers on three of the following.",
     "chapters": [
      "9xtetwaf",
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
      "9xtetwaf:t-test-for-a-single-population-parameter",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests"
     ]
    },
    {
@@ -9530,11 +9569,12 @@
     "page": 5,
     "anchor": "5. A model for housing starts was estimated by or dinary least squares (OLS) using annual data",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols"
     ]
    },
    {
@@ -9556,12 +9596,12 @@
     "page": 6,
     "anchor": "7. (a) The following is a model of wages and prices:",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    },
    {
@@ -9616,23 +9656,24 @@
     "question": 3,
     "page": 5,
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls",
+     "wvms9ehf:just-identified-overidentified-and-unidentified"
     ]
    },
    {
     "question": 4,
     "page": 5,
     "chapters": [
-     "kfec5xg7",
-     "gazw7qiy"
+     "zrnn3q4e"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "gazw7qiy:inconsistency-and-asymptotic-bias"
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable",
+     "zrnn3q4e:attenuation-bias-in-the-simple-regression-model",
+     "zrnn3q4e:measurement-error-in-the-dependent-variable"
     ]
    },
    {
@@ -9666,7 +9707,8 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl"
     ]
    },
    {
@@ -9719,11 +9761,12 @@
     "page": 2,
     "anchor": "3. Consider the following non-stationary process:",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests"
     ]
    },
    {
@@ -9772,8 +9815,8 @@
     ],
     "topics": [
      "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:two-stage-least-squares",
-     "kfec5xg7:testing-for-endogeneity"
+     "kfec5xg7:iv-estimation-of-the-multiple-regression-model",
+     "kfec5xg7:two-stage-least-squares"
     ]
    },
    {
@@ -9794,11 +9837,13 @@
     "page": 8,
     "anchor": "9. Let us consider a distributed lag model:",
     "chapters": [
+     "z3jpk5vt",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "s7m9nt7j:static-and-finite-distributed-lag-models"
     ]
    },
    {
@@ -9806,11 +9851,12 @@
     "page": 9,
     "anchor": "10. Consider the model:",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang"
     ]
    }
   ]
@@ -9827,13 +9873,13 @@
     "page": 2,
     "anchor": "1. Consider the following simple regression model between Yi and Xi:",
     "chapters": [
-     "kfec5xg7",
-     "mtitgdpr"
+     "mtitgdpr",
+     "zrnn3q4e"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
-     "mtitgdpr:units-of-measurement-and-functional-form-log-mod"
+     "mtitgdpr:deriving-the-ols-estimates",
+     "mtitgdpr:units-of-measurement-and-functional-form-log-mod",
+     "zrnn3q4e:measurement-error-in-the-dependent-variable"
     ]
    },
    {
@@ -9841,11 +9887,13 @@
     "page": 2,
     "anchor": "2. Consider the following regression model:",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob"
     ]
    },
    {
@@ -9867,11 +9915,13 @@
     "page": 3,
     "anchor": "4. Consider the following time series model for {yt}Tt=1:",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series"
     ]
    },
    {
@@ -9879,11 +9929,12 @@
     "page": 3,
     "anchor": "5. Let us consider the following system of simultaneous equations that describe the equilib-",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "wvms9ehf:structural-equations-endogenous-and-exogenous-va",
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:simultaneity-bias-in-ols"
     ]
    },
    {
@@ -9918,12 +9969,13 @@
     "page": 6,
     "anchor": "8. Consider the following regression model that describes the demand for Money in the USA:",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -9953,11 +10005,12 @@
     "page": 2,
     "anchor": "1. Consider the following stationary time series model",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl"
     ]
    },
    {
@@ -9977,11 +10030,13 @@
     "page": 2,
     "anchor": "3. Consider the following regression model:",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:static-and-finite-distributed-lag-models"
     ]
    },
    {
@@ -10003,11 +10058,13 @@
     "page": 3,
     "anchor": "5. Consider the following time series model for {yt}Tt=1:",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob",
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series"
     ]
    },
    {
@@ -10029,11 +10086,11 @@
     "anchor": "7. Consider the following OLS estimation of a model to explain the stock prices of a FTSE100company",
     "chapters": [
      "9xtetwaf",
-     "kfec5xg7"
+     "zrnn3q4e"
     ],
     "topics": [
      "9xtetwaf:testing-a-single-linear-combination-of-parameter",
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable",
      "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
     ]
    },
@@ -10042,12 +10099,13 @@
     "page": 6,
     "anchor": "8. Consider the following regression model that describes the demand for money in the USA:",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl"
     ]
    },
    {
@@ -10055,12 +10113,12 @@
     "page": 7,
     "anchor": "9. Consider the following system of simultaneous equations",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:order-and-rank-conditions-for-identification"
     ]
    }
   ]
@@ -10104,11 +10162,11 @@
     "anchor": "3. Write brief essays on three of the following topics:",
     "chapters": [
      "48isg7ra",
-     "kfec5xg7"
+     "zrnn3q4e"
     ],
     "topics": [
      "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable"
     ]
    },
    {
@@ -10142,10 +10200,12 @@
     "page": 5,
     "anchor": "6. (a) Explain what is a trend st ationary series and what is a difference stationary series.",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -10166,11 +10226,11 @@
     "page": 7,
     "anchor": "8. (a) What do you understand by serial correla tion of the error term? Why might serial",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    }
   ]
@@ -10200,10 +10260,11 @@
     "page": 2,
     "anchor": "2. Discuss the consequences of measurement error. In your answer consider the following empirical study attempting to",
     "chapters": [
-     "kfec5xg7"
+     "zrnn3q4e"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "zrnn3q4e:attenuation-bias-in-the-simple-regression-model",
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable"
     ]
    },
    {
@@ -10222,10 +10283,12 @@
     "page": 3,
     "anchor": "4. Consider the following non-stationary process: yt = 0 + 1t +ut, withut =\"t + 1\"t 1 + 2\"t 2",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob"
     ]
    },
    {
@@ -10258,10 +10321,12 @@
     "page": 5,
     "anchor": "7. Consider the model: yt = 1yt 1 +ut,t = 1;:::;T wherey0 = 0:E (ut) = 0;E (u2t ) = 2",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob"
     ]
    },
    {
@@ -10269,12 +10334,13 @@
     "page": 6,
     "anchor": "8. For the US economy, let gprice denote the monthly growth in the overall price level and let gwage be the monthly",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt",
+     "9xtetwaf"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "9xtetwaf:testing-a-single-linear-combination-of-parameter"
     ]
    },
    {
@@ -10328,12 +10394,12 @@
     "page": 3,
     "anchor": "2. Let us consider the following stationary time series model yt =α +ρyt−1 +βxt +εt, |ρ|< 1, t = 1,...,T.",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+     "z3jpk5vt:testing-for-higher-order-serial-correlation",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols"
     ]
    },
    {
@@ -10389,12 +10455,12 @@
     "page": 7,
     "anchor": "7. Let us consider the relationship between the natural logarithm of GDP , GDPt, and the lagged long-term interest",
     "chapters": [
-     "i3xv6ibs",
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "i3xv6ibs:chow-test-for-differences-across-groups",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -10402,13 +10468,12 @@
     "page": 8,
     "anchor": "8. It is postulated that more open economies have lower inﬂation rates. A proposed model looks at a cross section ofn",
     "chapters": [
-     "kfec5xg7",
-     "s7m9nt7j"
+     "kfec5xg7"
     ],
     "topics": [
      "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
      "kfec5xg7:two-stage-least-squares",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "kfec5xg7:iv-estimation-of-the-multiple-regression-model"
     ]
    },
    {
@@ -10462,13 +10527,13 @@
     "page": 2,
     "anchor": "3. Consider the following demand curve for public transport in London in year t ln(Qt) = β0 + β1 ln(Pt) + β2 ln(Yt) +",
     "chapters": [
-     "mtitgdpr",
-     "kfec5xg7"
+     "kfec5xg7",
+     "wvms9ehf"
     ],
     "topics": [
-     "mtitgdpr:units-of-measurement-and-functional-form-log-mod",
      "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:iv-estimation-of-the-simple-regression-model"
+     "kfec5xg7:iv-estimation-of-the-simple-regression-model",
+     "wvms9ehf:simultaneity-bias-in-ols"
     ]
    },
    {
@@ -10476,11 +10541,13 @@
     "page": 3,
     "anchor": "4. Consider a linear regression model of time series variables: yt = β1zt + β2zt−1 + ut, t = 1, ..., T (4.1)",
     "chapters": [
+     "z3jpk5vt",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols",
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series"
     ]
    },
    {
@@ -10501,12 +10568,13 @@
     "page": 4,
     "anchor": "6. Central Banks are paying attention to economic indicators in their fight against inflation.",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl"
     ]
    },
    {
@@ -10527,10 +10595,12 @@
     "page": 6,
     "anchor": "8. We are interested in the relationship between the quarterly price level CP It and the quarterly employment level",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -10571,10 +10641,12 @@
     "page": 5,
     "anchor": "2. Consider the following regression model: y⇤i = ↵ + x⇤i + ui. where the error term u has mean zero and variance 2u",
     "chapters": [
-     "kfec5xg7"
+     "zrnn3q4e"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "zrnn3q4e:measurement-error-in-the-dependent-variable",
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable",
+     "zrnn3q4e:attenuation-bias-in-the-simple-regression-model"
     ]
    },
    {
@@ -10596,10 +10668,13 @@
     "page": 6,
     "anchor": "4. (a) (5 marks) Consider the following time series model for {yt}Tt=1: yt = yt 1 + \"t + \"t 1, where \"t is i.i.d with",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "s7m9nt7j:ar-1-and-ma-1-processes"
     ]
    },
    {
@@ -10610,7 +10685,9 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "s7m9nt7j:asymptotic-properties-of-ols-contemporaneous-exo"
     ]
    },
    {
@@ -10633,12 +10710,12 @@
     "anchor": "7. A researcher models the relationship between the expenditure of a company , St in period t and the expected proﬁt,",
     "chapters": [
      "s7m9nt7j",
-     "kfec5xg7"
+     "z3jpk5vt"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:two-stage-least-squares",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -10660,12 +10737,13 @@
     "page": 11,
     "anchor": "9. Let us consider the following system of simultaneous equations y1 = ↵1y2 + ↵2x1 + ↵3x2 + u1 (9.1)",
     "chapters": [
+     "wvms9ehf",
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "kfec5xg7:two-stage-least-squares"
     ]
    }
   ]
@@ -10685,7 +10763,8 @@
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:iv-estimation-of-the-simple-regression-model"
+     "kfec5xg7:iv-estimation-of-the-simple-regression-model",
+     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
     ]
    },
    {
@@ -10693,10 +10772,12 @@
     "page": 2,
     "anchor": "2. Derive the order of integration of tx in the following models. Assume in each case that tu is stationary",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:highly-persistent-series-random-walk-with-drift",
+     "wvyeiupu:time-trends-in-regression-and-detrending"
     ]
    },
    {
@@ -10716,10 +10797,11 @@
     "page": 3,
     "anchor": "4. Consider a model: t t 1 t t t 1 t y αy u where u θε ε ; t 1 ,2, ,T",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -10727,10 +10809,13 @@
     "page": 3,
     "anchor": "5. Consider an ADL(1, 1) model: 1 2 1 3 4 1 1 2 t t t t t Y α α Y α X α X u",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl"
     ]
    },
    {
@@ -10741,7 +10826,8 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:static-and-finite-distributed-lag-models"
     ]
    },
    {
@@ -10811,10 +10897,13 @@
     "page": 2,
     "anchor": "1. Show that the infinite distributed lag model jt t j t 0 Y X",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl"
     ]
    },
    {
@@ -10882,12 +10971,13 @@
     "page": 5,
     "anchor": "7. A simple model of supply and demand for a consumer good is: t 0 1 t 2 t 3 t 1t D P Y P u = α + α + α + α +",
     "chapters": [
+     "wvms9ehf",
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:reduced-form-equations",
+     "kfec5xg7:two-stage-least-squares"
     ]
    },
    {
@@ -10895,10 +10985,12 @@
     "page": 6,
     "anchor": "8. Consider a model t t 1 t y y u −= θ + ; t 1 ,2,...,T =",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang"
     ]
    },
    {
@@ -10964,35 +11056,37 @@
     "question": 4,
     "page": 5,
     "chapters": [
-     "s7m9nt7j",
-     "9xtetwaf"
+     "z3jpk5vt",
+     "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl"
     ]
    },
    {
     "question": 5,
     "page": 6,
     "chapters": [
+     "wvms9ehf",
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:two-stage-least-squares",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls",
+     "kfec5xg7:two-stage-least-squares"
     ]
    },
    {
     "question": 6,
     "page": 6,
     "chapters": [
-     "kfec5xg7",
-     "gazw7qiy"
+     "kfec5xg7"
     ],
     "topics": [
      "kfec5xg7:iv-estimation-of-the-simple-regression-model",
-     "gazw7qiy:consistency-of-ols"
+     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
     ]
    },
    {
@@ -11045,12 +11139,12 @@
     "anchor": "2. (a) Explain what is meant by a consistent estimato r. Why is the concept useful in econometrics?",
     "chapters": [
      "gazw7qiy",
-     "kfec5xg7"
+     "s7m9nt7j"
     ],
     "topics": [
      "gazw7qiy:consistency-of-ols",
      "gazw7qiy:inconsistency-and-asymptotic-bias",
-     "kfec5xg7:iv-estimation-of-the-simple-regression-model"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl"
     ]
    },
    {
@@ -11058,13 +11152,13 @@
     "page": 3,
     "anchor": "3. (a) Show that ordinary least squares (OLS) applied to the model y t = xt + ut , t = 1,2,...T",
     "chapters": [
-     "mtitgdpr",
-     "kfec5xg7"
+     "kfec5xg7",
+     "mtitgdpr"
     ],
     "topics": [
-     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
      "kfec5xg7:iv-estimation-of-the-simple-regression-model",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
+     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat"
     ]
    },
    {
@@ -11085,10 +11179,12 @@
     "page": 5,
     "anchor": "5. (a) Consider a model tt 1 tyyu ; t 1 , 2 , , T",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang"
     ]
    },
    {
@@ -11097,11 +11193,11 @@
     "anchor": "6. Write short explana tions on the following: (a) The Durbin-Wu-Hausman test for measurement error.",
     "chapters": [
      "kfec5xg7",
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
      "kfec5xg7:testing-for-endogeneity",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -11109,10 +11205,12 @@
     "page": 6,
     "anchor": "7. Consider the following model R t = 0 + 1 Mt + 2 Yt + u1t Y t = 0 + 1 Rt + 2 It + u2t",
     "chapters": [
+     "wvms9ehf",
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
+     "wvms9ehf:structural-equations-endogenous-and-exogenous-va",
+     "wvms9ehf:order-and-rank-conditions-for-identification",
      "kfec5xg7:two-stage-least-squares"
     ]
    },
@@ -11141,13 +11239,13 @@
     "question": 1,
     "page": 3,
     "chapters": [
-     "s7m9nt7j",
+     "z3jpk5vt",
      "mtitgdpr"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "mtitgdpr:properties-of-ols-on-any-sample-fitted-values-re"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat"
     ]
    },
    {
@@ -11191,12 +11289,12 @@
     "question": 5,
     "page": 6,
     "chapters": [
-     "s7m9nt7j",
+     "z3jpk5vt",
      "9xtetwaf"
     ],
     "topics": [
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
      "9xtetwaf:t-test-for-a-single-population-parameter"
     ]
    },
@@ -11204,11 +11302,12 @@
     "question": 6,
     "page": 6,
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:the-identification-problem-demand-and-supply-shi",
+     "wvms9ehf:just-identified-overidentified-and-unidentified",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    },
    {
@@ -11261,12 +11360,11 @@
     "question": 2,
     "page": 3,
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -11327,18 +11425,20 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl"
     ]
    },
    {
     "question": 8,
     "page": 7,
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    }
   ]
@@ -11355,10 +11455,12 @@
     "page": 2,
     "anchor": "1. In the model t t t y βx u = + ; t = 1,2,.......,T tx is measured with error.",
     "chapters": [
-     "kfec5xg7"
+     "zrnn3q4e"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "zrnn3q4e:classical-errors-in-variables-cev-assumption",
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable",
+     "zrnn3q4e:attenuation-bias-in-the-simple-regression-model"
     ]
    },
    {
@@ -11369,7 +11471,9 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:asymptotic-properties-of-ols-contemporaneous-exo"
     ]
    },
    {
@@ -11412,12 +11516,13 @@
     "page": 4,
     "anchor": "6. (a) Outline the Goldfeld-Quandt test for heterosceda sticity and explain when this is a sensible test to use.",
     "chapters": [
-     "w8jhm9u7",
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "w8jhm9u7"
     ],
     "topics": [
-     "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi"
     ]
    },
    {
@@ -11425,10 +11530,12 @@
     "page": 4,
     "anchor": "7. (a) Explain what is meant by a trend stationary serie s and a difference stationary series.",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -11449,13 +11556,13 @@
     "page": 7,
     "anchor": "10. The following ordinary least squares (OLS) estimates were obtained of the demand for labour in manufacturing using",
     "chapters": [
-     "i3xv6ibs",
-     "s7m9nt7j"
+     "z3jpk5vt",
+     "i3xv6ibs"
     ],
     "topics": [
-     "i3xv6ibs:chow-test-for-differences-across-groups",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "i3xv6ibs:chow-test-for-differences-across-groups"
     ]
    }
   ]
@@ -11472,13 +11579,13 @@
     "page": 2,
     "anchor": "1. (a) Consider a model: YX uii i=+ +α β ; i= 16",
     "chapters": [
-     "48isg7ra",
-     "s7m9nt7j"
+     "z3jpk5vt",
+     "48isg7ra"
     ],
     "topics": [
-     "48isg7ra:efficiency-of-ols-gauss-markov-theorem",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "48isg7ra:efficiency-of-ols-gauss-markov-theorem"
     ]
    },
    {
@@ -11500,11 +11607,12 @@
     "page": 3,
     "anchor": "3. Explain and discuss the following:",
     "chapters": [
-     "s7m9nt7j",
+     "wvyeiupu",
      "48isg7ra"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
      "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
     ]
    },
@@ -11526,13 +11634,13 @@
     "page": 5,
     "anchor": "5. (a) Explain what you understand by autocorrelati on of the disturbance term in a regression model?",
     "chapters": [
-     "s7m9nt7j",
+     "z3jpk5vt",
      "9xtetwaf"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "9xtetwaf:testing-a-single-linear-combination-of-parameter",
-     "9xtetwaf:confidence-intervals"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "9xtetwaf:t-test-for-a-single-population-parameter"
     ]
    },
    {
@@ -11540,10 +11648,12 @@
     "page": 6,
     "anchor": "6. In the model tt tyx u=β + ; t = 1,2,.......,T tx is measured with error.",
     "chapters": [
-     "kfec5xg7"
+     "zrnn3q4e"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable",
+     "zrnn3q4e:attenuation-bias-in-the-simple-regression-model",
+     "zrnn3q4e:measurement-error-in-the-dependent-variable"
     ]
    }
   ]
@@ -11588,10 +11698,12 @@
     "page": 4,
     "anchor": "3. (a) Explain what is meant when variables are cointegrated. Why is this considered to be important?",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:highly-persistent-series-random-walk-with-drift",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob"
     ]
    },
    {
@@ -11599,13 +11711,13 @@
     "page": 5,
     "anchor": "4. The following ordinary least squares (OLS) estimates were obtained of the demand for labour in manufacturing using",
     "chapters": [
-     "i3xv6ibs",
-     "s7m9nt7j"
+     "z3jpk5vt",
+     "i3xv6ibs"
     ],
     "topics": [
-     "i3xv6ibs:chow-test-for-differences-across-groups",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "i3xv6ibs:chow-test-for-differences-across-groups"
     ]
    },
    {
@@ -11627,11 +11739,11 @@
     "anchor": "6. The following least squares estimates of the relationship between the rate of inflation (dpt) and the rate of",
     "chapters": [
      "9xtetwaf",
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
      "9xtetwaf:t-test-for-a-single-population-parameter",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -11640,12 +11752,12 @@
     "anchor": "7. Write brief notes on any THREE of the following (a) The augmented Dickey-Fuller test.",
     "chapters": [
      "s7m9nt7j",
-     "kfec5xg7"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests"
     ]
    },
    {
@@ -11676,12 +11788,13 @@
     "page": 3,
     "anchor": "1. Consider the following regression model Yi =β0 +β1 log(Xi) +ui, i = 1,...,n.",
     "chapters": [
-     "mtitgdpr",
-     "kfec5xg7"
+     "zrnn3q4e",
+     "mtitgdpr"
     ],
     "topics": [
-     "mtitgdpr:units-of-measurement-and-functional-form-log-mod",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable",
+     "zrnn3q4e:attenuation-bias-in-the-simple-regression-model",
+     "mtitgdpr:units-of-measurement-and-functional-form-log-mod"
     ]
    },
    {
@@ -11713,10 +11826,13 @@
     "page": 5,
     "anchor": "4. (a) (4 marks) What are the conditions for a series to be covariance stationary?",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series"
     ]
    },
    {
@@ -11724,11 +11840,11 @@
     "page": 5,
     "anchor": "5. Consider the following regression model yt =ρyt−1 +γ1zt +γ2zt−1 +γ3zt−2 +γ4zt−3 +εt with|ρ|< 1,",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -11736,11 +11852,12 @@
     "page": 6,
     "anchor": "6. Consider the following model to determine the effectiveness of vaccination on the contain-",
     "chapters": [
+     "wvms9ehf",
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:two-stage-least-squares",
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls",
      "kfec5xg7:testing-for-endogeneity"
     ]
    },
@@ -11891,10 +12008,12 @@
     "page": 6,
     "anchor": "9. Answer the following questions: (a) Explain what a trend stationary series and what a difference stationary series",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -11924,10 +12043,11 @@
     "page": 2,
     "anchor": "1. Consider the following regression model Yt = 0 + 1Xt + 2t +\"t; t = 1;:::;T:",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob"
     ]
    },
    {
@@ -11935,11 +12055,13 @@
     "page": 2,
     "anchor": "2. Consider the following ADL(1,1) model relating the crime rate in a particular province,",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -12013,7 +12135,8 @@
     ],
     "topics": [
      "kfec5xg7:two-stage-least-squares",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
+     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
+     "kfec5xg7:iv-estimation-of-the-multiple-regression-model"
     ]
    },
    {
@@ -12022,11 +12145,12 @@
     "anchor": "9. Let us consider the expectations augmented Phillips curve (see also Mankiw, 1994):",
     "chapters": [
      "s7m9nt7j",
-     "kfec5xg7"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "kfec5xg7:two-stage-least-squares"
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "s7m9nt7j:asymptotic-properties-of-ols-contemporaneous-exo"
     ]
    },
    {
@@ -12034,13 +12158,13 @@
     "page": 8,
     "anchor": "10. This question is based on \"Capital Accumulation and Growth: A New Look at the Empirical Evidence\", by Bond et al.",
     "chapters": [
-     "kfec5xg7",
-     "s7m9nt7j"
+     "wvms9ehf",
+     "z3jpk5vt"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    }
   ]
@@ -12092,10 +12216,11 @@
     "page": 2,
     "anchor": "4. What is meant by a common factor test in the context of a linear model with an autocorrelated error?",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl"
     ]
    },
    {
@@ -12106,7 +12231,8 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:ar-1-and-ma-1-processes",
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series"
     ]
    },
    {
@@ -12165,11 +12291,12 @@
     "page": 6,
     "anchor": "10. Consider a two equation linear model 12t t t tq p y u",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:two-stage-least-squares",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls",
+     "wvms9ehf:reduced-form-equations"
     ]
    }
   ]
@@ -12186,11 +12313,13 @@
     "page": 2,
     "anchor": "1. Consider the following regression model yt = ρyt−1 + γ1zt + γ2zt−1 + εt with |ρ| < 1,",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt",
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error"
     ]
    },
    {
@@ -12211,12 +12340,13 @@
     "page": 3,
     "anchor": "3. Consider the following simple regression model to explain the number of trade partners of a country (Yi).",
     "chapters": [
-     "mtitgdpr",
-     "kfec5xg7"
+     "zrnn3q4e",
+     "mtitgdpr"
     ],
     "topics": [
-     "mtitgdpr:units-of-measurement-and-functional-form-log-mod",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "zrnn3q4e:attenuation-bias-in-the-simple-regression-model",
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable",
+     "mtitgdpr:deriving-the-ols-estimates"
     ]
    },
    {
@@ -12224,11 +12354,13 @@
     "page": 3,
     "anchor": "4. (a) (4 marks) Consider the following time series model for {xt}Tt=1: xt = xt−1 + λεt + εt−1,",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series"
     ]
    },
    {
@@ -12236,10 +12368,12 @@
     "page": 4,
     "anchor": "5. Consider the following time series model for {yt}Tt=1 : yt = α + βt + ut, t = 1, ..., T",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob"
     ]
    },
    {
@@ -12273,11 +12407,13 @@
     "page": 7,
     "anchor": "8. A team of economists are interested in explaining the short-term interest rate in the US before the financial crisis",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -12285,11 +12421,12 @@
     "page": 8,
     "anchor": "9. An economist is interested in the following simultaneous system of equations to describe the demand of supply of",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:just-identified-overidentified-and-unidentified",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    }
   ]
@@ -12368,11 +12505,13 @@
     "question": 7,
     "page": 5,
     "chapters": [
+     "wvms9ehf",
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "kfec5xg7:iv-estimation-of-the-simple-regression-model"
     ]
    }
   ]
@@ -12389,13 +12528,13 @@
     "page": 2,
     "anchor": "1. (a) Consider a two equation model:",
     "chapters": [
-     "s7m9nt7j",
-     "9xtetwaf"
+     "hifykydg",
+     "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "hifykydg:lpm-drawbacks",
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series"
     ]
    },
    {
@@ -12406,7 +12545,8 @@
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl"
     ]
    },
    {
@@ -12414,11 +12554,11 @@
     "page": 4,
     "anchor": "3. Let the regression equation be:",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -12426,10 +12566,12 @@
     "page": 4,
     "anchor": "4. (a) Explain what is a trend stationary series and what is a difference stationary series.",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -12450,13 +12592,13 @@
     "page": 5,
     "anchor": "6. Write brief essays on any three of the following:",
     "chapters": [
-     "s7m9nt7j",
+     "wvyeiupu",
      "kfec5xg7"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "kfec5xg7:iv-estimation-of-the-simple-regression-model",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob",
+     "kfec5xg7:iv-estimation-of-the-simple-regression-model"
     ]
    },
    {
@@ -12499,10 +12641,11 @@
     "page": 2,
     "anchor": "1. Consider the consumption function",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:simultaneity-bias-in-ols"
     ]
    },
    {
@@ -12510,11 +12653,11 @@
     "page": 2,
     "anchor": "2. Consider the simple linear regression model",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols"
     ]
    },
    {
@@ -12586,11 +12729,11 @@
     "anchor": "8. Let math10 denote the percentage of students at a high school receiving passing score on",
     "chapters": [
      "48isg7ra",
-     "kfec5xg7"
+     "zrnn3q4e"
     ],
     "topics": [
      "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable"
     ]
    },
    {
@@ -12598,11 +12741,12 @@
     "page": 9,
     "anchor": "9. Let us consider monthly data on the short-term interest rate (the three month Treasury Bill",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl"
     ]
    },
    {
@@ -12610,10 +12754,12 @@
     "page": 10,
     "anchor": "10. Consider the model",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    }
   ]
@@ -12681,11 +12827,12 @@
     "page": 6,
     "chapters": [
      "s7m9nt7j",
-     "9xtetwaf"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "s7m9nt7j:static-and-finite-distributed-lag-models",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -12704,23 +12851,23 @@
     "question": 7,
     "page": 7,
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:just-identified-overidentified-and-unidentified"
     ]
    },
    {
     "question": 8,
     "page": 8,
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    }
   ]
@@ -12737,12 +12884,12 @@
     "page": 2,
     "anchor": "1. (a) A simple random sample of size T, 12 TX, X, , X… is drawn from a population",
     "chapters": [
-     "gazw7qiy",
+     "mtitgdpr",
      "kfec5xg7"
     ],
     "topics": [
-     "gazw7qiy:consistency-of-ols",
-     "gazw7qiy:inconsistency-and-asymptotic-bias",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
+     "mtitgdpr:units-of-measurement-and-functional-form-log-mod",
      "kfec5xg7:iv-estimation-of-the-simple-regression-model"
     ]
    },
@@ -12751,13 +12898,13 @@
     "page": 3,
     "anchor": "2. Write brief answers on any three of the following:",
     "chapters": [
-     "s7m9nt7j",
-     "i3xv6ibs"
+     "i3xv6ibs",
+     "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
      "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t",
-     "i3xv6ibs:chow-test-for-differences-across-groups"
+     "i3xv6ibs:chow-test-for-differences-across-groups",
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl"
     ]
    },
    {
@@ -12765,10 +12912,12 @@
     "page": 4,
     "anchor": "3. (a) Explain what is meant when variables ar e cointegrated. Why is this considered to",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob"
     ]
    },
    {
@@ -12803,10 +12952,12 @@
     "page": 5,
     "anchor": "6. (a) Explain what do you understand by the or der condition",
     "chapters": [
+     "wvms9ehf",
      "kfec5xg7"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:simultaneity-bias-in-ols",
      "kfec5xg7:iv-estimation-of-the-simple-regression-model"
     ]
    },
@@ -12828,12 +12979,13 @@
     "page": 7,
     "anchor": "8. (a) Explain carefully what you unders tand by consistency in an econometric",
     "chapters": [
-     "gazw7qiy",
-     "kfec5xg7"
+     "kfec5xg7",
+     "gazw7qiy"
     ],
     "topics": [
+     "kfec5xg7:iv-estimation-of-the-simple-regression-model",
      "gazw7qiy:consistency-of-ols",
-     "kfec5xg7:iv-estimation-of-the-simple-regression-model"
+     "gazw7qiy:inconsistency-and-asymptotic-bias"
     ]
    }
   ]
@@ -12875,11 +13027,13 @@
     "page": 3,
     "anchor": "3. A researcher is interested in the relationship between the quarterly unemployment rate",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series",
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "s7m9nt7j:strict-exogeneity-and-its-limitations"
     ]
    },
    {
@@ -12899,11 +13053,12 @@
     "page": 4,
     "anchor": "5. A researcher is interested in examining the time series behaviour for the quantity of cement",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols"
     ]
    },
    {
@@ -12911,13 +13066,12 @@
     "page": 5,
     "anchor": "6. An economist is interested in a regression model for the (logarithm of) output-per-capita yt",
     "chapters": [
-     "kfec5xg7",
-     "s7m9nt7j"
+     "wvms9ehf"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:iv-estimation-of-the-multiple-regression-model"
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    },
    {
@@ -12938,10 +13092,12 @@
     "page": 7,
     "anchor": "8. Intergenerational mobility is concerned with the transmission of attitudes from parents to",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -12984,11 +13140,11 @@
     "page": 2,
     "anchor": "2. Consider the following regression equation:",
     "chapters": [
-     "s7m9nt7j"
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -12996,11 +13152,12 @@
     "page": 3,
     "anchor": "3. Consider the following regression model:",
     "chapters": [
-     "kfec5xg7"
+     "zrnn3q4e"
     ],
     "topics": [
-     "kfec5xg7:related-measurement-error-simultaneous-equations",
-     "kfec5xg7:iv-estimation-of-the-simple-regression-model"
+     "zrnn3q4e:classical-errors-in-variables-cev-assumption",
+     "zrnn3q4e:measurement-error-in-an-explanatory-variable",
+     "zrnn3q4e:iv-solutions-to-errors-in-variables-problems"
     ]
    },
    {
@@ -13008,11 +13165,12 @@
     "page": 3,
     "anchor": "4. Let us consider the following system of simultaneous equations that describe the equili",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:simultaneity-bias-in-ols",
+     "wvms9ehf:reduced-form-equations"
     ]
    },
    {
@@ -13020,11 +13178,11 @@
     "page": 4,
     "anchor": "5. Consider the following time series model for {yt}Tt=1:",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing"
     ]
    },
    {
@@ -13032,10 +13190,12 @@
     "page": 5,
     "anchor": "6. Let us consider the following model that describes the relationship between the stock price",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing"
     ]
    },
    {
@@ -13057,11 +13217,13 @@
     "page": 7,
     "anchor": "8. Consider the following regression model that describes the demand for Money in the USA:",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl"
     ]
    },
    {
@@ -13115,11 +13277,13 @@
     "page": 4,
     "anchor": "3. Consider a linear regression model",
     "chapters": [
+     "z3jpk5vt",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols",
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series"
     ]
    },
    {
@@ -13127,10 +13291,12 @@
     "page": 4,
     "anchor": "4. Consider the following time series model forfytgTt=1 :",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:time-trends-in-regression-and-detrending",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:trending-series-and-the-spurious-regression-prob"
     ]
    },
    {
@@ -13162,12 +13328,13 @@
     "page": 7,
     "anchor": "7. Let us consider the following ADL(1,1) model",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "s7m9nt7j:models-with-lagged-dependent-variables-ar-adl",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl",
+     "z3jpk5vt:testing-for-autocorrelation"
     ]
    },
    {
@@ -13175,10 +13342,12 @@
     "page": 8,
     "anchor": "8. Let us consider the following ADL(1,1) model",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -13186,11 +13355,12 @@
     "page": 9,
     "anchor": "9. It is postulated that a reasonable demand-supply model for the wine industry in Australia,",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:two-stage-least-squares"
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:just-identified-overidentified-and-unidentified",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    },
    {
@@ -13235,11 +13405,13 @@
     "page": 3,
     "anchor": "2. (a) What is weak stationarity an d the order of integration of a random",
     "chapters": [
+     "wvyeiupu",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests",
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "s7m9nt7j:ar-1-and-ma-1-processes"
     ]
    },
    {
@@ -13261,11 +13433,13 @@
     "page": 4,
     "anchor": "4. (a) Consider a model:",
     "chapters": [
-     "kfec5xg7"
+     "kfec5xg7",
+     "wvms9ehf"
     ],
     "topics": [
      "kfec5xg7:iv-estimation-of-the-simple-regression-model",
-     "kfec5xg7:two-stage-least-squares"
+     "kfec5xg7:two-stage-least-squares",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls"
     ]
    },
    {
@@ -13274,11 +13448,11 @@
     "anchor": "5. Write brief answers on any three of the following:",
     "chapters": [
      "9xtetwaf",
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
      "9xtetwaf:t-test-for-a-single-population-parameter",
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang"
     ]
    },
    {
@@ -13360,11 +13534,12 @@
     "page": 2,
     "anchor": "3. Consider a linear regression model:",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series",
+     "z3jpk5vt:serial-correlation-robust-inference-after-ols"
     ]
    },
    {
@@ -13383,11 +13558,11 @@
     "page": 3,
     "anchor": "5. Consider the following model for the gin and tonic industry in Britain:",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "wvms9ehf:reduced-form-equations",
+     "wvms9ehf:simultaneity-bias-in-ols"
     ]
    },
    {
@@ -13409,11 +13584,13 @@
     "page": 5,
     "anchor": "7. Central Banks are paying attention to economic indicators in their fight against inflation. An",
     "chapters": [
-     "s7m9nt7j"
+     "9xtetwaf",
+     "z3jpk5vt"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "9xtetwaf:testing-a-single-linear-combination-of-parameter",
+     "z3jpk5vt:testing-for-autocorrelation",
+     "z3jpk5vt:serial-correlation-with-lagged-dependent-variabl"
     ]
    },
    {
@@ -13434,10 +13611,12 @@
     "page": 7,
     "anchor": "9. We are interested in the relationship between the quarterly price level CP It and the quar-",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests"
     ]
    }
   ]
@@ -13479,10 +13658,13 @@
     "page": 2,
     "anchor": "3. Consider a time-series dataset yt observed monthly for t = 1, . . . , T.",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "gazw7qiy"
     ],
     "topics": [
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series",
+     "gazw7qiy:consistency-of-ols",
+     "s7m9nt7j:ar-1-and-ma-1-processes"
     ]
    },
    {
@@ -13502,10 +13684,12 @@
     "page": 3,
     "anchor": "5. Consider two I(1) time series yt and xt observed for t = 1, . . . , T.",
     "chapters": [
-     "s7m9nt7j"
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+     "wvyeiupu:unit-roots-i-1-processes-and-differencing",
+     "wvyeiupu:spurious-regression-vs-cointegration-engle-grang",
+     "wvyeiupu:error-correction-models-and-engle-granger-two-st"
     ]
    },
    {
@@ -13540,12 +13724,13 @@
     "page": 7,
     "anchor": "8. A researcher studies monthly activity in a Japanese region. Let log(Qt) be the log quantity",
     "chapters": [
+     "z3jpk5vt",
      "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
-     "s7m9nt7j:testing-for-autocorrelation",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "z3jpk5vt:properties-of-ols-with-serially-correlated-error",
+     "z3jpk5vt:testing-for-autocorrelation",
+     "s7m9nt7j:static-and-finite-distributed-lag-models"
     ]
    },
    {
@@ -13553,11 +13738,12 @@
     "page": 8,
     "anchor": "9. A university administrator models how a department’s annual research output and research",
     "chapters": [
-     "kfec5xg7"
+     "wvms9ehf"
     ],
     "topics": [
-     "kfec5xg7:two-stage-least-squares",
-     "kfec5xg7:related-measurement-error-simultaneous-equations"
+     "wvms9ehf:order-and-rank-conditions-for-identification",
+     "wvms9ehf:estimating-a-structural-equation-by-2sls",
+     "wvms9ehf:reduced-form-equations"
     ]
    }
   ]
@@ -13600,11 +13786,13 @@
     "page": 3,
     "anchor": "3. (a) What is meant by ‘weak stati onarity’ and the ‘order of integration’ of a random",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "wvyeiupu"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "s7m9nt7j:stationary-and-weakly-dependent-time-series",
+     "s7m9nt7j:ar-1-and-ma-1-processes",
+     "wvyeiupu:dickey-fuller-and-augmented-dickey-fuller-tests"
     ]
    },
    {

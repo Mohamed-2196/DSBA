@@ -243,13 +243,23 @@ The password and cover release passed both GitHub CI jobs. Railway's
 - The deployment check now fails when storage is unhealthy, so broken file access cannot pass the health check
   as a warning. Recovery instructions are in DEPLOYMENT section 12.
 
+### EC2020 in its guide's chapters, 2026-11-02
+
+EC2020 now has the 2023 guide's chapters 2-15 as its own chapters, in the guide's order (once, by CHAPTER_ORDERS batch
+2026-11f): Instrumental variables keeps ch 9; new Measurement error (10), Simultaneous equation models (11),
+Autocorrelation in time series regression (14) and Trends, seasonality and highly persistent time series (15); Time
+series becomes ch 13 with its own lessons, and its serial-correlation lecture retires to its copy in Autocorrelation
+(RETIRED_LESSONS). The 195 questions that were under Instrumental variables or Time series were re-filed with a second
+look; Mohamed's calls: "answer three of the following" questions and one-model questions spread over several chapters
+go under their two largest chapters, like grab-bags.
+
 ### More chapters and the MN1178 guide, 2026-11-02
 
 MN1178 got its guide chapter 11 as "Organisation of International Business" (batch 2026-11d), its outlines were
 re-written from the official subject guide (Willcocks 2021, in the module's materials folder; the October ones came
 from student notes) and its chapters follow the guide's order: international HRM (ch 14) before project management (ch
 15), once, by the seed's chapter-order step (CHAPTER_ORDERS, audit module.seed_order). The HRM chapter's video was
-broken; six working ones replace it (batch 2026-11e) and the seed's broken-lessons step (BROKEN_LESSONS) removes the
+broken; six working ones replace it (batch 2026-11e) and the seed's retired-lessons step (RETIRED_LESSONS) removes the
 old lesson, moving notes and cards to the first new one. EC2020 got guide chapter 6 as "Multiple Regression Analysis:
 Further Issues and Dummy Variables"; panel data has no chapter in the 2023 guide, so its 4 questions are untagged
 (Mohamed's off-syllabus rule). EC1002's exchange economies are Block 10 sections: two topics and four lessons in
@@ -357,9 +367,8 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
 
 ## Next
 
-1. The chapters the retag found missing are in (2026-11-02). Still worth a look: other guide chapters folded into
-   a neighbour (EC2020 guide ch 10 measurement error and ch 11 simultaneous equations sit in Instrumental variables;
-   ch 13-14 in Time series), and any module whose outlines came from notes rather than its guide.
+1. The chapters the retag found missing are in (2026-11-02), and EC2020 follows its guide. Still worth a look: any
+   other module whose outlines came from notes rather than its guide, or folds guide chapters together.
 2. Then, when Mohamed says go: a student test of round 17 (resits, topics, Quick Look, the new sign-in), a security
    review of the new sign-in, Quick Look in the sittings table and Cmd-K.
 3. Still open from earlier reviews: CQ-20; SEC-14; the standards review's S-1, S-3, S-4 and S-5 to S-7.

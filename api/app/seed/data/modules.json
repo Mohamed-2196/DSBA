@@ -4398,26 +4398,6 @@
         ]
       },
       {
-        "id": "s7m9nt7j",
-        "title": "Time series",
-        "videos": [
-          {
-            "id": "3fgvbn25",
-            "kind": "youtube",
-            "videoId": "EhvPfZYJCkE",
-            "title": "Wooldridge Econometrics for Economics BSc students Ch. 12: Serial corr. and heterosk. in time series",
-            "channel": "youtube-economist"
-          }
-        ],
-        "keywords": [
-          "autocorrelation",
-          "serial correlation",
-          "stationarity",
-          "trend",
-          "seasonality"
-        ]
-      },
-      {
         "id": "kfec5xg7",
         "title": "Instrumental variables estimation",
         "videos": [
@@ -4434,6 +4414,94 @@
           "2sls",
           "instruments",
           "endogeneity"
+        ]
+      },
+      {
+        "id": "zrnn3q4e",
+        "title": "Measurement error",
+        "keywords": [
+          "measurement error",
+          "errors in variables",
+          "attenuation bias"
+        ],
+        "addedIn": "2026-11f",
+        "videos": [
+          {
+            "id": "896fdkqv",
+            "kind": "youtube",
+            "videoId": "S-a3vPMi7XE",
+            "title": "9.4a Measurement error in the dependent variable",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "mhwrxcg6",
+            "kind": "youtube",
+            "videoId": "HnEfrbG0O0g",
+            "title": "9.4b Measurement error in an explanatory variable",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "8sjc9guw",
+            "kind": "youtube",
+            "videoId": "TffuvyscWnE",
+            "title": "What is the Attenuation Bias Caused by Measurement Error in the Explanatory Variable? | Topic 84",
+            "channel": "Dr. Bob Wen (Stata, Economics, Econometrics)"
+          },
+          {
+            "id": "j874rgev",
+            "kind": "youtube",
+            "videoId": "yWRDncEtPyA",
+            "title": "Linear Econometrics: IV as solution for measurement error",
+            "channel": "Nugent Economics Lectures"
+          }
+        ]
+      },
+      {
+        "id": "wvms9ehf",
+        "title": "Simultaneous equation models",
+        "keywords": [
+          "simultaneous equations",
+          "identification",
+          "order condition",
+          "reduced form"
+        ],
+        "addedIn": "2026-11f",
+        "videos": [
+          {
+            "id": "uqbag2qi",
+            "kind": "youtube",
+            "videoId": "HfnFeJlkfZE",
+            "title": "Simultaneous equation models - an introduction",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "3iuuzg9u",
+            "kind": "youtube",
+            "videoId": "3j5IeuvSebQ",
+            "title": "Simultaneous equation models - reduced form and structural equations",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "5uhtawp4",
+            "kind": "youtube",
+            "videoId": "WcXQzp4IRyI",
+            "title": "Simultaneous equation models - parameter identification",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "nxszub89",
+            "kind": "youtube",
+            "videoId": "KcrBLFnh87o",
+            "title": "Simultaneous Equation Models: Order condition for parameter identification",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "be9txwpw",
+            "kind": "youtube",
+            "videoId": "0ghriBFFqOg",
+            "title": "Simultaneous Equations and Instrumental Variables",
+            "channel": "Nathan Wozny"
+          }
         ]
       },
       {
@@ -4503,6 +4571,200 @@
             "videoId": "BF037e0I9pA",
             "title": "Goodness of Fit, Likelihood Ratio Test",
             "channel": "Nathan Wozny"
+          }
+        ]
+      },
+      {
+        "id": "s7m9nt7j",
+        "title": "Time series",
+        "videos": [
+          {
+            "id": "2kmn38ng",
+            "kind": "youtube",
+            "videoId": "-sCG56xczmc",
+            "title": "Wooldridge Econometrics for Economics BSc students Ch. 10: Regression Analysis with Time Series Data",
+            "channel": "youtube-economist",
+            "addedIn": "2026-11f"
+          },
+          {
+            "id": "vdjs2fqd",
+            "kind": "youtube",
+            "videoId": "weghag5PqSc",
+            "title": "What is the Finite Distributed Lag Model for Time Series Data? |【Five Minute Econometrics】Topic 88",
+            "channel": "Dr. Bob Wen (Stata, Economics, Econometrics)",
+            "addedIn": "2026-11f"
+          },
+          {
+            "id": "yqcpfhkj",
+            "kind": "youtube",
+            "videoId": "LgIOgb-6mYA",
+            "title": "Strict exogeneity",
+            "channel": "Ben Lambert",
+            "addedIn": "2026-11f"
+          },
+          {
+            "id": "p5exm5h2",
+            "kind": "youtube",
+            "videoId": "ZIWyGjrAlks",
+            "title": "Stationary series summary",
+            "channel": "Ben Lambert",
+            "addedIn": "2026-11f"
+          },
+          {
+            "id": "479rztun",
+            "kind": "youtube",
+            "videoId": "7xJ8mT6gZb4",
+            "title": "Weakly dependent time series",
+            "channel": "Ben Lambert",
+            "addedIn": "2026-11f"
+          },
+          {
+            "id": "ejehdfsn",
+            "kind": "youtube",
+            "videoId": "BGNjzEIqi6M",
+            "title": "Asymptotic assumptions for time series least squares",
+            "channel": "Ben Lambert",
+            "addedIn": "2026-11f"
+          }
+        ],
+        "keywords": [
+          "time series",
+          "distributed lag",
+          "stationarity",
+          "weak dependence",
+          "strict exogeneity"
+        ]
+      },
+      {
+        "id": "z3jpk5vt",
+        "title": "Autocorrelation in time series regression",
+        "keywords": [
+          "autocorrelation",
+          "serial correlation",
+          "hac",
+          "breusch godfrey"
+        ],
+        "addedIn": "2026-11f",
+        "videos": [
+          {
+            "id": "ruqengyv",
+            "kind": "youtube",
+            "videoId": "EhvPfZYJCkE",
+            "title": "Wooldridge Econometrics for Economics BSc students Ch. 12: Serial corr. and heterosk. in time series",
+            "channel": "youtube-economist"
+          },
+          {
+            "id": "bnwyhb9y",
+            "kind": "youtube",
+            "videoId": "fGsu0OzLUDk",
+            "title": "Serial Correlation summary",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "vsazeed8",
+            "kind": "youtube",
+            "videoId": "qNnHnoSdLFE",
+            "title": "Variance of OLS estimators in the presence of serial correlation",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "a4if2eh7",
+            "kind": "youtube",
+            "videoId": "ZjsDE3SyDlk",
+            "title": "How to address the issue of serial correlation",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "w89j9is4",
+            "kind": "youtube",
+            "videoId": "g1HNNo31bCA",
+            "title": "Serial correlation testing - introduction",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "qbxrzh98",
+            "kind": "youtube",
+            "videoId": "JN6Sblxz7v0",
+            "title": "Serial correlation testing - the Breusch-Godfrey test",
+            "channel": "Ben Lambert"
+          }
+        ]
+      },
+      {
+        "id": "wvyeiupu",
+        "title": "Trends, seasonality and highly persistent time series",
+        "keywords": [
+          "trend",
+          "seasonality",
+          "unit root",
+          "dickey fuller",
+          "cointegration",
+          "random walk"
+        ],
+        "addedIn": "2026-11f",
+        "videos": [
+          {
+            "id": "nb95ag49",
+            "kind": "youtube",
+            "videoId": "DZklab6VM1M",
+            "title": "What are Trends in Time Series and Spurious Regression? | 【Five Minute Econometrics】Topic 93",
+            "channel": "Dr. Bob Wen (Stata, Economics, Econometrics)"
+          },
+          {
+            "id": "u684fk8p",
+            "kind": "youtube",
+            "videoId": "seWmj8CYwmQ",
+            "title": "What is the Detrending Interpretation of Regressions with a Time Trend? | Topic 94",
+            "channel": "Dr. Bob Wen (Stata, Economics, Econometrics)"
+          },
+          {
+            "id": "e87pjs7u",
+            "kind": "youtube",
+            "videoId": "SBk2W1Sf64Y",
+            "title": "What is Seasonality and Deseasonalizing Interpretation? | 【Five Minute Econometrics】Topic 95",
+            "channel": "Dr. Bob Wen (Stata, Economics, Econometrics)"
+          },
+          {
+            "id": "96hpgfb9",
+            "kind": "youtube",
+            "videoId": "-3r3yCsDOQM",
+            "title": "Highly persistent time series",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "yw4ax4wf",
+            "kind": "youtube",
+            "videoId": "2GxWgIumPTA",
+            "title": "Dickey Fuller test for unit root",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "sygtbi6p",
+            "kind": "youtube",
+            "videoId": "X8nGZ2UCJsk",
+            "title": "Augmented Dickey Fuller tests",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "pmfm92ab",
+            "kind": "youtube",
+            "videoId": "vvTKjm94Ars",
+            "title": "Cointegration - an introduction",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "chierayj",
+            "kind": "youtube",
+            "videoId": "q5wbOSjbVW4",
+            "title": "Cointegration tests",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "u8c2guxw",
+            "kind": "youtube",
+            "videoId": "wYQ_v_0tk_c",
+            "title": "Error correction model - part 1",
+            "channel": "Ben Lambert"
           }
         ]
       }
