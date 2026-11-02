@@ -196,6 +196,9 @@ const toggleChapter = (index) => {
             { name: 'Mahdi', link: 'https://drive.google.com/drive/folders/1HbOmDlowIBqImfoWlN7ss2EOImXtMxxM' },
 
     ],
+    machine_learning: [
+      { name: 'ST3189 Complete Study Guide (Python), by Hussain Ebrahim and Mohamed Alnooh', link: 'https://drive.google.com/file/d/1WOaLWQLe4yRvjz_qLfuj1q4HVU5rELtZ/view' },
+    ],
   };
 
   const subjectExerciseLinks = {
@@ -473,7 +476,7 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       year: 1,
       chapters: [
         { title: 'Globalisation', videoIds: ['aguTvH4Tc-c'] },
-        { title: 'Political, econmoic and legal evnvironments', videoIds: ['k1wbj3aXPsQ'] },
+        { title: 'Political, economic and legal environments', videoIds: ['k1wbj3aXPsQ'] },
         { title: 'Informal Institutions', videoIds: ['9GFyMXHWo6w'] },
         { title: 'International Trade and Investment', videoIds: ['KROTqSzz4BQ'] },
         { title: 'Multilateral organisations and regional integration', videoIds: ['CkhdBMXcu0k'] },
@@ -483,11 +486,10 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
         { title: 'International Business Strategies: Market Entry and Growth', videoIds: ['SNjn9h3QVUk'] },
         { title: 'International Marketing and R&D Strategy', videoIds: ['nG2fesHT0Ss'] },
         { title: 'Organisation of International Business', videoIds: ['jviFsd4hhfE','ZtdxJ2YnC44','Ux16-Y5zZzg','hJ9wbFgmtKM','OY3g2wyXUWw','CJXft25tRYs'] },
-        { title: 'Global-Sourcing-Production', videoIds: ['u1pS_hwYkkc'] },
+        { title: 'Global Sourcing and Production', videoIds: ['u1pS_hwYkkc'] },
         { title: 'Global information systems management', videoIds: ['ADEyI7AvEcI'] },
-        { title: 'International-Project-Management', videoIds: ['ngiDb1ugbnM'] },
-        { title: 'International-Human-Resource-Man', videoIds: ['mubdwgK6Ss'] },
-        { title: 'International Project Management', videoIds: ['AQwveBtsuyI'] },
+        { title: 'International Human Resource Management', videoIds: ['awiUMdgyfq0','U9ogq9pqkl8','tl3ZAR8PMcM','yU8DEithHsc','4Ho5UObReRg','AyZKOPcuftU'] },
+        { title: 'International Project Management', videoIds: ['ngiDb1ugbnM'] },
         { title: 'Global Digital Management', videoIds: ['uJSwD5Vzbhk'] },
       ]
     },
