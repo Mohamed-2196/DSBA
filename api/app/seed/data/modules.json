@@ -5142,7 +5142,13 @@
       "olderExams": "https://drive.google.com/drive/folders/1jaBexBbTJJ6qpg4BWczknscTOhog9tbM",
       "cheatSheet": null
     },
-    "notes": [],
+    "notes": [
+      {
+        "name": "ST3189 Complete Study Guide (Python)",
+        "author": "Hussain Ebrahim and Mohamed Alnooh",
+        "url": "https://drive.google.com/file/d/1WOaLWQLe4yRvjz_qLfuj1q4HVU5rELtZ/view?usp=drive_link"
+      }
+    ],
     "chapters": [
       {
         "id": "2dpr5d2v",
