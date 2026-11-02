@@ -1648,6 +1648,76 @@
     ],
     "chapters": [
       {
+        "id": "m4edgan5",
+        "title": "Data Visualisation and Descriptive Statistics",
+        "addedIn": "2026-11c",
+        "videos": [
+          {
+            "id": "43qh56eh",
+            "kind": "youtube",
+            "videoId": "ZxV-kf0yBss",
+            "title": "Variables and Types of Variables | Statistics Tutorial | MarinStatsLectures",
+            "channel": "MarinStatsLectures-R Programming & Statistics"
+          },
+          {
+            "id": "vuaqsnae",
+            "kind": "youtube",
+            "videoId": "Rx8wSEDq5Hs",
+            "title": "Bar Chart, Pie Chart, Frequency Tables | Statistics Tutorial | MarinStatsLectures",
+            "channel": "MarinStatsLectures-R Programming & Statistics"
+          },
+          {
+            "id": "jqfpzr95",
+            "kind": "youtube",
+            "videoId": "qBigTkBLU6g",
+            "title": "StatQuest: Histograms, Clearly Explained",
+            "channel": "StatQuest with Josh Starmer"
+          },
+          {
+            "id": "fxy6p3b9",
+            "kind": "youtube",
+            "videoId": "2Y2l9QJCe6M",
+            "title": "Describing Distributions: Center, Spread & Shape | Statistics Tutorial | MarinStatsLectures",
+            "channel": "MarinStatsLectures-R Programming & Statistics"
+          },
+          {
+            "id": "73gxn3fm",
+            "kind": "youtube",
+            "videoId": "NM_iOLUwZFA",
+            "title": "Measures of Central Tendency",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "w8vtuxfj",
+            "kind": "youtube",
+            "videoId": "Cx2tGUze60s",
+            "title": "Measures of Variability (Variance, Standard Deviation, Range, Mean Absolute Deviation)",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "nhua4u9f",
+            "kind": "youtube",
+            "videoId": "Ky7QeVgv-BA",
+            "title": "Percentiles, Quantiles and Quartiles in Statistics | Statistics Tutorial | MarinStatsLectures",
+            "channel": "MarinStatsLectures-R Programming & Statistics"
+          },
+          {
+            "id": "tjsx7bxt",
+            "kind": "youtube",
+            "videoId": "2-dJCrgKnaY",
+            "title": "An Introduction to Boxplots",
+            "channel": "jbstatistics"
+          },
+          {
+            "id": "aph3skys",
+            "kind": "youtube",
+            "videoId": "sbsY6neZ07g",
+            "title": "Plots for Two Variables | Statistics Tutorial | MarinStatsLectures",
+            "channel": "MarinStatsLectures-R Programming & Statistics"
+          }
+        ]
+      },
+      {
         "id": "935gqnys",
         "title": "Probability Theory",
         "videos": [
@@ -4171,6 +4241,76 @@
           "2sls",
           "instruments",
           "endogeneity"
+        ]
+      },
+      {
+        "id": "hifykydg",
+        "title": "Binary response models and maximum likelihood",
+        "addedIn": "2026-11c",
+        "videos": [
+          {
+            "id": "gdngkn98",
+            "kind": "youtube",
+            "videoId": "WWpYD6Y7OEc",
+            "title": "7.5a The Linear Probability model",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "ihq2xgra",
+            "kind": "youtube",
+            "videoId": "Q0BH-5OGwBc",
+            "title": "The problems with the linear probability model - part 1",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "9ntii6y9",
+            "kind": "youtube",
+            "videoId": "XschJ-KO6BU",
+            "title": "8.5 Linear Probability Model and Heteroskedasticity",
+            "channel": "Dr. Venoo Kakar"
+          },
+          {
+            "id": "578c8dui",
+            "kind": "youtube",
+            "videoId": "yPCQZeGWJjw",
+            "title": "Discrete choice models - introduction to logit and probit",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "jn6fr5s9",
+            "kind": "youtube",
+            "videoId": "I_dhPETvll8",
+            "title": "Maximum Likelihood estimation - an introduction part 1",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "yhjbdatg",
+            "kind": "youtube",
+            "videoId": "Z582V53dfr8",
+            "title": "Maximum Likelihood estimation - an introduction part 2",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "gdyzcqey",
+            "kind": "youtube",
+            "videoId": "WflqTUOvdik",
+            "title": "Maximum Likelihood estimation of Logit and Probit",
+            "channel": "Ben Lambert"
+          },
+          {
+            "id": "gz6xt9qc",
+            "kind": "youtube",
+            "videoId": "lJMO5kqWwIo",
+            "title": "Econometrics - Marginal Effects for Probit and Logit (and Marginal Effects in R)",
+            "channel": "Econometrics, Causality, and Coding with Dr. HK"
+          },
+          {
+            "id": "e9x5tqrz",
+            "kind": "youtube",
+            "videoId": "BF037e0I9pA",
+            "title": "Goodness of Fit, Likelihood Ratio Test",
+            "channel": "Nathan Wozny"
+          }
         ]
       }
     ]

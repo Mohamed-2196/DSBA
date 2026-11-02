@@ -149,14 +149,25 @@ def remove_broken_chapters(db: Session) -> int:
 SEED_LESSONS = "module.seed_lessons"
 
 
+def _insert_chapter(module: Module, chapter: Chapter, before: list[str]) -> None:
+    """A new chapter goes after the last of the chapters the seed file has before it that the module still has (first
+    when it has none of them); the chapters' positions follow."""
+    ids = [c.id for c in module.chapters]
+    at = max((ids.index(i) + 1 for i in before if i in ids), default=0)
+    module.chapters.insert(at, chapter)
+    for position, c in enumerate(module.chapters):
+        c.position = position
+
+
 def load_new_lessons(db: Session) -> int:
     """Chapters and lessons modules.json gained after catalogues were loaded: each is marked with the batch that
     brought it ("addedIn" on a new chapter, which brings its lessons, or on a lesson added to a chapter there was,
     including one a batch before brought; batches go in the order of their names).
     A batch reaches each module once, the audit log keeps that it did (SEED_LESSONS, the Hub via cli), and after that
     the module is the content managers' again: a chapter or lesson they remove stays removed, and a module they
-    removed isn't brought back. New chapters go at the end of the module and new lessons at the end of their chapter,
-    where the seed file has them too, so a catalogue loaded before them ends up as a new one starts. The module's
+    removed isn't brought back. A new chapter goes where the seed file has it among the chapters the module still
+    has, and new lessons at the end of their chapter, where the seed file has them too, so a catalogue loaded before
+    them ends up as a new one starts. The module's
     version goes up, so an editor open on it reloads first. How many lessons it added."""
     done = {
         (target, (data or {}).get("batch"))
@@ -179,8 +190,8 @@ def load_new_lessons(db: Session) -> int:
                 chapter = db.get(Chapter, c["id"])
                 if chapter is None:
                     if c.get("addedIn") == batch:
-                        chapter = _chapter(module.id, len(module.chapters), c, batch)
-                        module.chapters.append(chapter)
+                        chapter = _chapter(module.id, 0, c, batch)
+                        _insert_chapter(module, chapter, [x["id"] for x in chapters[: chapters.index(c)]])
                         added += len(chapter.lessons)
                     continue
                 for v in c.get("videos") or []:

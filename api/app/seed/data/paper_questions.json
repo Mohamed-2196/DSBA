@@ -1984,6 +1984,63 @@
  },
  {
   "module": "advanced-stats-inferential",
+  "title": "ST3134 - Advanced Statistics - Statistical Inference - 2018 Exam - Zone-A",
+  "importKey": "drive/advanced-stats-inferential/1CDkWV-ir5HQbA6TOiyTlPaSW_B3w1PcG",
+  "contentHash": "86f45766e570227a9a0ed6ad70e61cbcf59991f71669473f37042d24c34b01cf",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "79s9wx38"
+    ],
+    "topics": [
+     "79s9wx38:score-function-and-fisher-information",
+     "79s9wx38:sufficiency-and-the-sufficiency-principle",
+     "79s9wx38:factorisation-theorem"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "dzzxifwd"
+    ],
+    "topics": [
+     "dzzxifwd:sample-quantiles-and-order-statistics-sample-min",
+     "dzzxifwd:method-of-moments-estimation",
+     "dzzxifwd:bias-variance-and-mean-squared-error-consistency"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "dzzxifwd",
+     "kd2j4c7n"
+    ],
+    "topics": [
+     "dzzxifwd:maximum-likelihood-estimation-its-properties-and",
+     "kd2j4c7n:asymptotic-pivotal-functions-from-maximum-likeli"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "ijvkf6pq"
+    ],
+    "topics": [
+     "ijvkf6pq:most-powerful-tests-and-the-neyman-pearson-lemma",
+     "ijvkf6pq:type-i-and-ii-errors-power-function-p-value",
+     "ijvkf6pq:likelihood-ratio-test"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "advanced-stats-inferential",
   "title": "ST3134 - Advanced Statistics - Statistical Inference - 2017 Exam - Zone-B (One Zone Only)",
   "importKey": "drive/advanced-stats-inferential/1CR1LRsavnZ-dPOKWjpvM5s5q6R7ZiyiW",
   "contentHash": "9c8188b3d16705c56bd964fc0e4a7521af6cc7e58d992ed3114d4182d41eb438",
@@ -2795,6 +2852,63 @@
     "topics": [
      "ijvkf6pq:most-powerful-tests-and-the-neyman-pearson-lemma",
      "ijvkf6pq:type-i-and-ii-errors-power-function-p-value"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "advanced-stats-inferential",
+  "title": "ST3134 - Advanced Statistics - Statistical Inference - 2018 Exam - Zone-B",
+  "importKey": "drive/advanced-stats-inferential/1kXStcyNXbnbMptAVtnQj8i9tsmI_5Qf8",
+  "contentHash": "d0358340e286bd62b3981dc0488bf9c7f1743e57d13a11d9d5d85c5eec366950",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "79s9wx38"
+    ],
+    "topics": [
+     "79s9wx38:score-function-and-fisher-information",
+     "79s9wx38:sufficiency-and-the-sufficiency-principle",
+     "79s9wx38:factorisation-theorem"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "dzzxifwd"
+    ],
+    "topics": [
+     "dzzxifwd:sample-quantiles-and-order-statistics-sample-min",
+     "dzzxifwd:method-of-moments-estimation",
+     "dzzxifwd:bias-variance-and-mean-squared-error-consistency"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "dzzxifwd",
+     "kd2j4c7n"
+    ],
+    "topics": [
+     "dzzxifwd:maximum-likelihood-estimation-its-properties-and",
+     "kd2j4c7n:asymptotic-pivotal-functions-from-maximum-likeli"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "ijvkf6pq"
+    ],
+    "topics": [
+     "ijvkf6pq:most-powerful-tests-and-the-neyman-pearson-lemma",
+     "ijvkf6pq:type-i-and-ii-errors-power-function-p-value",
+     "ijvkf6pq:likelihood-ratio-test"
     ]
    }
   ]
@@ -4120,6 +4234,121 @@
  },
  {
   "module": "business",
+  "title": "MN1178 - Business and Management in a Global Context - 2014 Exam - Zone-A",
+  "importKey": "drive/business/14pd85uZDfzhY3Ha0f2G_1L9FONCos2LI",
+  "contentHash": "7a841223cec3c50ed6dc9b56bfeb22341fa9740b4e6fcf00a30058dd567ad2dd",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. (a) Define globalisation and describe the major trends in globalisation over the last",
+    "chapters": [
+     "6r8c733y"
+    ],
+    "topics": [
+     "6r8c733y:definition-and-characteristics-of-globalisation",
+     "6r8c733y:trends-in-world-output-trade-and-fdi-non-us-and",
+     "6r8c733y:globalisation-debates-opponents-versus-supporter"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. ‘Environmental analysis is critical for international business.’ In the light of this",
+    "chapters": [
+     "4dhhuihn"
+    ],
+    "topics": [
+     "4dhhuihn:pestel-swot-and-minimax-analysis",
+     "4dhhuihn:cage-distance-framework-and-the-four-cs",
+     "4dhhuihn:aaa-model-adaptation-aggregation-arbitrage"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. ‘The resource based view of strategy has replaced competitive positioning as the key",
+    "chapters": [
+     "s3qgzhaj"
+    ],
+    "topics": [
+     "s3qgzhaj:resource-based-view-tangible-and-intangible-reso",
+     "s3qgzhaj:porter-s-five-forces-and-its-criticisms",
+     "s3qgzhaj:generic-strategies-cost-leadership-differentiati"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. (a) What are the main types of regional integration? Give an example of each.",
+    "chapters": [
+     "x7fewq6r"
+    ],
+    "topics": [
+     "x7fewq6r:five-levels-of-regional-economic-integration",
+     "x7fewq6r:trade-creation-versus-trade-diversion"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 3,
+    "anchor": "5. (a) What are the six main ways of entering a new international market?",
+    "chapters": [
+     "zc4vwrqj",
+     "uzjmuvcd"
+    ],
+    "topics": [
+     "zc4vwrqj:six-entry-modes-exporting-turnkey-licensing-fran",
+     "uzjmuvcd:fdi-greenfield-versus-acquisition-flows-and-stoc",
+     "uzjmuvcd:government-restrictions-on-fdi-and-recommendatio"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 3,
+    "anchor": "6. Types of international strategy imply types of Information Technology architecture.",
+    "chapters": [
+     "4dhhuihn",
+     "zhirjh9f"
+    ],
+    "topics": [
+     "4dhhuihn:four-international-strategies-and-how-strategy-e",
+     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
+     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 3,
+    "anchor": "7. (a) In the context of international business, describe what is meant by a ‘Make-or-Buy’",
+    "chapters": [
+     "n5et3j85"
+    ],
+    "topics": [
+     "n5et3j85:make-or-buy-decisions-advantages-of-making-and-o",
+     "n5et3j85:production-location-country-fixed-cost-technolog",
+     "n5et3j85:offshoring-risks-and-the-outsourcing-life-cycle"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 3,
+    "anchor": "8. ‘International human and labour relations can be problematic’. Discuss this statement",
+    "chapters": [
+     "aypy998e",
+     "nivt387r"
+    ],
+    "topics": [
+     "aypy998e:expatriates-failure-selection-and-the-global-man",
+     "aypy998e:training-repatriation-and-management-development",
+     "nivt387r:csr-stakeholder-analysis-triple-bottom-line-four"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "business",
   "title": "MN1178 - Business and Management in a Global Context - 2022 Exam - Zone-B",
   "importKey": "drive/business/16xv1jR-e75dzTqTDhuxtrglDBvvOGHmZ",
   "contentHash": "8e8b6e846820c0ed4025472fef64f7e381a24ae779008334281a65c15dabb2a5",
@@ -5170,6 +5399,236 @@
  },
  {
   "module": "business",
+  "title": "MN1178 - Business and Management in a Global Context - 2015 Exam - Zone-B",
+  "importKey": "drive/business/1SclvqI_a5KgHiNsVrsn2mnE6OC1uuD1B",
+  "contentHash": "7a26f8f8e4d00370f5549fed03e8e5371cc49abde4d25a0e643b73f0cb69fbcb",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. Marketing is key to competing internationally. Therefore: (a) Describe the four main",
+    "chapters": [
+     "j7gsqmv3"
+    ],
+    "topics": [
+     "j7gsqmv3:international-marketing-and-the-ansoff-matrix",
+     "j7gsqmv3:market-segmentation-and-the-4ps-customer-lifecyc"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. Regional economic integration and multilateral trade institutions can aid but also",
+    "chapters": [
+     "x7fewq6r"
+    ],
+    "topics": [
+     "x7fewq6r:five-levels-of-regional-economic-integration",
+     "x7fewq6r:trade-creation-versus-trade-diversion",
+     "x7fewq6r:gatt-and-the-wto-functions-dispute-settlement-do"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. ‘The world is flat.’ (Thomas Friedman, 2003) Assess the validity of this statement by",
+    "chapters": [
+     "6r8c733y"
+    ],
+    "topics": [
+     "6r8c733y:does-distance-still-matter-friedman-versus-ghema",
+     "6r8c733y:definition-and-characteristics-of-globalisation",
+     "6r8c733y:what-globalisation-means-for-firms-low-trade-bar"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 3,
+    "anchor": "4. Offshore outsourcing of production and of business and IT services has greatly increased",
+    "chapters": [
+     "n5et3j85"
+    ],
+    "topics": [
+     "n5et3j85:key-terms-global-sourcing-outsourcing-internalis",
+     "n5et3j85:offshoring-risks-and-the-outsourcing-life-cycle",
+     "n5et3j85:offshoring-when-it-is-problematic-managing-offsh"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 3,
+    "anchor": "5. Formal and informal institutions greatly affect and shape the strategies that are possible",
+    "chapters": [
+     "g8u2nfmy",
+     "nivt387r"
+    ],
+    "topics": [
+     "g8u2nfmy:institution-based-view-formal-and-informal-insti",
+     "g8u2nfmy:economic-systems-market-command-and-mixed-variet",
+     "nivt387r:culture-ethnocentrism-and-cultural-intelligence"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 3,
+    "anchor": "6. Types of international business strategy imply types of organization structure and",
+    "chapters": [
+     "4dhhuihn",
+     "zhirjh9f"
+    ],
+    "topics": [
+     "4dhhuihn:four-international-strategies-and-how-strategy-e",
+     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
+     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 4,
+    "anchor": "7. It is very important for a business to consider why and when to enter new markets",
+    "chapters": [
+     "zc4vwrqj"
+    ],
+    "topics": [
+     "zc4vwrqj:why-and-where-to-enter-resource-market-efficienc",
+     "zc4vwrqj:strategic-alliances-reasons-criticisms-success-f",
+     "zc4vwrqj:six-entry-modes-exporting-turnkey-licensing-fran"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 4,
+    "anchor": "8. Competitive Positioning frameworks offer the best tools for arriving at international",
+    "chapters": [
+     "s3qgzhaj",
+     "4dhhuihn"
+    ],
+    "topics": [
+     "s3qgzhaj:porter-s-five-forces-and-its-criticisms",
+     "s3qgzhaj:generic-strategies-cost-leadership-differentiati",
+     "4dhhuihn:aaa-model-adaptation-aggregation-arbitrage"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "business",
+  "title": "MN1178 - Business and Management in a Global Context - 2014 Exam - Zone-B",
+  "importKey": "drive/business/1Smy4AFTjruiG2KFB41Zjn2zHvOV87Dll",
+  "contentHash": "78fbe9473064d7fef5c8673d917c199973275b4836d220e383ee1aa81d6bb1b2",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. (a) Define globalisation and describe the major trends in globalisation over the last",
+    "chapters": [
+     "6r8c733y"
+    ],
+    "topics": [
+     "6r8c733y:definition-and-characteristics-of-globalisation",
+     "6r8c733y:trends-in-world-output-trade-and-fdi-non-us-and",
+     "6r8c733y:globalisation-debates-opponents-versus-supporter"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. ‘Environmental analysis is critical for international business.’ In the light of this",
+    "chapters": [
+     "4dhhuihn"
+    ],
+    "topics": [
+     "4dhhuihn:pestel-swot-and-minimax-analysis",
+     "4dhhuihn:cage-distance-framework-and-the-four-cs",
+     "4dhhuihn:aaa-model-adaptation-aggregation-arbitrage"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. ‘The resource based view of strategy has replaced competitive positioning as the key",
+    "chapters": [
+     "s3qgzhaj"
+    ],
+    "topics": [
+     "s3qgzhaj:resource-based-view-tangible-and-intangible-reso",
+     "s3qgzhaj:porter-s-five-forces-and-its-criticisms",
+     "s3qgzhaj:generic-strategies-cost-leadership-differentiati"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. (a) What are the main types of regional integration? Give an example of each.",
+    "chapters": [
+     "x7fewq6r"
+    ],
+    "topics": [
+     "x7fewq6r:five-levels-of-regional-economic-integration",
+     "x7fewq6r:trade-creation-versus-trade-diversion"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 3,
+    "anchor": "5. (a) What are the six main ways of entering a new international market?",
+    "chapters": [
+     "zc4vwrqj",
+     "uzjmuvcd"
+    ],
+    "topics": [
+     "zc4vwrqj:six-entry-modes-exporting-turnkey-licensing-fran",
+     "uzjmuvcd:fdi-greenfield-versus-acquisition-flows-and-stoc",
+     "uzjmuvcd:government-restrictions-on-fdi-and-recommendatio"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 3,
+    "anchor": "6. Types of international strategy imply types of Information Technology architecture.",
+    "chapters": [
+     "4dhhuihn",
+     "zhirjh9f"
+    ],
+    "topics": [
+     "4dhhuihn:four-international-strategies-and-how-strategy-e",
+     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
+     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 3,
+    "anchor": "7. (a) In the context of international business, describe what is meant by a ‘Make-or-Buy’",
+    "chapters": [
+     "n5et3j85"
+    ],
+    "topics": [
+     "n5et3j85:make-or-buy-decisions-advantages-of-making-and-o",
+     "n5et3j85:production-location-country-fixed-cost-technolog",
+     "n5et3j85:offshoring-risks-and-the-outsourcing-life-cycle"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 3,
+    "anchor": "8. ‘International human and labour relations can be problematic’. Discuss this statement",
+    "chapters": [
+     "aypy998e",
+     "nivt387r"
+    ],
+    "topics": [
+     "aypy998e:expatriates-failure-selection-and-the-global-man",
+     "aypy998e:training-repatriation-and-management-development",
+     "nivt387r:csr-stakeholder-analysis-triple-bottom-line-four"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "business",
   "title": "MN1178 ZA exam paper - May 2024",
   "importKey": "drive/business/1Sx6endyfp5ZdYjbHRf9sCap6_vKTgOAH",
   "contentHash": "45e1786dc9eb80b30c5fc86168170c10c61979c299d5c5b5814ff5bfb6ec6d2d",
@@ -5513,6 +5972,118 @@
      "4dhhuihn"
     ],
     "topics": []
+   }
+  ]
+ },
+ {
+  "module": "business",
+  "title": "MN1178 - Business and Management in a Global Context - 2015 Exam - Zone-A",
+  "importKey": "drive/business/1dRvqcvY-1l6365EMKQJRfyOwHUKilA2r",
+  "contentHash": "7ba7948fffd2a6ee230a0beda6a8fa86337e5ee587cd0c65aea45353037655b2",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "anchor": "1. ‘The resource based view of strategy has become the key to securing international",
+    "chapters": [
+     "s3qgzhaj"
+    ],
+    "topics": [
+     "s3qgzhaj:resource-based-view-tangible-and-intangible-reso",
+     "s3qgzhaj:porter-s-five-forces-and-its-criticisms",
+     "s3qgzhaj:generic-strategies-cost-leadership-differentiati"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "anchor": "2. For managers of international firms, research and development (R&D) strategy is an issue",
+    "chapters": [
+     "j7gsqmv3"
+    ],
+    "topics": [
+     "j7gsqmv3:r-d-strategy-location-commercialisation-integrat"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 2,
+    "anchor": "3. Globalisation exposes transnational corporations to complex ethical issues and requires",
+    "chapters": [
+     "nivt387r"
+    ],
+    "topics": [
+     "nivt387r:ethics-ethical-dilemmas-relativism-imperialism-d",
+     "nivt387r:csr-strategies-willard-s-sustainability-journey",
+     "nivt387r:csr-stakeholder-analysis-triple-bottom-line-four"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 2,
+    "anchor": "4. The phenomenon of globalisation has given rise to major benefits and costs for countries",
+    "chapters": [
+     "6r8c733y"
+    ],
+    "topics": [
+     "6r8c733y:definition-and-characteristics-of-globalisation",
+     "6r8c733y:trends-in-world-output-trade-and-fdi-non-us-and",
+     "6r8c733y:globalisation-debates-opponents-versus-supporter"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 3,
+    "anchor": "5. Marketing is key to competing internationally. Therefore: (a) Describe the four main",
+    "chapters": [
+     "j7gsqmv3"
+    ],
+    "topics": [
+     "j7gsqmv3:international-marketing-and-the-ansoff-matrix",
+     "j7gsqmv3:market-segmentation-and-the-4ps-customer-lifecyc"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 3,
+    "anchor": "6. Types of international business strategy imply types of organization structure and",
+    "chapters": [
+     "4dhhuihn",
+     "zhirjh9f"
+    ],
+    "topics": [
+     "4dhhuihn:four-international-strategies-and-how-strategy-e",
+     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
+     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 3,
+    "anchor": "7. It is very important for a business to consider why and when to enter new markets",
+    "chapters": [
+     "zc4vwrqj"
+    ],
+    "topics": [
+     "zc4vwrqj:why-and-where-to-enter-resource-market-efficienc",
+     "zc4vwrqj:strategic-alliances-reasons-criticisms-success-f",
+     "zc4vwrqj:six-entry-modes-exporting-turnkey-licensing-fran"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 4,
+    "anchor": "8. ‘Formal and informal institutions greatly affect and shape the strategies that are possible",
+    "chapters": [
+     "g8u2nfmy",
+     "nivt387r"
+    ],
+    "topics": [
+     "g8u2nfmy:institution-based-view-formal-and-informal-insti",
+     "g8u2nfmy:economic-systems-market-command-and-mixed-variet",
+     "nivt387r:culture-ethnocentrism-and-cultural-intelligence"
+    ]
    }
   ]
  },
@@ -7567,11 +8138,12 @@
     "page": 4,
     "anchor": "4. (a) Consider a model:",
     "chapters": [
-     "w8jhm9u7"
+     "hifykydg"
     ],
     "topics": [
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
-     "w8jhm9u7:weighted-least-squares"
+     "hifykydg:lpm-drawbacks",
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -7663,9 +8235,13 @@
     "page": 3,
     "anchor": "3. For the population of men who grew up with disadvantaged backgrouns, let poverty be a",
     "chapters": [
-     "48isg7ra"
+     "hifykydg"
     ],
-    "topics": []
+    "topics": [
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:logit-and-probit",
+     "hifykydg:lpm-drawbacks"
+    ]
    },
    {
     "question": 4,
@@ -7865,12 +8441,12 @@
     "page": 7,
     "anchor": "9. A education economist is interested in the decision to undertake an MBA course of a group",
     "chapters": [
-     "9xtetwaf",
-     "w8jhm9u7"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter",
-     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols"
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    }
   ]
@@ -7901,13 +8477,12 @@
     "page": 3,
     "anchor": "2. Write brief notes on the following:",
     "chapters": [
-     "w8jhm9u7",
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
-     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:linear-probability-model",
+     "hifykydg:lpm-drawbacks",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -8068,10 +8643,12 @@
     "page": 7,
     "anchor": "8. A researcher is interested in explaining why people voted in the 2010 general election in",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -8187,13 +8764,13 @@
     "page": 6,
     "anchor": "8. Let us consider how workplace smoking bans affect the incidence of smoking. Below,",
     "chapters": [
-     "9xtetwaf",
-     "48isg7ra"
+     "hifykydg",
+     "9xtetwaf"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter",
-     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "48isg7ra:mechanics-and-interpretation-of-ols"
+     "hifykydg:linear-probability-model",
+     "hifykydg:heteroskedasticity-in-the-lpm",
+     "9xtetwaf:confidence-intervals"
     ]
    },
    {
@@ -8201,10 +8778,12 @@
     "page": 7,
     "anchor": "9. In question 8 we considered the linear regression model to study how workplace smoking",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -8218,6 +8797,110 @@
      "s7m9nt7j:related-static-and-finite-distributed-lag-models",
      "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
      "s7m9nt7j:testing-for-autocorrelation"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "econometrics",
+  "title": "EC2020 - Elements of Econometrics - 2006 Exam - Zone-A",
+  "importKey": "drive/econometrics/120mjMY_fUTBymABwwhk-CZw2mgqAu6tZ",
+  "contentHash": "85dbbb62efb53b9d57b5a7d401930700ae1764f1f50b26e109815f9ccd76ed73",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "mtitgdpr",
+     "gazw7qiy"
+    ],
+    "topics": [
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
+     "mtitgdpr:deriving-the-ols-estimates",
+     "gazw7qiy:consistency-of-ols"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "s7m9nt7j"
+    ],
+    "topics": [
+     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 3,
+    "chapters": [
+     "s7m9nt7j"
+    ],
+    "topics": [
+     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 4,
+    "chapters": [
+     "s7m9nt7j",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "s7m9nt7j:testing-for-autocorrelation",
+     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
+     "9xtetwaf:t-test-for-a-single-population-parameter"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 5,
+    "chapters": [
+     "48isg7ra",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "48isg7ra:mechanics-and-interpretation-of-ols",
+     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "hifykydg"
+    ],
+    "topics": [
+     "hifykydg:logit-and-probit",
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 6,
+    "chapters": [
+     "mtitgdpr",
+     "gazw7qiy"
+    ],
+    "topics": [
+     "mtitgdpr:deriving-the-ols-estimates",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
+     "gazw7qiy:consistency-of-ols"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 7,
+    "chapters": [
+     "kfec5xg7"
+    ],
+    "topics": [
+     "kfec5xg7:related-measurement-error-simultaneous-equations",
+     "kfec5xg7:two-stage-least-squares"
     ]
    }
   ]
@@ -8258,10 +8941,11 @@
     "page": 2,
     "anchor": "3. (a) If a random variable X has a distribution with probability density function",
     "chapters": [
-     "gazw7qiy"
+     "hifykydg"
     ],
     "topics": [
-     "gazw7qiy:asymptotic-efficiency-of-ols"
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:maximum-likelihood"
     ]
    },
    {
@@ -8316,12 +9000,12 @@
     "page": 5,
     "anchor": "8. A study of applications for home mortgages used the linear probability model",
     "chapters": [
-     "w8jhm9u7",
-     "48isg7ra"
+     "hifykydg"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols"
+     "hifykydg:linear-probability-model",
+     "hifykydg:goodness-of-fit-and-tests",
+     "hifykydg:heteroskedasticity-in-the-lpm"
     ]
    },
    {
@@ -8415,9 +9099,13 @@
     "page": 3,
     "anchor": "5. An economist considers the Linear Probability Model (LPM) and a Logit model to examine",
     "chapters": [
-     "48isg7ra"
+     "hifykydg"
     ],
-    "topics": []
+    "topics": [
+     "hifykydg:lpm-drawbacks",
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit"
+    ]
    },
    {
     "question": 6,
@@ -8451,11 +9139,11 @@
     "page": 6,
     "anchor": "8. Suppose X1, X2, . . . , Xn are i.i.d. random variables drawn from a distribution with the fol-",
     "chapters": [
-     "gazw7qiy"
+     "hifykydg"
     ],
     "topics": [
-     "gazw7qiy:consistency-of-ols",
-     "gazw7qiy:inconsistency-and-asymptotic-bias"
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:maximum-likelihood"
     ]
    },
    {
@@ -8674,13 +9362,103 @@
     "page": 7,
     "anchor": "9. We are interested in explaining household adoption of a home composting program. Each",
     "chapters": [
-     "w8jhm9u7",
+     "hifykydg"
+    ],
+    "topics": [
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "econometrics",
+  "title": "EC2020 - Elements of Econometrics - 2003 Exam - Zone-B",
+  "importKey": "drive/econometrics/1A7SJMlTAaRyIejSWt32bGmyl2WFmg1X5",
+  "contentHash": "d4ea3018c92e479de8c950f8467e8efd5803d6031c522888ce61aefb42d9fd23",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "mtitgdpr",
+     "48isg7ra"
+    ],
+    "topics": [
+     "mtitgdpr:properties-of-ols-on-any-sample-fitted-values-re",
+     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "kfec5xg7"
+    ],
+    "topics": [
+     "kfec5xg7:related-measurement-error-simultaneous-equations",
+     "kfec5xg7:two-stage-least-squares"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "48isg7ra",
      "9xtetwaf"
     ],
     "topics": [
-     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols",
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
+     "48isg7ra:mechanics-and-interpretation-of-ols",
      "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 6,
+    "chapters": [
+     "mtitgdpr",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "mtitgdpr:units-of-measurement-and-functional-form-log-mod",
+     "9xtetwaf:testing-a-single-linear-combination-of-parameter"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "w8jhm9u7"
+    ],
+    "topics": [
+     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
+     "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 7,
+    "chapters": [
+     "48isg7ra",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "9xtetwaf:t-test-for-a-single-population-parameter",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 8,
+    "chapters": [
+     "48isg7ra",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "48isg7ra:variance-of-the-ols-estimators-multicollinearity",
+     "9xtetwaf:t-test-for-a-single-population-parameter"
     ]
    }
   ]
@@ -8788,10 +9566,117 @@
     "page": 7,
     "anchor": "8. The following estimates were calculated from a sample of 7,634 women",
     "chapters": [
+     "hifykydg"
+    ],
+    "topics": [
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests",
+     "hifykydg:logit-probit-log-likelihood-regression-output-an"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "econometrics",
+  "title": "EC2020 - Elements of Econometrics - 2006 Exam - Zone-B",
+  "importKey": "drive/econometrics/1CSly-wbe2KeRWoFFgwWCiePwfKTnEu1u",
+  "contentHash": "67fd37f61becbb0c3e00a79ab7935d9503f7e69ce366ce9708135b21c2f1938d",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "mtitgdpr",
+     "w8jhm9u7"
+    ],
+    "topics": [
+     "mtitgdpr:properties-of-ols-on-any-sample-fitted-values-re",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
+     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "mtitgdpr",
+     "gazw7qiy"
+    ],
+    "topics": [
+     "mtitgdpr:deriving-the-ols-estimates",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
+     "gazw7qiy:consistency-of-ols"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 5,
+    "chapters": [
+     "kfec5xg7"
+    ],
+    "topics": [
+     "kfec5xg7:related-measurement-error-simultaneous-equations",
+     "kfec5xg7:two-stage-least-squares"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "kfec5xg7",
+     "gazw7qiy"
+    ],
+    "topics": [
+     "kfec5xg7:related-measurement-error-simultaneous-equations",
+     "gazw7qiy:inconsistency-and-asymptotic-bias"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 6,
+    "chapters": [
+     "w8jhm9u7"
+    ],
+    "topics": [
+     "w8jhm9u7:weighted-least-squares",
+     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 7,
+    "chapters": [
+     "w8jhm9u7",
      "9xtetwaf"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi",
+     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols",
+     "9xtetwaf:confidence-intervals"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 7,
+    "chapters": [
+     "s7m9nt7j"
+    ],
+    "topics": [
+     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 8,
+    "chapters": [
+     "48isg7ra",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "48isg7ra:mechanics-and-interpretation-of-ols",
+     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
     ]
    }
   ]
@@ -8819,11 +9704,11 @@
     "page": 2,
     "anchor": "2. Suppose you are given a random sample X1;:::;X n from the exponential distribution:",
     "chapters": [
-     "gazw7qiy"
+     "hifykydg"
     ],
     "topics": [
-     "gazw7qiy:consistency-of-ols",
-     "gazw7qiy:inconsistency-and-asymptotic-bias"
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:maximum-likelihood"
     ]
    },
    {
@@ -8893,12 +9778,12 @@
     "page": 6,
     "anchor": "8. Let us consider an analysis on recidivism (probability of re-arrest) among a group of young",
     "chapters": [
-     "w8jhm9u7",
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:logit-probit-log-likelihood-regression-output-an",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -9017,11 +9902,12 @@
     "page": 5,
     "anchor": "7. Job hopping is an increasingly popular trend in the labour market. It is defined as the situ-",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "hifykydg:logit-and-probit",
+     "hifykydg:maximum-likelihood",
+     "hifykydg:partial-effects-in-logit-probit"
     ]
    },
    {
@@ -9126,12 +10012,12 @@
     "page": 4,
     "anchor": "6. A Logit regression model and a Linear Probability Model (LPM) are used to explain the",
     "chapters": [
-     "9xtetwaf",
-     "w8jhm9u7"
+     "hifykydg"
     ],
     "topics": [
-     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols",
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -9298,9 +10184,13 @@
     "page": 2,
     "anchor": "1. Discuss the drawbacks and advantages of using the Linear Probability Model when trying to explain a binary decision.",
     "chapters": [
-     "48isg7ra"
+     "hifykydg"
     ],
-    "topics": []
+    "topics": [
+     "hifykydg:linear-probability-model",
+     "hifykydg:lpm-drawbacks",
+     "hifykydg:heteroskedasticity-in-the-lpm"
+    ]
    },
    {
     "question": 2,
@@ -9340,10 +10230,11 @@
     "page": 3,
     "anchor": "5. Suppose you are given a random sample X1;:::;X n from the exponential distribution: f(x) = exp( x); x> 0; > 0.",
     "chapters": [
-     "gazw7qiy"
+     "hifykydg"
     ],
     "topics": [
-     "gazw7qiy:consistency-of-ols"
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:maximum-likelihood"
     ]
    },
    {
@@ -9401,9 +10292,13 @@
     "page": 8,
     "anchor": "10. Let us consider an analysis on recidivism (probability of re-arrest) among a group of young men in California who",
     "chapters": [
-     "48isg7ra"
+     "hifykydg"
     ],
-    "topics": []
+    "topics": [
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:logit-probit-log-likelihood-regression-output-an",
+     "hifykydg:goodness-of-fit-and-tests"
+    ]
    }
   ]
  },
@@ -9477,10 +10372,12 @@
     "page": 6,
     "anchor": "6. A logit regression model and a Linear Probability Model (LPM) are used to explain the mortgage denial rates amongst",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -9586,10 +10483,12 @@
     "page": 3,
     "anchor": "5. An economist considers a Probit model to explain the mortgage application approval decision.",
     "chapters": [
-     "48isg7ra"
+     "hifykydg"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols"
+     "hifykydg:logit-and-probit",
+     "hifykydg:maximum-likelihood",
+     "hifykydg:partial-effects-in-logit-probit"
     ]
    },
    {
@@ -9634,11 +10533,11 @@
     "page": 7,
     "anchor": "9. Consider a random sample X1, X2, . . . , Xn drawn from a distribution having the following probability density",
     "chapters": [
-     "gazw7qiy"
+     "hifykydg"
     ],
     "topics": [
-     "gazw7qiy:consistency-of-ols",
-     "gazw7qiy:inconsistency-and-asymptotic-bias"
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:maximum-likelihood"
     ]
    }
   ]
@@ -9742,12 +10641,13 @@
     "page": 10,
     "anchor": "8. Let us consider a model where we want to explain whether a married woman works for wages or not.",
     "chapters": [
-     "48isg7ra",
-     "9xtetwaf"
+     "hifykydg",
+     "48isg7ra"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit",
+     "48isg7ra:mechanics-and-interpretation-of-ols"
     ]
    },
    {
@@ -9844,11 +10744,12 @@
     "page": 4,
     "anchor": "7. The following estimates were calculated from a s ample of 7,634 women respondents from the General Household Survey",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests",
+     "hifykydg:logit-probit-log-likelihood-regression-output-an"
     ]
    },
    {
@@ -9869,9 +10770,13 @@
     "page": 5,
     "anchor": "9. (a) Explain the concept of the likelihood functi on and the maximum likelihood estimator. (6 marks)",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
-    "topics": []
+    "topics": [
+     "hifykydg:maximum-likelihood",
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:goodness-of-fit-and-tests"
+    ]
    },
    {
     "question": 10,
@@ -9946,9 +10851,12 @@
     "page": 3,
     "anchor": "5. Explain the concept of the likelihood function and henc e the maximum likelihood estimator. Illustrate your answer",
     "chapters": [
-     "gazw7qiy"
+     "hifykydg"
     ],
-    "topics": []
+    "topics": [
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:maximum-likelihood"
+    ]
    },
    {
     "question": 6,
@@ -9993,12 +10901,12 @@
     "page": 7,
     "anchor": "9. (a) Consider a model i 1 2 i i Y X u = β + β + ; i 1 ,2,...,n = where iY is a binary variable that takes the value",
     "chapters": [
-     "w8jhm9u7",
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "w8jhm9u7:weighted-least-squares",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:lpm-drawbacks",
+     "hifykydg:heteroskedasticity-in-the-lpm",
+     "hifykydg:maximum-likelihood"
     ]
    },
    {
@@ -10010,6 +10918,111 @@
     ],
     "topics": [
      "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "econometrics",
+  "title": "EC2020 - Elements of Econometrics - 2005 Exam - Zone-B",
+  "importKey": "drive/econometrics/1Z8ZwP6BGlbGL-xrCCMTf0YhlUT8EkY6-",
+  "contentHash": "5e078d6ecd0c6f848dd9df6477e6413b7aaff2696e49ee55ac30e6b10f1db599",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "9xtetwaf",
+     "mtitgdpr"
+    ],
+    "topics": [
+     "9xtetwaf:sampling-distribution-of-the-ols-estimators",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "hifykydg"
+    ],
+    "topics": [
+     "hifykydg:linear-probability-model",
+     "hifykydg:lpm-drawbacks",
+     "hifykydg:logit-and-probit"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "48isg7ra",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "48isg7ra:variance-of-the-ols-estimators-multicollinearity",
+     "9xtetwaf:t-test-for-a-single-population-parameter"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "s7m9nt7j",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "s7m9nt7j:testing-for-autocorrelation",
+     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 6,
+    "chapters": [
+     "kfec5xg7"
+    ],
+    "topics": [
+     "kfec5xg7:two-stage-least-squares",
+     "kfec5xg7:overview-of-endogeneity-and-omitted-variables"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "kfec5xg7",
+     "gazw7qiy"
+    ],
+    "topics": [
+     "kfec5xg7:iv-estimation-of-the-simple-regression-model",
+     "gazw7qiy:consistency-of-ols"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 6,
+    "chapters": [
+     "w8jhm9u7"
+    ],
+    "topics": [
+     "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi",
+     "w8jhm9u7:weighted-least-squares"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 7,
+    "chapters": [
+     "9xtetwaf",
+     "48isg7ra"
+    ],
+    "topics": [
+     "9xtetwaf:t-test-for-a-single-population-parameter",
+     "9xtetwaf:testing-a-single-linear-combination-of-parameter",
+     "48isg7ra:mechanics-and-interpretation-of-ols"
     ]
    }
   ]
@@ -10125,6 +11138,219 @@
  },
  {
   "module": "econometrics",
+  "title": "EC2020 - Elements of Econometrics - 2004 Exam - Zone-A",
+  "importKey": "drive/econometrics/1Zb4D9aOFMzdab8U0Pm84QJOe02A3PcCu",
+  "contentHash": "fc8def6513d6c065c7f932004d92eb94a34afe5a79b19972d0eaf8b42055dbb2",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "s7m9nt7j",
+     "mtitgdpr"
+    ],
+    "topics": [
+     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
+     "s7m9nt7j:testing-for-autocorrelation",
+     "mtitgdpr:properties-of-ols-on-any-sample-fitted-values-re"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "9xtetwaf",
+     "w8jhm9u7"
+    ],
+    "topics": [
+     "9xtetwaf:t-test-for-a-single-population-parameter",
+     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 5,
+    "chapters": [
+     "9xtetwaf",
+     "48isg7ra"
+    ],
+    "topics": [
+     "9xtetwaf:testing-a-single-linear-combination-of-parameter",
+     "9xtetwaf:confidence-intervals",
+     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "mtitgdpr",
+     "48isg7ra"
+    ],
+    "topics": [
+     "48isg7ra:efficiency-of-ols-gauss-markov-theorem",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 6,
+    "chapters": [
+     "s7m9nt7j",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "s7m9nt7j:testing-for-autocorrelation",
+     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
+     "9xtetwaf:t-test-for-a-single-population-parameter"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "kfec5xg7"
+    ],
+    "topics": [
+     "kfec5xg7:related-measurement-error-simultaneous-equations",
+     "kfec5xg7:two-stage-least-squares"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 7,
+    "chapters": [
+     "48isg7ra",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "48isg7ra:mechanics-and-interpretation-of-ols",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 7,
+    "chapters": [
+     "mtitgdpr",
+     "gazw7qiy"
+    ],
+    "topics": [
+     "mtitgdpr:deriving-the-ols-estimates",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
+     "gazw7qiy:consistency-of-ols"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "econometrics",
+  "title": "EC2020 - Elements of Econometrics - 2004 Exam - Zone-B",
+  "importKey": "drive/econometrics/1bwQegmPaK-u9HE8BaJmOHF-NlXIkGLTM",
+  "contentHash": "c90efa14b5dcf4fbc54ad8971b52092a02aa77b8df9a358b3e0f0cf6daaa4ab0",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "48isg7ra",
+     "mtitgdpr"
+    ],
+    "topics": [
+     "48isg7ra:variance-of-the-ols-estimators-multicollinearity",
+     "mtitgdpr:properties-of-ols-on-any-sample-fitted-values-re"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "s7m9nt7j"
+    ],
+    "topics": [
+     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
+     "s7m9nt7j:testing-for-autocorrelation",
+     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "mtitgdpr",
+     "gazw7qiy"
+    ],
+    "topics": [
+     "mtitgdpr:deriving-the-ols-estimates",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
+     "gazw7qiy:consistency-of-ols"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 4,
+    "chapters": [
+     "9xtetwaf",
+     "48isg7ra"
+    ],
+    "topics": [
+     "9xtetwaf:testing-a-single-linear-combination-of-parameter",
+     "9xtetwaf:confidence-intervals",
+     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 5,
+    "chapters": [
+     "48isg7ra",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "48isg7ra:mechanics-and-interpretation-of-ols",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "mtitgdpr",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "mtitgdpr:units-of-measurement-and-functional-form-log-mod",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
+     "9xtetwaf:t-test-for-a-single-population-parameter"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 6,
+    "chapters": [
+     "s7m9nt7j"
+    ],
+    "topics": [
+     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 7,
+    "chapters": [
+     "kfec5xg7"
+    ],
+    "topics": [
+     "kfec5xg7:related-measurement-error-simultaneous-equations",
+     "kfec5xg7:two-stage-least-squares"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "econometrics",
   "title": "EC2020 - Elements of Econometrics - 2014 Exam - Zone-B",
   "importKey": "drive/econometrics/1dNrcykTH9XP8LXpCAprKG7TuF3sHgGwy",
   "contentHash": "89a275852ae1c3ca969c610dd8ac390ef5334f427c833453d850ecc6ce68aad5",
@@ -10168,9 +11394,12 @@
     "page": 3,
     "anchor": "4. Let X be a random variable with probability density function 2 2 1 2 22 2/ (X µ)f(X) ( πσ ) exp σ−",
     "chapters": [
-     "gazw7qiy"
+     "hifykydg"
     ],
-    "topics": []
+    "topics": [
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:maximum-likelihood"
+    ]
    },
    {
     "question": 5,
@@ -10223,12 +11452,12 @@
     "page": 6,
     "anchor": "9. (a) Consider a model 0 1 1 2 i i i Y β β X u ; i , , ,n = + + = K",
     "chapters": [
-     "w8jhm9u7",
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:lpm-drawbacks",
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -10272,12 +11501,13 @@
     "page": 3,
     "anchor": "2. Let the model be: T ,,2,1t;uXXY t2t21t10t",
     "chapters": [
-     "w8jhm9u7"
+     "w8jhm9u7",
+     "hifykydg"
     ],
     "topics": [
      "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi",
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
-     "w8jhm9u7:weighted-least-squares"
+     "w8jhm9u7:weighted-least-squares",
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli"
     ]
    },
    {
@@ -10298,11 +11528,12 @@
     "page": 4,
     "anchor": "4. The following estimates were calculated from a sample of 7,634 women respondents from the General Household Survey",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests",
+     "hifykydg:logit-probit-log-likelihood-regression-output-an"
     ]
    },
    {
@@ -10397,13 +11628,12 @@
     "page": 6,
     "anchor": "5. (a) Consider a model i0 1 i iYX u",
     "chapters": [
-     "w8jhm9u7",
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
-     "w8jhm9u7:weighted-least-squares",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:lpm-drawbacks",
+     "hifykydg:logit-probit-log-likelihood-regression-output-an",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -10558,10 +11788,12 @@
     "page": 9,
     "anchor": "9. We are interested in explaining the binary variable vhappy, a dummy variable that denotes whether an individual",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:maximum-likelihood",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    }
   ]
@@ -10647,11 +11879,12 @@
     "page": 4,
     "anchor": "7. The following estimates were calculated from a s ample of 7,634 women respondents from the General Household Survey",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests",
+     "hifykydg:logit-probit-log-likelihood-regression-output-an"
     ]
    },
    {
@@ -10683,11 +11916,12 @@
     "page": 6,
     "anchor": "10. (a) Consider a model: t t t Y X u = β + ; t 1, 2,...,T = where 2 2 t t E(u ) 0;E(u ) = = σ",
     "chapters": [
-     "gazw7qiy",
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    }
   ]
@@ -10762,12 +11996,13 @@
     "page": 4,
     "anchor": "6. Let us consider how workplace smoking bans affect the incidence of smoking.",
     "chapters": [
-     "48isg7ra",
-     "w8jhm9u7"
+     "hifykydg",
+     "9xtetwaf"
     ],
     "topics": [
-     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols"
+     "hifykydg:linear-probability-model",
+     "hifykydg:heteroskedasticity-in-the-lpm",
+     "9xtetwaf:confidence-intervals"
     ]
    },
    {
@@ -10775,10 +12010,12 @@
     "page": 5,
     "anchor": "7. In question 6 we considered the linear regression model to study how workplace smoking bans affect the incidence of",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -10857,10 +12094,11 @@
     "page": 2,
     "anchor": "3. Let the probability density function of a random variable X be f (x; ).",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "hifykydg:goodness-of-fit-and-tests",
+     "hifykydg:maximum-likelihood"
     ]
    },
    {
@@ -10890,11 +12128,13 @@
     "page": 3,
     "anchor": "6. Let the model be: 0 1 1 2 2 12t t t tY X X u ; t , , ,T",
     "chapters": [
-     "w8jhm9u7"
+     "w8jhm9u7",
+     "hifykydg"
     ],
     "topics": [
      "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi",
-     "w8jhm9u7:weighted-least-squares"
+     "w8jhm9u7:weighted-least-squares",
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli"
     ]
    },
    {
@@ -10926,12 +12166,12 @@
     "page": 6,
     "anchor": "9. A study of applications for home mortgages used the linear probability model",
     "chapters": [
-     "w8jhm9u7",
-     "48isg7ra"
+     "hifykydg"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols"
+     "hifykydg:linear-probability-model",
+     "hifykydg:goodness-of-fit-and-tests",
+     "hifykydg:heteroskedasticity-in-the-lpm"
     ]
    },
    {
@@ -11021,10 +12261,12 @@
     "page": 5,
     "anchor": "6. The Ministry of Finance is interested in how to incentivise workers to save up for pension.",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:maximum-likelihood",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -11061,6 +12303,89 @@
     ],
     "topics": [
      "kfec5xg7:overview-of-endogeneity-and-omitted-variables",
+     "kfec5xg7:two-stage-least-squares"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "econometrics",
+  "title": "EC2020 - Elements of Econometrics - 2003 Exam - Zone-A",
+  "importKey": "drive/econometrics/1j4XlO6-ZT5SWJ3miufYg1rbNuCU9p192",
+  "contentHash": "7dd54ebbb015493ef6459b7f163404f3536e219a43cea290020b58db86cba125",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "mtitgdpr",
+     "48isg7ra"
+    ],
+    "topics": [
+     "mtitgdpr:properties-of-ols-on-any-sample-fitted-values-re",
+     "mtitgdpr:units-of-measurement-and-functional-form-log-mod",
+     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "mtitgdpr",
+     "gazw7qiy"
+    ],
+    "topics": [
+     "mtitgdpr:deriving-the-ols-estimates",
+     "gazw7qiy:consistency-of-ols"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 4,
+    "chapters": [
+     "9xtetwaf",
+     "48isg7ra"
+    ],
+    "topics": [
+     "9xtetwaf:t-test-for-a-single-population-parameter",
+     "9xtetwaf:confidence-intervals",
+     "9xtetwaf:testing-a-single-linear-combination-of-parameter"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 5,
+    "chapters": [
+     "w8jhm9u7"
+    ],
+    "topics": [
+     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
+     "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi",
+     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 5,
+    "chapters": [
+     "48isg7ra",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "48isg7ra:variance-of-the-ols-estimators-multicollinearity",
+     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 5,
+    "chapters": [
+     "kfec5xg7"
+    ],
+    "topics": [
+     "kfec5xg7:related-measurement-error-simultaneous-equations",
      "kfec5xg7:two-stage-least-squares"
     ]
    }
@@ -11234,10 +12559,12 @@
     "page": 4,
     "anchor": "5. A probit model to explain whether a ﬁrm is taken over by another ﬁrm during a given year",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:logit-and-probit",
+     "hifykydg:goodness-of-fit-and-tests",
+     "hifykydg:lpm-drawbacks"
     ]
    },
    {
@@ -11305,6 +12632,111 @@
  },
  {
   "module": "econometrics",
+  "title": "EC2020 - Elements of Econometrics - 2005 Exam - Zone-A",
+  "importKey": "drive/econometrics/1omHjchIzb-Om2gQmx8OFN2W5o05VqSkD",
+  "contentHash": "a70b1c70cd74d307d1a6c4ee9f0a8fe8891130ee66269017d8a413b0f5ae04d6",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "9xtetwaf",
+     "48isg7ra"
+    ],
+    "topics": [
+     "9xtetwaf:t-test-for-a-single-population-parameter",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
+     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "mtitgdpr",
+     "48isg7ra"
+    ],
+    "topics": [
+     "mtitgdpr:deriving-the-ols-estimates",
+     "mtitgdpr:expected-values-and-variances-of-the-ols-estimat",
+     "48isg7ra:efficiency-of-ols-gauss-markov-theorem"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "9xtetwaf",
+     "48isg7ra"
+    ],
+    "topics": [
+     "9xtetwaf:t-test-for-a-single-population-parameter",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
+     "48isg7ra:motivation-for-multiple-regression"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "w8jhm9u7"
+    ],
+    "topics": [
+     "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi",
+     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
+     "w8jhm9u7:weighted-least-squares"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 6,
+    "chapters": [
+     "s7m9nt7j",
+     "9xtetwaf"
+    ],
+    "topics": [
+     "s7m9nt7j:related-static-and-finite-distributed-lag-models",
+     "9xtetwaf:t-test-for-a-single-population-parameter"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "mtitgdpr"
+    ],
+    "topics": [
+     "mtitgdpr:properties-of-ols-on-any-sample-fitted-values-re"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 7,
+    "chapters": [
+     "kfec5xg7"
+    ],
+    "topics": [
+     "kfec5xg7:related-measurement-error-simultaneous-equations",
+     "kfec5xg7:two-stage-least-squares"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 8,
+    "chapters": [
+     "s7m9nt7j"
+    ],
+    "topics": [
+     "s7m9nt7j:properties-of-ols-with-serially-correlated-error",
+     "s7m9nt7j:testing-for-autocorrelation",
+     "s7m9nt7j:serial-correlation-robust-inference-after-ols"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "econometrics",
   "title": "EC2020 - Elements of Econometrics - 2008 Exam - Zone-A",
   "importKey": "drive/econometrics/1ooZ0BofI5Fyomvk6ePsiMUTr0FUfwlv9",
   "contentHash": "57e5755f40811e7af31f40baabff319d4816626a84a5f910897b3ad28f05918e",
@@ -11352,10 +12784,12 @@
     "page": 4,
     "anchor": "4. (a) Consider a model",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -11388,12 +12822,12 @@
     "page": 6,
     "anchor": "7. (a) Consider a model i0 1 i iYX u ; i 1 , 2 , , n .",
     "chapters": [
-     "w8jhm9u7",
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:lpm-drawbacks",
+     "hifykydg:logit-probit-log-likelihood-regression-output-an",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -11522,12 +12956,12 @@
     "page": 8,
     "anchor": "9. A researcher examines the probability of a random sample of British firms that use Face-",
     "chapters": [
-     "w8jhm9u7",
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi",
-     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols"
+     "hifykydg:heteroskedasticity-in-the-lpm",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:maximum-likelihood"
     ]
    }
   ]
@@ -11642,12 +13076,12 @@
     "page": 8,
     "anchor": "9. Let us consider a model where we want to explain whether a married woman works for",
     "chapters": [
-     "9xtetwaf",
-     "48isg7ra"
+     "hifykydg"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    }
   ]
@@ -11722,12 +13156,12 @@
     "page": 5,
     "anchor": "6. We are interested in explaining the willingness of households to buy ecologically produced",
     "chapters": [
-     "9xtetwaf",
-     "w8jhm9u7"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
-     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols"
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -11858,9 +13292,12 @@
     "page": 5,
     "anchor": "6. Consider the model:",
     "chapters": [
+     "hifykydg",
      "w8jhm9u7"
     ],
     "topics": [
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:maximum-likelihood",
      "w8jhm9u7:weighted-least-squares"
     ]
    },
@@ -11869,10 +13306,12 @@
     "page": 6,
     "anchor": "7. The following estimates were calculated fr om a sample of 7,634 women respondents",
     "chapters": [
-     "9xtetwaf"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter"
+     "hifykydg:maximum-likelihood",
+     "hifykydg:goodness-of-fit-and-tests",
+     "hifykydg:logit-probit-log-likelihood-regression-output-an"
     ]
    },
    {
@@ -11988,12 +13427,12 @@
     "page": 6,
     "anchor": "8. A researcher is interested in how sales assistants in a large retailer are being promoted.",
     "chapters": [
-     "9xtetwaf",
-     "w8jhm9u7"
+     "hifykydg"
     ],
     "topics": [
-     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:linear-probability-model",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -12080,12 +13519,12 @@
     "page": 4,
     "anchor": "6. We are interested in explaining households’ willingness to enroll in a green electricity plan.",
     "chapters": [
-     "9xtetwaf",
-     "w8jhm9u7"
+     "hifykydg"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
-     "w8jhm9u7:heteroskedasticity-robust-inference-after-ols"
+     "hifykydg:logit-and-probit",
+     "hifykydg:partial-effects-in-logit-probit",
+     "hifykydg:goodness-of-fit-and-tests"
     ]
    },
    {
@@ -12206,12 +13645,13 @@
     "page": 6,
     "anchor": "6. (a) Consider the model",
     "chapters": [
-     "w8jhm9u7",
-     "9xtetwaf"
+     "hifykydg",
+     "w8jhm9u7"
     ],
     "topics": [
-     "w8jhm9u7:weighted-least-squares",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "hifykydg:deriving-the-mle-from-first-principles-bernoulli",
+     "hifykydg:goodness-of-fit-and-tests",
+     "w8jhm9u7:weighted-least-squares"
     ]
    }
   ]
@@ -13706,6 +15146,128 @@
  },
  {
   "module": "economics",
+  "title": "EC1002 - Introduction to Economics - 2005 Examiners - Zone-B",
+  "importKey": "drive/economics/1I7rUvN1CbXRHIOv8tW_0po4LvmF9uNb6",
+  "contentHash": "d149ef129675beafba24fe3932291b158df6579fe2b432d9440bc304ca102019",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "j86yz7hk",
+     "bibtm6gq"
+    ],
+    "topics": [
+     "j86yz7hk:firm-s-supply-decision",
+     "j86yz7hk:comparative-statics",
+     "bibtm6gq:game-theory"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "xg9aypby"
+    ],
+    "topics": [
+     "xg9aypby:utility-maximisation-and-choice",
+     "xg9aypby:income-and-price-changes"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "j86yz7hk",
+     "tyiz8fqt"
+    ],
+    "topics": [
+     "j86yz7hk:comparative-statics",
+     "tyiz8fqt:incidence-of-a-tax",
+     "tyiz8fqt:price-elasticity-of-demand"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "zzcvaauv",
+     "j86yz7hk"
+    ],
+    "topics": [
+     "zzcvaauv:monopoly-analysis",
+     "zzcvaauv:social-cost-of-monopoly",
+     "j86yz7hk:comparative-statics"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 5,
+    "chapters": [
+     "j9gz9bqm"
+    ],
+    "topics": [
+     "j9gz9bqm:labour-supply",
+     "j9gz9bqm:labour-market-equilibrium"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "yfigvsjd",
+     "dxsv7nqw"
+    ],
+    "topics": [
+     "yfigvsjd:the-multiplier",
+     "yfigvsjd:foreign-trade-exports-and-imports",
+     "dxsv7nqw:aggregate-supply"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 7,
+    "chapters": [
+     "yfigvsjd",
+     "dxsv7nqw"
+    ],
+    "topics": [
+     "yfigvsjd:the-multiplier",
+     "dxsv7nqw:adjustment-to-demand-shocks",
+     "dxsv7nqw:wage-rigidity"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 7,
+    "chapters": [
+     "8dzevirm",
+     "yfigvsjd"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "yfigvsjd:foreign-trade-exports-and-imports",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates"
+    ]
+   },
+   {
+    "question": 9,
+    "page": 7,
+    "chapters": [
+     "8dzevirm",
+     "yfigvsjd"
+    ],
+    "topics": [
+     "yfigvsjd:the-multiplier",
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "economics",
   "title": "EC1002 - Introduction to Economics - 2008 Exam - Zone-B",
   "importKey": "drive/economics/1IdGq2ry0Ew4NTTnVogPlmlPAqwaKwTgi",
   "contentHash": "415a2673a035caebceaa8e0c03f7e4d1a9cb0f946de5261705355a452d1bd4e6",
@@ -14597,6 +16159,125 @@
  },
  {
   "module": "economics",
+  "title": "EC1002 - Introduction to Economics - 2006 Exam - Zone-B",
+  "importKey": "drive/economics/1SOF_HBPqFqaua-PrdCHCqbsFMR4hYEQs",
+  "contentHash": "0ac33576fbd307e4f60d858a3b0bfd7ce7700cde7a5341541419048df13ead33",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "j86yz7hk",
+     "nynrjjzb"
+    ],
+    "topics": [
+     "j86yz7hk:firm-s-supply-decision",
+     "j86yz7hk:comparative-statics",
+     "nynrjjzb:sources-of-market-failure"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "xg9aypby"
+    ],
+    "topics": [
+     "xg9aypby:income-and-price-changes",
+     "xg9aypby:utility-maximisation-and-choice"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "j86yz7hk",
+     "nynrjjzb"
+    ],
+    "topics": [
+     "j86yz7hk:industry-supply-curves",
+     "j86yz7hk:comparative-statics",
+     "nynrjjzb:distortion-of-the-market"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "zzcvaauv"
+    ],
+    "topics": [
+     "zzcvaauv:price-discrimination",
+     "zzcvaauv:monopoly-analysis",
+     "zzcvaauv:social-cost-of-monopoly"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 5,
+    "chapters": [
+     "j9gz9bqm"
+    ],
+    "topics": [
+     "j9gz9bqm:labour-supply",
+     "j9gz9bqm:labour-market-equilibrium"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "tie7ydjt",
+     "yfigvsjd"
+    ],
+    "topics": [
+     "tie7ydjt:money-and-banking",
+     "yfigvsjd:the-multiplier",
+     "yfigvsjd:consumption-and-investment-demand"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 7,
+    "chapters": [
+     "tvwq6cff",
+     "dxsv7nqw"
+    ],
+    "topics": [
+     "tvwq6cff:supply-side-economics",
+     "tvwq6cff:inputs-to-production",
+     "dxsv7nqw:aggregate-supply"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 7,
+    "chapters": [
+     "yfigvsjd",
+     "dxsv7nqw"
+    ],
+    "topics": [
+     "yfigvsjd:the-multiplier",
+     "yfigvsjd:consumption-and-investment-demand",
+     "dxsv7nqw:adjustment-to-demand-shocks"
+    ]
+   },
+   {
+    "question": 9,
+    "page": 7,
+    "chapters": [
+     "8dzevirm"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-floating-exchange-rates",
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "economics",
   "title": "EC1002 - Introduction to Economics - 2009 Exam - Zone-B",
   "importKey": "drive/economics/1SOYgm_z3Sh0o0QU-ZYKwuwI4Y0nReahW",
   "contentHash": "51b2d3c17a5dd297d0ecd2ee3f4e1d4cd76739a2036e8c37c64828288866972c",
@@ -14696,6 +16377,123 @@
     "question": 8,
     "page": 5,
     "anchor": "8. In a remote country, Terra Terminus, a large stock of natural gas has been found.",
+    "chapters": [
+     "8dzevirm"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "economics",
+  "title": "EC1002 - Introduction to Economics - 2003 Exam - Zone-B",
+  "importKey": "drive/economics/1UDgSzDq-9QAzu5cYLO8wyXAUCkdkRYDZ",
+  "contentHash": "542a3b8dbb717b84f9966f7c7aaf0e0521b0c392d986931cef27a9bd8a36afd8",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "xg9aypby",
+     "nynrjjzb"
+    ],
+    "topics": [
+     "xg9aypby:income-and-price-changes",
+     "xg9aypby:individual-demand-curve",
+     "nynrjjzb:sources-of-market-failure"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 2,
+    "chapters": [
+     "xg9aypby"
+    ],
+    "topics": [
+     "xg9aypby:income-and-price-changes",
+     "xg9aypby:utility-maximisation-and-choice"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 3,
+    "chapters": [
+     "j86yz7hk",
+     "tyiz8fqt"
+    ],
+    "topics": [
+     "j86yz7hk:comparative-statics",
+     "tyiz8fqt:incidence-of-a-tax",
+     "tyiz8fqt:price-elasticity-of-demand"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 3,
+    "chapters": [
+     "zzcvaauv"
+    ],
+    "topics": [
+     "zzcvaauv:monopoly-analysis",
+     "zzcvaauv:price-discrimination"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 3,
+    "chapters": [
+     "j9gz9bqm",
+     "xg9aypby"
+    ],
+    "topics": [
+     "j9gz9bqm:labour-supply",
+     "xg9aypby:utility-maximisation-and-choice",
+     "j9gz9bqm:labour-market-equilibrium"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 4,
+    "chapters": [
+     "tie7ydjt",
+     "8dzevirm"
+    ],
+    "topics": [
+     "tie7ydjt:money-and-banking",
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 5,
+    "chapters": [
+     "8dzevirm"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 5,
+    "chapters": [
+     "yfigvsjd",
+     "dxsv7nqw"
+    ],
+    "topics": [
+     "yfigvsjd:the-multiplier",
+     "yfigvsjd:consumption-and-investment-demand",
+     "dxsv7nqw:adjustment-to-demand-shocks"
+    ]
+   },
+   {
+    "question": 9,
+    "page": 5,
     "chapters": [
      "8dzevirm"
     ],
@@ -15349,6 +17147,128 @@
  },
  {
   "module": "economics",
+  "title": "EC1002 - Introduction to Economics - 2004 Exam - Zone-B",
+  "importKey": "drive/economics/1cDACBPysBIqomA_EVqqycy8JAYRq1yNL",
+  "contentHash": "d99a13f34847d3859de4a12f2c06ade331434b2c4cf73c14e3acbcc96108f9f7",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "bibtm6gq",
+     "nynrjjzb"
+    ],
+    "topics": [
+     "bibtm6gq:monopolistic-competition",
+     "bibtm6gq:models-of-oligopoly",
+     "nynrjjzb:public-goods"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "xg9aypby"
+    ],
+    "topics": [
+     "xg9aypby:utility-maximisation-and-choice",
+     "xg9aypby:income-and-price-changes"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 3,
+    "chapters": [
+     "j86yz7hk",
+     "j9gz9bqm"
+    ],
+    "topics": [
+     "j86yz7hk:comparative-statics",
+     "j86yz7hk:industry-supply-curves",
+     "j9gz9bqm:labour-market-equilibrium"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 4,
+    "chapters": [
+     "zzcvaauv"
+    ],
+    "topics": [
+     "zzcvaauv:price-discrimination",
+     "zzcvaauv:monopoly-analysis"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 4,
+    "chapters": [
+     "j9gz9bqm",
+     "xg9aypby"
+    ],
+    "topics": [
+     "j9gz9bqm:labour-supply",
+     "xg9aypby:income-and-price-changes",
+     "xg9aypby:utility-maximisation-and-choice"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 5,
+    "chapters": [
+     "yfigvsjd",
+     "tie7ydjt"
+    ],
+    "topics": [
+     "yfigvsjd:the-multiplier",
+     "yfigvsjd:equilibrium-output",
+     "tie7ydjt:money-and-banking"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 6,
+    "chapters": [
+     "yfigvsjd",
+     "dxsv7nqw"
+    ],
+    "topics": [
+     "yfigvsjd:consumption-and-investment-demand",
+     "yfigvsjd:the-multiplier",
+     "dxsv7nqw:adjustment-to-demand-shocks"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 7,
+    "chapters": [
+     "8dzevirm",
+     "yfigvsjd"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates",
+     "yfigvsjd:the-multiplier"
+    ]
+   },
+   {
+    "question": 9,
+    "page": 7,
+    "chapters": [
+     "8dzevirm",
+     "yfigvsjd"
+    ],
+    "topics": [
+     "yfigvsjd:the-multiplier",
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "economics",
   "title": "EC1002 - Introduction to Economics - 2020 Exam",
   "importKey": "drive/economics/1eKG55MrBYPZ2wbgM5kSa6KRrUUMSO6-6",
   "contentHash": "9ce362f64d7cef8038987e503ac62670bf2eaf7168dd99f920d1cda6b23bf0d6",
@@ -15576,6 +17496,127 @@
      "tie7ydjt:money-and-banking",
      "tie7ydjt:financial-crises",
      "tie7ydjt:money-market-equilibrium-and-monetary-control"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "economics",
+  "title": "EC1002 - Introduction to Economics - 2006 Exam - Zone-A",
+  "importKey": "drive/economics/1hWLebzSAYdBo4vXDgsV8_4WKSTCl3fgt",
+  "contentHash": "037f2201611ef9f76e989369f5cfa558633887ad824a47cafe85927b637b1318",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "j86yz7hk",
+     "nynrjjzb"
+    ],
+    "topics": [
+     "j86yz7hk:comparative-statics",
+     "j86yz7hk:perfect-competition-and-efficiency",
+     "nynrjjzb:public-goods"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "xg9aypby"
+    ],
+    "topics": [
+     "xg9aypby:income-and-price-changes",
+     "xg9aypby:utility-maximisation-and-choice"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "j86yz7hk",
+     "j9gz9bqm"
+    ],
+    "topics": [
+     "j86yz7hk:comparative-statics",
+     "j86yz7hk:industry-supply-curves",
+     "j9gz9bqm:labour-market-equilibrium"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "zzcvaauv"
+    ],
+    "topics": [
+     "zzcvaauv:monopoly-analysis",
+     "zzcvaauv:social-cost-of-monopoly",
+     "zzcvaauv:price-discrimination"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 5,
+    "chapters": [
+     "j9gz9bqm"
+    ],
+    "topics": [
+     "j9gz9bqm:labour-supply",
+     "j9gz9bqm:labour-market-equilibrium"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 6,
+    "chapters": [
+     "tie7ydjt",
+     "yfigvsjd"
+    ],
+    "topics": [
+     "tie7ydjt:money-and-banking",
+     "yfigvsjd:the-multiplier",
+     "yfigvsjd:consumption-and-investment-demand"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 7,
+    "chapters": [
+     "tvwq6cff",
+     "dxsv7nqw"
+    ],
+    "topics": [
+     "tvwq6cff:supply-side-economics",
+     "tvwq6cff:inputs-to-production",
+     "dxsv7nqw:aggregate-supply"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 7,
+    "chapters": [
+     "8dzevirm",
+     "yfigvsjd"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates",
+     "yfigvsjd:foreign-trade-exports-and-imports"
+    ]
+   },
+   {
+    "question": 9,
+    "page": 7,
+    "chapters": [
+     "8dzevirm",
+     "tie7ydjt"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates",
+     "tie7ydjt:money-and-banking"
     ]
    }
   ]
@@ -17249,6 +19290,124 @@
  },
  {
   "module": "economics",
+  "title": "EC1002 - Introduction to Economics - 2003 Exam - Zone-A",
+  "importKey": "drive/economics/1uQ_UIAl1G333VAnv3K8SWHCdED4SR9z-",
+  "contentHash": "60b188012d027237a9daef56946b52843164e47713f31debd0b19169efa9cd61",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "xg9aypby",
+     "nynrjjzb"
+    ],
+    "topics": [
+     "xg9aypby:income-and-price-changes",
+     "xg9aypby:complements-and-substitutes",
+     "nynrjjzb:sources-of-market-failure"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "xg9aypby"
+    ],
+    "topics": [
+     "xg9aypby:income-and-price-changes",
+     "xg9aypby:utility-maximisation-and-choice"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 3,
+    "chapters": [
+     "j86yz7hk",
+     "tyiz8fqt"
+    ],
+    "topics": [
+     "j86yz7hk:comparative-statics",
+     "tyiz8fqt:incidence-of-a-tax",
+     "tyiz8fqt:price-elasticity-of-demand"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 3,
+    "chapters": [
+     "zzcvaauv"
+    ],
+    "topics": [
+     "zzcvaauv:monopoly-analysis",
+     "zzcvaauv:social-cost-of-monopoly"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 4,
+    "chapters": [
+     "j9gz9bqm",
+     "xg9aypby"
+    ],
+    "topics": [
+     "j9gz9bqm:labour-supply",
+     "xg9aypby:utility-maximisation-and-choice",
+     "j9gz9bqm:labour-market-equilibrium"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 4,
+    "chapters": [
+     "tie7ydjt",
+     "8dzevirm"
+    ],
+    "topics": [
+     "tie7ydjt:money-and-banking",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates",
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 5,
+    "chapters": [
+     "8dzevirm"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 5,
+    "chapters": [
+     "yfigvsjd",
+     "dxsv7nqw"
+    ],
+    "topics": [
+     "yfigvsjd:the-multiplier",
+     "yfigvsjd:consumption-and-investment-demand",
+     "dxsv7nqw:adjustment-to-demand-shocks"
+    ]
+   },
+   {
+    "question": 9,
+    "page": 5,
+    "chapters": [
+     "8dzevirm"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "economics",
   "title": "EC1002 Exam paper (Section B) - October 2024",
   "importKey": "drive/economics/1v5j-_gNxxCplG3RCwDXtBbRfnitkAghu",
   "contentHash": "5de1b18de0afa00384cfa989ad297d5f7c2e1dfd782162dce5b73610eb6b5db9",
@@ -17506,6 +19665,125 @@
      "grazx8hu:deriving-the-is-curve",
      "yfigvsjd:the-multiplier",
      "grazx8hu:the-is-mp-in-action"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "economics",
+  "title": "EC1002 - Introduction to Economics - 2005 Examiners - Zone-A",
+  "importKey": "drive/economics/1zbKgdKbF7T48UGiRibU4uJujJUsctIH3",
+  "contentHash": "4085d223da4668550cabb967fa5680b792aa513405f03a4f1972ffd7c704a53c",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "j86yz7hk",
+     "bibtm6gq"
+    ],
+    "topics": [
+     "j86yz7hk:firm-s-supply-decision",
+     "j86yz7hk:comparative-statics",
+     "bibtm6gq:game-theory"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 4,
+    "chapters": [
+     "xg9aypby"
+    ],
+    "topics": [
+     "xg9aypby:utility-maximisation-and-choice",
+     "xg9aypby:income-and-price-changes"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "j86yz7hk",
+     "tyiz8fqt"
+    ],
+    "topics": [
+     "j86yz7hk:comparative-statics",
+     "tyiz8fqt:incidence-of-a-tax",
+     "tyiz8fqt:price-elasticity-of-demand"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 5,
+    "chapters": [
+     "zzcvaauv"
+    ],
+    "topics": [
+     "zzcvaauv:monopoly-analysis",
+     "zzcvaauv:price-discrimination",
+     "zzcvaauv:perfect-competition-and-perfect-monopoly"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 5,
+    "chapters": [
+     "j9gz9bqm"
+    ],
+    "topics": [
+     "j9gz9bqm:labour-supply",
+     "j9gz9bqm:labour-market-equilibrium"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 5,
+    "chapters": [
+     "yfigvsjd",
+     "dxsv7nqw"
+    ],
+    "topics": [
+     "yfigvsjd:the-multiplier",
+     "yfigvsjd:foreign-trade-exports-and-imports",
+     "dxsv7nqw:aggregate-supply"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 6,
+    "chapters": [
+     "yfigvsjd",
+     "dxsv7nqw"
+    ],
+    "topics": [
+     "yfigvsjd:the-multiplier",
+     "dxsv7nqw:adjustment-to-demand-shocks",
+     "dxsv7nqw:wage-rigidity"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 7,
+    "chapters": [
+     "8dzevirm",
+     "5ft2435s"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates",
+     "5ft2435s:current-and-financial-accounts"
+    ]
+   },
+   {
+    "question": 9,
+    "page": 7,
+    "chapters": [
+     "8dzevirm"
+    ],
+    "topics": [
+     "8dzevirm:macroeconomy-under-fixed-exchange-rates",
+     "8dzevirm:macroeconomy-under-floating-exchange-rates"
     ]
    }
   ]
@@ -28557,6 +30835,123 @@
     ],
     "topics": [
      "sphkh4yc:the-new-product-development-process"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "marketing-management",
+  "title": "MN3141 RTC Exam paper - October 2025 (final)",
+  "importKey": "drive/marketing-management/1cH-cAq8h508YW4h_xjshKQdffFxzP6J0",
+  "contentHash": "080e67f9a51f0bd9a7d1d96dd5b13d7ca9116b94d07f7f76c400cbca33a143fe",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 1,
+    "anchor": "A marketer calculates that the average cost for acquiring an individual customer is",
+    "chapters": [
+     "93pkv9vz"
+    ],
+    "topics": [
+     "93pkv9vz:customer-lifetime-value",
+     "93pkv9vz:interpreting-clv-results-and-strategies-to-raise"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 1,
+    "anchor": "The Financial Times wrote the following: “ Europastry has been a silent force behind the",
+    "chapters": [
+     "astzvniq"
+    ],
+    "topics": [
+     "astzvniq:rational-versus-subjective-reputation-personal-n",
+     "astzvniq:perceived-risk-in-organisational-buying-and-risk"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 1,
+    "anchor": "Pop-up shops represent strategically planned, temporary, physical retail operations",
+    "chapters": [
+     "jfc6uyin",
+     "2wuk35yt"
+    ],
+    "topics": [
+     "jfc6uyin:channel-functions-section-12-3",
+     "jfc6uyin:retailing-and-wholesaling-formats-e-g-pop-up-sto",
+     "2wuk35yt:word-of-mouth-viral-marketing-and-earned-media"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 1,
+    "anchor": "Reddit relies heavily on co-creation, with unpaid moderators (mods) playing a crucial",
+    "chapters": [
+     "xtgyyfus",
+     "izkabne9"
+    ],
+    "topics": [
+     "xtgyyfus:co-creation-of-value-with-customers-section-8-3",
+     "xtgyyfus:common-design-and-brand-communities-section-8-8",
+     "izkabne9:relationships-with-multiple-stakeholders"
+    ]
+   },
+   {
+    "question": 5,
+    "page": 1,
+    "anchor": "According to a report by Sproutsocial , the qualities that consumers look for in",
+    "chapters": [
+     "2wuk35yt",
+     "9k64b4e4"
+    ],
+    "topics": [
+     "2wuk35yt:source-credibility-and-persuasion",
+     "9k64b4e4:the-self-concept-section-4-4",
+     "9k64b4e4:social-influence-section-4-5"
+    ]
+   },
+   {
+    "question": 6,
+    "page": 1,
+    "anchor": "The makers of PikeBoost2 have used the following narrative on the crowdfunding site",
+    "chapters": [
+     "sphkh4yc",
+     "8fqpxstf"
+    ],
+    "topics": [
+     "sphkh4yc:rogers-innovation-characteristics",
+     "sphkh4yc:using-adoption-characteristics-to-shape-the-mark",
+     "8fqpxstf:positioning-choices"
+    ]
+   },
+   {
+    "question": 7,
+    "page": 1,
+    "anchor": "Fast - food restaurants offer low price and affordable meals. Their focus is on the",
+    "chapters": [
+     "8fqpxstf",
+     "jfc6uyin"
+    ],
+    "topics": [
+     "8fqpxstf:segmentation-bases-for-consumer-markets",
+     "8fqpxstf:differentiation-and-positioning",
+     "jfc6uyin:retailing-and-wholesaling-formats-e-g-pop-up-sto"
+    ]
+   },
+   {
+    "question": 8,
+    "page": 1,
+    "anchor": "A consumer is planning to buy a new smartphone.",
+    "chapters": [
+     "9k64b4e4",
+     "2wuk35yt"
+    ],
+    "topics": [
+     "9k64b4e4:the-five-stage-buyer-decision-process",
+     "2wuk35yt:digital-marketing-communications",
+     "9k64b4e4:information-search-search-experience-credence-at"
     ]
    }
   ]
@@ -40593,9 +42988,12 @@
     "page": 5,
     "anchor": "3. (a) At a time of economic growth but pol itical uncertainty, a sample of 40 economists",
     "chapters": [
+     "m4edgan5",
      "9xf4eaw6"
     ],
     "topics": [
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
      "9xf4eaw6:intervals-for-means-of-normal-distributions"
     ]
    },
@@ -40639,9 +43037,12 @@
     "page": 6,
     "anchor": "2. (a) The data below represent the weights (in kg) of 30 participants in a study",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
      "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    },
@@ -40709,11 +43110,12 @@
     "page": 6,
     "anchor": "3. (a) Av a r i e t yo fab r o a db e a np l a n ti ss t u d i e da n dt h en u m b e ro fb e a n",
     "chapters": [
-     "9dhn7cfg",
-     "9xf4eaw6"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "9xf4eaw6:approximate-confidence-intervals-for-non-normal",
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
      "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    },
@@ -40778,12 +43180,13 @@
     "question": 4,
     "page": 6,
     "chapters": [
-     "9dhn7cfg",
-     "9xf4eaw6"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:paired-comparison-and-power-functions",
-     "9xf4eaw6:intervals-for-means-of-normal-distributions"
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
+     "9dhn7cfg:paired-comparison-and-power-functions"
     ]
    }
   ]
@@ -40888,9 +43291,12 @@
     "page": 4,
     "anchor": "2. (a) The data below contain measurements of the low-density lipoproteins, also",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
      "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    },
@@ -40916,6 +43322,100 @@
     ],
     "topics": [
      "9dhn7cfg:setting-p-value-significance-level-test-statisti"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "statistics",
+  "title": "ST104A - Statistics 1 - 2004 Examiners - Zone-A",
+  "importKey": "drive/statistics/17DpqHYTyHObeUvLxGgK3Hai6bgAgeN_r",
+  "contentHash": "00242f1019a070e92cfc3fc6385bd5923ae74ba7a4b11110c3c1315a72756f5c",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "m4edgan5",
+     "zwvna9b6"
+    ],
+    "topics": [
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
+     "m4edgan5:sample-variance-and-standard-deviation",
+     "zwvna9b6:covariance-and-correlation-sample-covariance-and"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 5,
+    "chapters": [
+     "6zdqtvng",
+     "57vcz5gf"
+    ],
+    "topics": [
+     "6zdqtvng:simple-linear-regression",
+     "57vcz5gf:normal-distribution-and-standardisation"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 6,
+    "chapters": [
+     "m4edgan5",
+     "9xf4eaw6"
+    ],
+    "topics": [
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
+     "9xf4eaw6:approximate-confidence-intervals-for-non-normal"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "statistics",
+  "title": "ST104A - Statistics 1 - 2003 Exam - Zone-B",
+  "importKey": "drive/statistics/19CbMSDto8ThPv1lombU-gZaia2bXYowR",
+  "contentHash": "20e856d345f5425587e13e03b623f880809983a8512695f3a898fb18b8d5a170",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "9xf4eaw6",
+     "935gqnys"
+    ],
+    "topics": [
+     "9xf4eaw6:approximate-confidence-intervals-for-non-normal",
+     "935gqnys:classical-probability-and-relative-frequency",
+     "935gqnys:conditional-probability-and-the-chain-rule"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "m4edgan5",
+     "9dhn7cfg"
+    ],
+    "topics": [
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
+     "9dhn7cfg:two-sided-and-one-sided-tests-for-normal-means"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "9xf4eaw6",
+     "6zdqtvng"
+    ],
+    "topics": [
+     "9xf4eaw6:intervals-for-means-of-normal-distributions",
+     "6zdqtvng:simple-linear-regression"
     ]
    }
   ]
@@ -40969,9 +43469,12 @@
     "page": 6,
     "anchor": "4. (a) As a l e sd e p a r t m e n tm o n i t o r st h ed i s t r i b u t i o no fo r d e r sb yt h e i rv a l u e",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
      "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    }
@@ -40989,12 +43492,12 @@
     "page": 2,
     "anchor": "1. (a) Classify each one of the following va riables as measurable (continuous) or",
     "chapters": [
-     "935gqnys"
+     "m4edgan5"
     ],
     "topics": [
-     "935gqnys:total-probability-and-bayes-theorem",
-     "935gqnys:conditional-probability-and-the-chain-rule",
-     "935gqnys:classical-probability-and-relative-frequency"
+     "m4edgan5:data-matrix-and-variable-types",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
+     "m4edgan5:sample-variance-and-standard-deviation"
     ]
    },
    {
@@ -41026,9 +43529,12 @@
     "page": 6,
     "anchor": "4. (a) i. Carefully construct a box plot on the graph paper provided to display the",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
      "9dhn7cfg:paired-comparison-and-power-functions"
     ]
    }
@@ -41072,12 +43578,13 @@
     "page": 6,
     "anchor": "3. (a) Thirty people were asked about the number of hours they exercise in a week",
     "chapters": [
-     "9dhn7cfg",
-     "9xf4eaw6"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:setting-p-value-significance-level-test-statisti",
-     "9xf4eaw6:approximate-confidence-intervals-for-non-normal"
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
+     "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    },
    {
@@ -41129,9 +43636,12 @@
     "page": 5,
     "anchor": "3. (a) A policeman recorded the speed of 30 cars on a road with a 30 miles per",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
      "9dhn7cfg:paired-comparison-and-power-functions"
     ]
    },
@@ -41162,12 +43672,13 @@
     "page": 2,
     "anchor": "1. (a) Classify each one of the following variables as measurable (continu ous) or",
     "chapters": [
+     "m4edgan5",
      "935gqnys"
     ],
     "topics": [
-     "935gqnys:total-probability-and-bayes-theorem",
-     "935gqnys:conditional-probability-and-the-chain-rule",
-     "935gqnys:classical-probability-and-relative-frequency"
+     "m4edgan5:data-matrix-and-variable-types",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
+     "935gqnys:total-probability-and-bayes-theorem"
     ]
    },
    {
@@ -41199,9 +43710,12 @@
     "page": 6,
     "anchor": "4. (a) i. Carefully construct a box plot on the graph paper provided to di splay",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
      "9dhn7cfg:paired-comparison-and-power-functions"
     ]
    }
@@ -41219,12 +43733,13 @@
     "page": 2,
     "anchor": "1. (a) Thefollowingscatterdiagramshowstherelationshipbetweentheheightgrowth",
     "chapters": [
+     "m4edgan5",
      "935gqnys"
     ],
     "topics": [
-     "935gqnys:total-probability-and-bayes-theorem",
-     "935gqnys:conditional-probability-and-the-chain-rule",
-     "935gqnys:classical-probability-and-relative-frequency"
+     "m4edgan5:sample-variance-and-standard-deviation",
+     "m4edgan5:summation-notation-and-the-sample-mean",
+     "935gqnys:total-probability-and-bayes-theorem"
     ]
    },
    {
@@ -41258,12 +43773,13 @@
     "page": 6,
     "anchor": "4. (a) The monthly losses (x, in $1000s) of a random sample of thirty managed funds",
     "chapters": [
-     "9dhn7cfg",
-     "9xf4eaw6"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:comparing-two-normal-means",
-     "9xf4eaw6:intervals-for-means-of-normal-distributions"
+     "m4edgan5:sample-variance-and-standard-deviation",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
+     "9dhn7cfg:comparing-two-normal-means"
     ]
    }
   ]
@@ -41280,11 +43796,13 @@
     "page": 2,
     "anchor": "1. (a) The following data represent diﬀerent types of variables. Classify each one of",
     "chapters": [
+     "m4edgan5",
      "hqnvqdi4"
     ],
     "topics": [
-     "hqnvqdi4:discrete-random-variables-and-their-probability",
-     "hqnvqdi4:expected-value-versus-sample-mean"
+     "m4edgan5:data-matrix-and-variable-types",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "hqnvqdi4:discrete-random-variables-and-their-probability"
     ]
    },
    {
@@ -41316,10 +43834,60 @@
     "page": 6,
     "anchor": "4. (a) The following ﬁgures are the hottest daily temperatures (in degrees Celsius)",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
      "9dhn7cfg:setting-p-value-significance-level-test-statisti"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "statistics",
+  "title": "ST104A - Statistics 1 - 2003 Exam - Zone-A",
+  "importKey": "drive/statistics/1Lfngda8O7jU9uBsNqXvPNTteeUUkVFTy",
+  "contentHash": "de0db73767a8ee27f95b3ff9e10c7e1da838e2e5c140024057265f2f9fe94f7a",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 2,
+    "chapters": [
+     "9xf4eaw6",
+     "935gqnys"
+    ],
+    "topics": [
+     "9xf4eaw6:approximate-confidence-intervals-for-non-normal",
+     "935gqnys:classical-probability-and-relative-frequency",
+     "935gqnys:conditional-probability-and-the-chain-rule"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 3,
+    "chapters": [
+     "m4edgan5",
+     "9dhn7cfg"
+    ],
+    "topics": [
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "9dhn7cfg:t-tests"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 4,
+    "chapters": [
+     "9xf4eaw6",
+     "6zdqtvng"
+    ],
+    "topics": [
+     "9xf4eaw6:intervals-for-means-of-normal-distributions",
+     "6zdqtvng:simple-linear-regression"
     ]
    }
   ]
@@ -41336,9 +43904,12 @@
     "page": 2,
     "anchor": "1. (a) Classify each one of the following variables as measurable (continu ous) or",
     "chapters": [
+     "m4edgan5",
      "935gqnys"
     ],
     "topics": [
+     "m4edgan5:data-matrix-and-variable-types",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
      "935gqnys:total-probability-and-bayes-theorem"
     ]
    },
@@ -41371,9 +43942,12 @@
     "page": 6,
     "anchor": "4. (a) i. Carefully construct a box plot on the graph paper provided to di splay",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
      "9dhn7cfg:paired-comparison-and-power-functions"
     ]
    }
@@ -41404,9 +43978,12 @@
     "page": 4,
     "anchor": "2. (a) i. The following data reﬂect monthly salaries of a group of people (income),",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
      "9dhn7cfg:paired-comparison-and-power-functions"
     ]
    },
@@ -41474,10 +44051,12 @@
     "page": 5,
     "anchor": "3. (a) A well known fast food retailer forecasts its percentage sales growth for its next",
     "chapters": [
-     "zwvna9b6",
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
      "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    },
@@ -41546,11 +44125,13 @@
     "page": 7,
     "anchor": "4. (a) i. Carefully construct a box plot to display the following annual before tax",
     "chapters": [
-     "9dhn7cfg"
+     "9dhn7cfg",
+     "m4edgan5"
     ],
     "topics": [
+     "9dhn7cfg:paired-comparison-and-power-functions",
      "9dhn7cfg:t-tests",
-     "9dhn7cfg:paired-comparison-and-power-functions"
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots"
     ]
    }
   ]
@@ -41581,9 +44162,12 @@
     "page": 4,
     "anchor": "2. (a) i. The following data reﬂect monthly salaries of a group of people (income),",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
      "9dhn7cfg:paired-comparison-and-power-functions"
     ]
    },
@@ -41662,9 +44246,12 @@
     "page": 6,
     "anchor": "4. (a) Al a r g e c o m p a n y i s c h e c k i n g t h e s a l a r i e s o f i t s e m p l o y e e s r e g u l a r l y",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
      "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    }
@@ -41682,12 +44269,13 @@
     "page": 2,
     "anchor": "1. (a) Display the following data using a stem and leaf plot:",
     "chapters": [
-     "9xf4eaw6",
-     "57vcz5gf"
+     "m4edgan5",
+     "935gqnys"
     ],
     "topics": [
-     "9xf4eaw6:intervals-for-means-of-normal-distributions",
-     "57vcz5gf:normal-distribution-and-standardisation"
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:summation-notation-and-the-sample-mean",
+     "935gqnys:conditional-probability-and-the-chain-rule"
     ]
    },
    {
@@ -41742,12 +44330,13 @@
     "page": 2,
     "anchor": "1. (a) Display the following data using a stem and leaf plot:",
     "chapters": [
-     "9xf4eaw6",
-     "57vcz5gf"
+     "m4edgan5",
+     "935gqnys"
     ],
     "topics": [
-     "9xf4eaw6:intervals-for-means-of-normal-distributions",
-     "57vcz5gf:normal-distribution-and-standardisation"
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:summation-notation-and-the-sample-mean",
+     "935gqnys:conditional-probability-and-the-chain-rule"
     ]
    },
    {
@@ -41802,13 +44391,13 @@
     "page": 2,
     "anchor": "1. (a) Thefollowingscatterdiagramshowstherelationshipbetweentheheightgrowth",
     "chapters": [
-     "935gqnys",
-     "9dhn7cfg"
+     "m4edgan5",
+     "935gqnys"
     ],
     "topics": [
-     "935gqnys:conditional-probability-and-the-chain-rule",
-     "935gqnys:total-probability-and-bayes-theorem",
-     "9dhn7cfg:setting-p-value-significance-level-test-statisti"
+     "m4edgan5:sample-variance-and-standard-deviation",
+     "m4edgan5:summation-notation-and-the-sample-mean",
+     "935gqnys:total-probability-and-bayes-theorem"
     ]
    },
    {
@@ -41842,12 +44431,13 @@
     "page": 6,
     "anchor": "4. (a) The monthly losses (x, in $1000s) of a random sample of thirty managed funds",
     "chapters": [
-     "9dhn7cfg",
-     "9xf4eaw6"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:comparing-two-normal-means",
-     "9xf4eaw6:intervals-for-means-of-normal-distributions"
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
+     "9dhn7cfg:comparing-two-normal-means"
     ]
    }
   ]
@@ -41878,12 +44468,13 @@
     "page": 6,
     "anchor": "2. (a) A bank manager wanted to have an idea of how many people are visiting a",
     "chapters": [
-     "9dhn7cfg",
-     "9xf4eaw6"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:setting-p-value-significance-level-test-statisti",
-     "9xf4eaw6:approximate-confidence-intervals-for-non-normal"
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    },
    {
@@ -41914,6 +44505,63 @@
  },
  {
   "module": "statistics",
+  "title": "ST104A - Statistics 1 - 2006 Exam - Zone-B",
+  "importKey": "drive/statistics/1ZgjzkRnqEbegLkgfMEkWJe-5aj6Wpw-4",
+  "contentHash": "db5cb0073990643541189f5cacd6dd654e90274525cf60016d5bdb69fd7c1206",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "9dhn7cfg",
+     "935gqnys"
+    ],
+    "topics": [
+     "9dhn7cfg:setting-p-value-significance-level-test-statisti",
+     "935gqnys:conditional-probability-and-the-chain-rule",
+     "935gqnys:counting-permutations-and-combinations-with-and"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 6,
+    "chapters": [
+     "57vcz5gf",
+     "zwvna9b6"
+    ],
+    "topics": [
+     "57vcz5gf:normal-distribution-and-standardisation",
+     "zwvna9b6:sums-and-products-of-random-variables"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 7,
+    "chapters": [
+     "zwvna9b6",
+     "6zdqtvng"
+    ],
+    "topics": [
+     "zwvna9b6:covariance-and-correlation-sample-covariance-and",
+     "6zdqtvng:simple-linear-regression"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 8,
+    "chapters": [
+     "9dhn7cfg"
+    ],
+    "topics": [
+     "9dhn7cfg:comparing-two-normal-means",
+     "9dhn7cfg:setting-p-value-significance-level-test-statisti"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "statistics",
   "title": "ST104A - Statistics 1 - 2015 Exam - Zone-A",
   "importKey": "drive/statistics/1ZtNvYSLk4v6QB_3ElRrFhbpKR8FCF0z5",
   "contentHash": "aa70b714840d40efdee8190e3a43bf95d62e83704335d39153c8bd4e0a1c5c2b",
@@ -41924,12 +44572,12 @@
     "page": 2,
     "anchor": "Answer all parts of Question 1 (50 marks in total).",
     "chapters": [
-     "9dhn7cfg",
-     "935gqnys"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "935gqnys:conditional-probability-and-the-chain-rule",
-     "935gqnys:total-probability-and-bayes-theorem",
+     "m4edgan5:data-matrix-and-variable-types",
+     "m4edgan5:summation-notation-and-the-sample-mean",
      "9dhn7cfg:t-tests"
     ]
    },
@@ -41962,11 +44610,12 @@
     "page": 7,
     "anchor": "4. (a) A variety of a broad bean plant is studied and the number of bean s per plant",
     "chapters": [
-     "9xf4eaw6",
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
-     "9xf4eaw6:approximate-confidence-intervals-for-non-normal",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
      "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    }
@@ -42022,11 +44671,13 @@
     "page": 7,
     "anchor": "4. (a) Thirty people were asked about the number of hours they exercise in a seven",
     "chapters": [
-     "9xf4eaw6",
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
-     "9xf4eaw6:approximate-confidence-intervals-for-non-normal"
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
+     "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    }
   ]
@@ -42157,11 +44808,13 @@
     "page": 6,
     "anchor": "4. (a) i. The following data reﬂect the marks for each student of a class. Carefully",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:paired-comparison-and-power-functions",
-     "9dhn7cfg:t-tests"
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
+     "9dhn7cfg:paired-comparison-and-power-functions"
     ]
    }
   ]
@@ -42202,11 +44855,13 @@
     "page": 5,
     "anchor": "3. (a) The data below represent heights, measured in centime tres, of women from",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:paired-comparison-and-power-functions",
-     "9dhn7cfg:t-tests"
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "9dhn7cfg:paired-comparison-and-power-functions"
     ]
    },
    {
@@ -42261,9 +44916,12 @@
     "page": 5,
     "anchor": "3. (a) At a time of economic growth but politi cal uncertainty, a sample of 40 economists",
     "chapters": [
+     "m4edgan5",
      "9xf4eaw6"
     ],
     "topics": [
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
      "9xf4eaw6:intervals-for-means-of-normal-distributions"
     ]
    },
@@ -42308,12 +44966,13 @@
     "page": 4,
     "anchor": "2. (a) The data below represent the weights (in kg) of 30 athletes.",
     "chapters": [
-     "9dhn7cfg",
-     "9xf4eaw6"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:setting-p-value-significance-level-test-statisti",
-     "9xf4eaw6:approximate-confidence-intervals-for-non-normal"
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    },
    {
@@ -42354,13 +45013,13 @@
     "page": 2,
     "anchor": "1. (a) Consider the following sample dataset:",
     "chapters": [
-     "935gqnys",
-     "9dhn7cfg"
+     "m4edgan5",
+     "935gqnys"
     ],
     "topics": [
-     "935gqnys:total-probability-and-bayes-theorem",
-     "935gqnys:counting-permutations-and-combinations-with-and",
-     "9dhn7cfg:type-i-and-type-ii-errors"
+     "m4edgan5:summation-notation-and-the-sample-mean",
+     "m4edgan5:sample-variance-and-standard-deviation",
+     "935gqnys:total-probability-and-bayes-theorem"
     ]
    },
    {
@@ -42393,12 +45052,13 @@
     "page": 6,
     "anchor": "4. (a) The IQ scores for a sample of 30 students who are entering their ﬁrst year of",
     "chapters": [
-     "9dhn7cfg",
-     "9xf4eaw6"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:setting-p-value-significance-level-test-statisti",
-     "9xf4eaw6:approximate-confidence-intervals-for-non-normal"
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
+     "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    }
   ]
@@ -42540,6 +45200,63 @@
  },
  {
   "module": "statistics",
+  "title": "ST104A - Statistics 1 - 2006 Exam - Zone-A",
+  "importKey": "drive/statistics/1t6HS5Dg6eu5WkZz_WqnyDa8_uoEwzq5g",
+  "contentHash": "2705b10cf2e4d0bc79eb56fd36a4b8ab4c381b02697f626331a1c92d1cda74ef",
+  "model": "claude-haiku-5-5",
+  "questions": [
+   {
+    "question": 1,
+    "page": 3,
+    "chapters": [
+     "9dhn7cfg",
+     "935gqnys"
+    ],
+    "topics": [
+     "9dhn7cfg:setting-p-value-significance-level-test-statisti",
+     "935gqnys:set-theory-and-venn-diagrams",
+     "935gqnys:conditional-probability-and-the-chain-rule"
+    ]
+   },
+   {
+    "question": 2,
+    "page": 6,
+    "chapters": [
+     "57vcz5gf",
+     "zwvna9b6"
+    ],
+    "topics": [
+     "57vcz5gf:normal-distribution-and-standardisation",
+     "zwvna9b6:sums-and-products-of-random-variables"
+    ]
+   },
+   {
+    "question": 3,
+    "page": 7,
+    "chapters": [
+     "zwvna9b6",
+     "6zdqtvng"
+    ],
+    "topics": [
+     "zwvna9b6:covariance-and-correlation-sample-covariance-and",
+     "6zdqtvng:simple-linear-regression"
+    ]
+   },
+   {
+    "question": 4,
+    "page": 8,
+    "chapters": [
+     "9dhn7cfg"
+    ],
+    "topics": [
+     "9dhn7cfg:comparing-two-normal-means",
+     "9dhn7cfg:setting-p-value-significance-level-test-statisti"
+    ]
+   }
+  ]
+ },
+ {
+  "module": "statistics",
   "title": "ST104A - Statistics 1 - 2013 Exam - Zone-A",
   "importKey": "drive/statistics/1u5NyLMneG21P6CDoKE0FiJ7saM32nwC3",
   "contentHash": "0c5a6e68201f704753634776da9872d286828b2f37c2ad7d6680f2c80d2eab8c",
@@ -42550,13 +45267,12 @@
     "page": 2,
     "anchor": "1. (a) Classify each one of the following va riables as measurable (continuous) or",
     "chapters": [
-     "935gqnys",
-     "57vcz5gf"
+     "m4edgan5"
     ],
     "topics": [
-     "935gqnys:total-probability-and-bayes-theorem",
-     "935gqnys:conditional-probability-and-the-chain-rule",
-     "57vcz5gf:normal-distribution-and-standardisation"
+     "m4edgan5:data-matrix-and-variable-types",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
+     "m4edgan5:sample-variance-and-standard-deviation"
     ]
    },
    {
@@ -42588,12 +45304,13 @@
     "page": 6,
     "anchor": "4. (a) i. Carefully construct a box plot on the graph paper provided to display the",
     "chapters": [
-     "9dhn7cfg",
-     "9xf4eaw6"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:paired-comparison-and-power-functions",
-     "9dhn7cfg:t-tests"
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:skewness-and-symmetry-of-sample-distributions",
+     "9dhn7cfg:paired-comparison-and-power-functions"
     ]
    }
   ]
@@ -42610,12 +45327,12 @@
     "page": 2,
     "anchor": "1. (a) Consider the following sample dataset:",
     "chapters": [
-     "935gqnys",
-     "zwvna9b6"
+     "m4edgan5",
+     "935gqnys"
     ],
     "topics": [
-     "zwvna9b6:covariance-and-correlation-sample-covariance-and",
-     "935gqnys:counting-permutations-and-combinations-with-and",
+     "m4edgan5:summation-notation-and-the-sample-mean",
+     "m4edgan5:sample-variance-and-standard-deviation",
      "935gqnys:total-probability-and-bayes-theorem"
     ]
    },
@@ -42649,12 +45366,13 @@
     "page": 6,
     "anchor": "4. (a) The IQ scores for a sample of 30 students who are entering their ﬁrst year of",
     "chapters": [
-     "9dhn7cfg",
-     "9xf4eaw6"
+     "m4edgan5",
+     "9dhn7cfg"
     ],
     "topics": [
-     "9dhn7cfg:setting-p-value-significance-level-test-statisti",
-     "9xf4eaw6:approximate-confidence-intervals-for-non-normal"
+     "m4edgan5:grouped-frequency-tables-and-histograms",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
+     "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    }
   ]
@@ -42671,13 +45389,13 @@
     "page": 2,
     "anchor": "1. (a) The following data represent diﬀerent types of variables. Classify each one of",
     "chapters": [
-     "935gqnys",
+     "m4edgan5",
      "hqnvqdi4"
     ],
     "topics": [
-     "hqnvqdi4:discrete-random-variables-and-their-probability",
-     "hqnvqdi4:expected-value-versus-sample-mean",
-     "935gqnys:conditional-probability-and-the-chain-rule"
+     "m4edgan5:data-matrix-and-variable-types",
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "hqnvqdi4:discrete-random-variables-and-their-probability"
     ]
    },
    {
@@ -42710,9 +45428,12 @@
     "page": 6,
     "anchor": "4. (a) An assignment is given to the students of a big class. A random sample of",
     "chapters": [
+     "m4edgan5",
      "9dhn7cfg"
     ],
     "topics": [
+     "m4edgan5:quantiles-quartiles-range-iqr-and-boxplots",
+     "m4edgan5:median-mode-outliers-and-mean-vs-median-under-sk",
      "9dhn7cfg:setting-p-value-significance-level-test-statisti"
     ]
    }

@@ -243,6 +243,17 @@ The password and cover release passed both GitHub CI jobs. Railway's
 - The deployment check now fails when storage is unhealthy, so broken file access cannot pass the health check
   as a warning. Recovery instructions are in DEPLOYMENT section 12.
 
+### Backlog and missing chapters, 2026-11-02
+
+The 27 untagged papers on dev were tagged (22 scans from 2003-2006 that October's retag skipped, MN1178 2014-2015,
+MN3141 RTC Oct 2025): 189 questions. Mohamed's calls: grab-bag questions spread over many taught chapters go under
+their two chapters with the most marks (FN2190 2022 Q2 too); material the current guides don't teach stays untagged
+(ST104A chi-squared association and survey sampling, EC2020 index numbers and GDP); and two of the outline gaps got
+their chapters: ST1215 "Data Visualisation and Descriptive Statistics" (guide ch 1, first) and EC2020 "Binary response
+models and maximum likelihood" (guide ch 12), with lessons (batch 2026-11c) and outlines. 96 already tagged questions
+moved into them (47 and 55 in all). The seed now places a new chapter where the seed file has it, not at the end, and
+puts a paper's tags on the copy the library lists when the same file came in twice.
+
 ### Home and navigation, 2026-11-01 (Mohamed's feedback)
 
 Details in `docs/feedback/2026-11-01-home-and-navigation.md` (H-1 to H-7). Home's default is Results day, Carry on, Up
@@ -277,12 +288,10 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
   the current guides don't teach stay untagged (26 from 2003-2011 papers, international marketing, game theory,
   voting, Laffer curve, rent seeking, monopsony, unions, Hotelling; and 6 more on the same material). Anchors can't be
   kept on scans (no text), so those questions open at their page.
-- **On dev, still to do (Mohamed, on the dev API shell):** the older papers aren't in the bucket yet. Run the Drive
-  import with the key in the environment, then the exam details and the seed again so the tags attach:
-  `read -rs DSBA_GOOGLE_API_KEY && export DSBA_GOOGLE_API_KEY` (pasted, never on a command line), then
-  `python -m app.cli import-drive --yes` (or `--module <id>` per module), then
-  `python -m app.cli exam-meta` and `python -m app.cli seed --only paper-questions`. Papers already on dev (the
-  Year 3 VLE folders, IS2184) get their tags on the next deploy.
+- **Dev Drive import, 2026-11-02 (done from Mohamed's Mac):** 283 files imported, none failed; the Brealey-Myers
+  textbook that came in as an FN2203 past paper was removed (its import key stays recorded, so it won't come back);
+  `MN3141_Marketing management.PDF` is empty in Drive and is retried on the next import. exam-meta changed nothing;
+  extract-texts read 282 files (31 scans). Every seeded tag is on dev (per module, the counts match the file).
 
 ## Operating notes
 
@@ -334,10 +343,10 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
 
 ## Next
 
-1. Add the chapters the retag found missing (Mohamed, 2026-10-21: "Add the chapters"): from the study guides,
-   ST1215 data visualisation and descriptive statistics (with sampling), EC2020 binary response and maximum
-   likelihood (and panel data if the guide has it), MN1178 organisation structure, and others where a guide
-   chapter has no hub chapter; add their outlines and topics, then have Haiku subagents move the affected
+1. Add the chapters the retag found missing (Mohamed, 2026-10-21: "Add the chapters"). Done 2026-11-02: ST1215
+   descriptive statistics, EC2020 binary response and maximum likelihood. Still to do: EC2020 panel data (if the
+   guide has it), MN1178 organisation structure, EC1002 exchange economies, and others where a guide chapter has no
+   hub chapter; add their outlines and topics, then have Haiku subagents move the affected
    questions (the notes in the retag say which) and ship `paper_questions.json` again.
 2. Then, when Mohamed says go: a student test of round 17 (resits, topics, Quick Look, the new sign-in), a security
    review of the new sign-in, Quick Look in the sittings table and Cmd-K.
@@ -351,7 +360,6 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
   (DEPLOYMENT.md section 14). Until then dev signs in with email and password.
 - **Chapters for the outline gaps** listed in round 17, and ST2195 2022 PrelimExam comm (a commentary filed as a
   past paper).
-- **Drive import on dev** for the Year 3 older papers (see "Year 3 and IS2184 content" above).
 - **Content gaps** (round 14 test, ST-45/48/49): tagged past questions exist only for EC1002 and EC2020; solutions
   for 0-2 sittings per module; an exam's "What to bring" opens an empty forum tag; none of the 10 October
   exams has a time or place; each VLE MCQ window is two one-day events.

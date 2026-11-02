@@ -2481,6 +2481,78 @@
   "source": "Introduction to mathematical statistics, J.S. Abdey, ST1215, University of London, 2023",
   "chapters": [
    {
+    "id": "m4edgan5",
+    "title": "Data Visualisation and Descriptive Statistics",
+    "guide": "Chapter 1: Data visualisation and descriptive statistics",
+    "outcomes": [
+     "interpret and summarise raw data on social science variables graphically",
+     "interpret and summarise raw data on social science variables numerically",
+     "calculate basic measures of location and dispersion",
+     "describe the skewness of a distribution and interpret boxplots",
+     "discuss the key terms and concepts introduced in the chapter"
+    ],
+    "topics": [
+     {
+      "id": "data-matrix-and-variable-types",
+      "title": "Data matrix and variable types"
+     },
+     {
+      "id": "frequency-tables-relative-and-cumulative-frequen",
+      "title": "Frequency tables, relative and cumulative frequencies, bar charts"
+     },
+     {
+      "id": "grouped-frequency-tables-and-histograms",
+      "title": "Grouped frequency tables and histograms"
+     },
+     {
+      "id": "skewness-and-symmetry-of-sample-distributions",
+      "title": "Skewness and symmetry of sample distributions"
+     },
+     {
+      "id": "summation-notation-and-the-sample-mean",
+      "title": "Summation notation and the sample mean"
+     },
+     {
+      "id": "median-mode-outliers-and-mean-vs-median-under-sk",
+      "title": "Median, mode, outliers, and mean vs median under skewness"
+     },
+     {
+      "id": "sample-variance-and-standard-deviation",
+      "title": "Sample variance and standard deviation"
+     },
+     {
+      "id": "quantiles-quartiles-range-iqr-and-boxplots",
+      "title": "Quantiles, quartiles, range, IQR and boxplots"
+     },
+     {
+      "id": "associations-between-two-variables",
+      "title": "Associations between two variables"
+     }
+    ],
+    "terms": [
+     "Continuous",
+     "Discrete",
+     "Nominal",
+     "Ordinal",
+     "Sample distribution",
+     "Frequency table",
+     "Bar chart",
+     "Histogram",
+     "Skewness",
+     "Mean",
+     "Median",
+     "Mode",
+     "Outlier",
+     "Variance",
+     "Standard deviation",
+     "Quantile",
+     "Interquartile range",
+     "Boxplot",
+     "Scatterplot",
+     "Contingency table"
+    ]
+   },
+   {
     "id": "935gqnys",
     "title": "Probability Theory",
     "guide": "Chapter 2: Probability theory",
@@ -3465,6 +3537,81 @@
      "structural equation",
      "order condition",
      "rank condition"
+    ]
+   },
+   {
+    "id": "hifykydg",
+    "title": "Binary response models and maximum likelihood",
+    "guide": "Chapter 12: Binary response models and maximum likelihood",
+    "outcomes": [
+     "describe the linear probability model (LPM) and discuss the interpretation of parameters",
+     "discuss the benefits/disadvantages of the LPM",
+     "discuss heteroskedasticity-robust inference for the LPM",
+     "discuss the properties of ML estimators",
+     "derive the MLE from first principles in simple models",
+     "specify the logit model and the log-likelihood function for its estimation by MLE",
+     "understand how to obtain partial effects in logit and probit models",
+     "conduct hypothesis tests using logit and probit models (in particular use the z test and the likelihood ratio (LR) test)"
+    ],
+    "topics": [
+     {
+      "id": "linear-probability-model",
+      "title": "Linear probability model"
+     },
+     {
+      "id": "lpm-drawbacks",
+      "title": "LPM drawbacks"
+     },
+     {
+      "id": "heteroskedasticity-in-the-lpm",
+      "title": "Heteroskedasticity in the LPM"
+     },
+     {
+      "id": "logit-and-probit",
+      "title": "Logit and probit"
+     },
+     {
+      "id": "maximum-likelihood",
+      "title": "Maximum likelihood"
+     },
+     {
+      "id": "deriving-the-mle-from-first-principles-bernoulli",
+      "title": "Deriving the MLE from first principles (Bernoulli, exponential)"
+     },
+     {
+      "id": "logit-probit-log-likelihood-regression-output-an",
+      "title": "Logit/probit log-likelihood, regression output and predicted probabilities"
+     },
+     {
+      "id": "partial-effects-in-logit-probit",
+      "title": "Partial effects in logit/probit"
+     },
+     {
+      "id": "goodness-of-fit-and-tests",
+      "title": "Goodness of fit and tests"
+     }
+    ],
+    "terms": [
+     "Binary response model",
+     "Linear probability model (LPM)",
+     "Response probability",
+     "Heteroskedasticity-robust standard errors",
+     "Weighted least squares",
+     "Logit model",
+     "Probit model",
+     "Bernoulli distribution",
+     "Likelihood function",
+     "Log-likelihood function",
+     "Maximum likelihood estimator (MLE)",
+     "Consistency",
+     "Asymptotic normality",
+     "Asymptotic efficiency",
+     "Partial effect",
+     "Average partial effect (APE)",
+     "Partial effect of the average individual (PEA)",
+     "Percent correctly predicted",
+     "z test (asymptotic t test)",
+     "Likelihood ratio (LR) test"
     ]
    }
   ],
