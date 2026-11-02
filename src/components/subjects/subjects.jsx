@@ -196,6 +196,9 @@ const toggleChapter = (index) => {
             { name: 'Mahdi', link: 'https://drive.google.com/drive/folders/1HbOmDlowIBqImfoWlN7ss2EOImXtMxxM' },
 
     ],
+    machine_learning: [
+      { name: 'ST3189 Complete Study Guide (Python), by Hussain Ebrahim and Mohamed Alnooh', link: 'https://drive.google.com/file/d/1WOaLWQLe4yRvjz_qLfuj1q4HVU5rELtZ/view' },
+    ],
   };
 
   const subjectExerciseLinks = {
@@ -453,7 +456,7 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
         { title: 'Pure Monopoly', videoIds: ['E07bl-TUmmY','D7vYXago3-A'] },
         { title: 'Market structure and Imperfect Competition', videoIds: ['AoCVu3Tr2tk','ECMD9OAsBmQ','idFuhMRzr0Y'] },
         { title: 'The Labour Market', videoIds: ['_2Xi866KB8A'] },
-        { title: 'Welfare Economics', videoIds: ['PC3qooaF5Xs','osvoVuESEKY'] },
+        { title: 'Welfare Economics', videoIds: ['PC3qooaF5Xs','osvoVuESEKY', '894I5bb5bos','7QFAQJBq1uk','Bjg-KPQhWyM','d3YtlAd7-tY'] },
         { title: 'Introduction to Macroeconomics', videoIds: ['qtNZSbzRP3A','ZdGnhusKnRU','iNfNZ1mIGRE'] },
         { title: 'Supply-side economics and economic growth', videoIds: ['PvfdPfEd-gk','ldszxyaFcHk','E3Niu4E1kbI','EUOcBo-gzdE','7yeWBFzGHS4','SAgt0oAv2FI','mHP8q-em1wo'] },
         { title: 'Output and aggregate demand (Playlist) skip to go to the next', videoIds: ['PL_o_l6j2TdmhF9DN-n3IIq5fTFmMTT14y'] },
@@ -473,7 +476,7 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
       year: 1,
       chapters: [
         { title: 'Globalisation', videoIds: ['aguTvH4Tc-c'] },
-        { title: 'Political, econmoic and legal evnvironments', videoIds: ['k1wbj3aXPsQ'] },
+        { title: 'Political, economic and legal environments', videoIds: ['k1wbj3aXPsQ'] },
         { title: 'Informal Institutions', videoIds: ['9GFyMXHWo6w'] },
         { title: 'International Trade and Investment', videoIds: ['KROTqSzz4BQ'] },
         { title: 'Multilateral organisations and regional integration', videoIds: ['CkhdBMXcu0k'] },
@@ -482,11 +485,11 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
         { title: 'Competitive Strategy for International Business', videoIds: ['c0XJDVKBBwc'] },
         { title: 'International Business Strategies: Market Entry and Growth', videoIds: ['SNjn9h3QVUk'] },
         { title: 'International Marketing and R&D Strategy', videoIds: ['nG2fesHT0Ss'] },
-        { title: 'Global-Sourcing-Production', videoIds: ['u1pS_hwYkkc'] },
+        { title: 'Organisation of International Business', videoIds: ['jviFsd4hhfE','ZtdxJ2YnC44','Ux16-Y5zZzg','hJ9wbFgmtKM','OY3g2wyXUWw','CJXft25tRYs'] },
+        { title: 'Global Sourcing and Production', videoIds: ['u1pS_hwYkkc'] },
         { title: 'Global information systems management', videoIds: ['ADEyI7AvEcI'] },
-        { title: 'International-Project-Management', videoIds: ['ngiDb1ugbnM'] },
-        { title: 'International-Human-Resource-Man', videoIds: ['mubdwgK6Ss'] },
-        { title: 'International Project Management', videoIds: ['AQwveBtsuyI'] },
+        { title: 'International Human Resource Management', videoIds: ['awiUMdgyfq0','U9ogq9pqkl8','tl3ZAR8PMcM','yU8DEithHsc','4Ho5UObReRg','AyZKOPcuftU'] },
+        { title: 'International Project Management', videoIds: ['ngiDb1ugbnM'] },
         { title: 'Global Digital Management', videoIds: ['uJSwD5Vzbhk'] },
       ]
     },
@@ -710,6 +713,7 @@ const SubjectCardGrid = ({ selectedYear = 1 }) => {
         {title: 'The Simple Regression Model', videoIds: ["WHas2yaIlcs"]},
         {title: 'Multiple Regression Analysis: Estimation', videoIds: ["17nWWWUrUcg"]},
         {title: 'Inference', videoIds: ["S72V6trrwKY"]},
+        { title: 'Multiple Regression Analysis: Further Issues and Dummy Variables', videoIds: ['-kOyvpSRq6E','kE_I-5rxtEA','r-DzqemVeto','zT2FJV9HYrU','CG2sKEjEqOg','mQug4A6BrSY','akH7xapNmkk','sBXOX-GRshU','5teRbycIErE'] },
         {title: 'OLS Asymptotics', videoIds: ["nORu6KPc7o4"]},
         {title: 'Heteroskedasticity', videoIds: ["DMzBRYqAHrE"]},
         {title: 'Time series', videoIds: ["EhvPfZYJCkE" ]},
