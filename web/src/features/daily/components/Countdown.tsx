@@ -1,4 +1,5 @@
-// The time left until the next set, in hours and minutes. When it runs out, `onDone` fetches the new set.
+// The time left until the next set, as a clock that ticks each second (hours:minutes:seconds). When it runs out,
+// `onDone` fetches the new set.
 import { useEffect, useRef, useState } from 'react';
 import { formatTimeLeft } from '../lib/time';
 
