@@ -243,6 +243,20 @@ The password and cover release passed both GitHub CI jobs. Railway's
 - The deployment check now fails when storage is unhealthy, so broken file access cannot pass the health check
   as a warning. Recovery instructions are in DEPLOYMENT section 12.
 
+### More chapters and the MN1178 guide, 2026-11-02
+
+MN1178 got its guide chapter 11 as "Organisation of International Business" (batch 2026-11d), its outlines were
+re-written from the official subject guide (Willcocks 2021, in the module's materials folder; the October ones came
+from student notes) and its chapters follow the guide's order: international HRM (ch 14) before project management (ch
+15), once, by the seed's chapter-order step (CHAPTER_ORDERS, audit module.seed_order). The HRM chapter's video was
+broken; six working ones replace it (batch 2026-11e) and the seed's broken-lessons step (BROKEN_LESSONS) removes the
+old lesson, moving notes and cards to the first new one. EC2020 got guide chapter 6 as "Multiple Regression Analysis:
+Further Issues and Dummy Variables"; panel data has no chapter in the 2023 guide, so its 4 questions are untagged
+(Mohamed's off-syllabus rule). EC1002's exchange economies are Block 10 sections: two topics and four lessons in
+Welfare Economics. 54 questions moved into the new chapters and topics (30 EC2020, 18 MN1178, 8 EC1002 tags) after a
+second look; Mohamed decided the close calls. The ST3189 Complete Study Guide (Python) by Hussain Ebrahim and Mohamed
+Alnooh is in ST3189's notes (pushed from Mohamed's Mac session).
+
 ### Backlog and missing chapters, 2026-11-02
 
 The 27 untagged papers on dev were tagged (22 scans from 2003-2006 that October's retag skipped, MN1178 2014-2015,
@@ -343,11 +357,9 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
 
 ## Next
 
-1. Add the chapters the retag found missing (Mohamed, 2026-10-21: "Add the chapters"). Done 2026-11-02: ST1215
-   descriptive statistics, EC2020 binary response and maximum likelihood. Still to do: EC2020 panel data (if the
-   guide has it), MN1178 organisation structure, EC1002 exchange economies, and others where a guide chapter has no
-   hub chapter; add their outlines and topics, then have Haiku subagents move the affected
-   questions (the notes in the retag say which) and ship `paper_questions.json` again.
+1. The chapters the retag found missing are in (2026-11-02). Still worth a look: other guide chapters folded into
+   a neighbour (EC2020 guide ch 10 measurement error and ch 11 simultaneous equations sit in Instrumental variables;
+   ch 13-14 in Time series), and any module whose outlines came from notes rather than its guide.
 2. Then, when Mohamed says go: a student test of round 17 (resits, topics, Quick Look, the new sign-in), a security
    review of the new sign-in, Quick Look in the sittings table and Cmd-K.
 3. Still open from earlier reviews: CQ-20; SEC-14; the standards review's S-1, S-3, S-4 and S-5 to S-7.

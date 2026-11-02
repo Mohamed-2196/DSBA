@@ -1041,17 +1041,19 @@
  {
   "module": "business",
   "unitCode": "MN1178",
-  "source": "BMGC chapter notes (student notes on the course textbook; no subject guide in the library)",
+  "source": "Business and management in a global context, MN1178, L.P. Willcocks, University of London, 2021 (subject guide)",
   "chapters": [
    {
     "id": "6r8c733y",
     "title": "Globalisation",
-    "guide": "Chapter 1: Globalisation",
+    "guide": "Chapter 1: Perspectives on globalisation and international business",
     "outcomes": [
-     "Define globalisation, globality and deglobalisation and their major characteristics",
-     "Assess the global economy and its broad trends (output, trade, FDI, types of firm, world order)",
-     "Present the globalisation debates (jobs and income, labour and environment, shifts in economic power, wealth distribution)",
-     "Describe the implications of globalisation, slowbalisation and Covid-19 for international companies"
+     "define the major characteristics of globalisation",
+     "assess the global economy and its broad trends",
+     "explain the major trends in globalisation, and the major players in the globalisation process",
+     "enter into the major globalisation debates and assess under what conditions and for whom globalisation can be considered an advantage or disadvantage",
+     "describe the implications of globalisation for companies operating internationally",
+     "assess the short- and long-term implications for international business arising from the COVID-19 and economic crises, and emerging global trends, including de-globalisation"
     ],
     "topics": [
      {
@@ -1059,16 +1061,24 @@
       "title": "Definition and characteristics of globalisation"
      },
      {
+      "id": "waves-and-drivers-of-globalisation-emerging-econ",
+      "title": "Waves and drivers of globalisation; emerging economies"
+     },
+     {
       "id": "trends-in-world-output-trade-and-fdi-non-us-and",
-      "title": "Trends in world output, trade and FDI; non-US and mini-multinationals; change in world order"
+      "title": "Trends in world output, trade and FDI; non-US and mini-MNEs"
      },
      {
       "id": "slowbalisation-protectionism-and-de-globalisatio",
-      "title": "Slowbalisation, protectionism and de-globalisation, and their causes and implications"
+      "title": "Slowbalisation, protectionism and de-globalisation"
      },
      {
       "id": "globalisation-debates-opponents-versus-supporter",
       "title": "Globalisation debates: opponents versus supporters"
+     },
+     {
+      "id": "systemic-risks-of-globalisation-the-butterfly-de",
+      "title": "Systemic risks of globalisation: the butterfly defect"
      },
      {
       "id": "does-distance-still-matter-friedman-versus-ghema",
@@ -1076,35 +1086,40 @@
      },
      {
       "id": "what-globalisation-means-for-firms-low-trade-bar",
-      "title": "What globalisation means for firms: low trade barriers, technology, transport"
+      "title": "What globalisation means for firms: low trade barriers"
      }
     ],
     "terms": [
-     "globality",
+     "globalisation",
      "deglobalisation",
      "slowbalisation",
-     "multinational enterprise",
+     "globalisation of markets and of production",
+     "foreign direct investment (FDI)",
+     "multinational enterprise (MNE)",
      "mini-multinationals",
-     "comparative advantage",
-     "Friedman's 10 flatteners",
+     "developed and emerging economies",
+     "BRIC countries",
+     "World Trade Organisation (WTO)",
+     "International Monetary Fund (IMF)",
+     "United Nations (UN)",
+     "systemic risk (the butterfly defect)",
+     "the world is flat (Friedman's 10 flatteners)",
+     "distance still matters (Ghemawat)",
      "law of semi-globalisation",
      "law of distance",
-     "CAGE distance",
-     "containerisation",
-     "supranational organisations (WTO, IMF, World Bank)",
-     "protectionism"
+     "containerisation"
     ]
    },
    {
     "id": "g8u2nfmy",
     "title": "Political, economic and legal environments",
-    "guide": "Chapter 2: Political, Economic and Legal Environment",
+    "guide": "Chapter 2: Political, economic and legal environments",
     "outcomes": [
-     "Define institutions and their role in reducing uncertainty, transaction costs and opportunism",
-     "Explain differences among political systems and their influence on international business",
-     "Discuss differences among economic systems and the related challenges",
-     "Describe the basic differences between legal systems",
-     "Assess debates on how political, economic and legal institutions affect country development"
+     "define the concept of institutions and delineate their key role in reducing uncertainty",
+     "explain the basic differences between political systems and their influence on international business",
+     "discuss the systemic differences among economies and the related challenges for international business",
+     "describe the basic differences between legal systems in the world",
+     "engage in and assess leading debates on political, economic and legal institutions and international business"
     ],
     "topics": [
      {
@@ -1112,62 +1127,74 @@
       "title": "Institution-based view: formal and informal institutions"
      },
      {
-      "id": "political-systems-collectivism-versus-individual",
-      "title": "Political systems: collectivism versus individualism, democracy versus totalitarianism"
+      "id": "transaction-costs-opportunism-and-institutional",
+      "title": "Transaction costs, opportunism and institutional transition"
      },
      {
-      "id": "economic-systems-market-command-and-mixed-variet",
-      "title": "Economic systems: market, command and mixed; varieties of capitalism"
+      "id": "political-systems-collectivism-versus-individual",
+      "title": "Political systems: collectivism versus individualism"
+     },
+     {
+      "id": "totalitarianism-versus-democracy-political-risk",
+      "title": "Totalitarianism versus democracy; political risk"
+     },
+     {
+      "id": "economic-systems-market-command-and-mixed",
+      "title": "Economic systems: market, command and mixed"
+     },
+     {
+      "id": "varieties-of-capitalism-coordinated-and-liberal",
+      "title": "Varieties of capitalism: coordinated and liberal markets"
      },
      {
       "id": "legal-systems-common-civil-and-religious-law",
       "title": "Legal systems: common, civil and religious law"
      },
      {
-      "id": "property-rights-intellectual-property-product-sa",
-      "title": "Property rights, intellectual property, product safety and liability, corporate governance"
+      "id": "property-rights-ip-product-safety-corporate-gove",
+      "title": "Property rights, IP, product safety, corporate governance"
      },
      {
-      "id": "country-development-and-measuring-it-gni-ppp-hdi",
-      "title": "Country development and measuring it (GNI, PPP, HDI); why countries succeed or fail"
+      "id": "country-development-gni-ppp-hdi-why-countries-su",
+      "title": "Country development: GNI, PPP, HDI; why countries succeed"
      }
     ],
     "terms": [
      "institution-based view",
+     "formal and informal institutions",
      "transaction costs",
      "opportunism (Williamson)",
      "institutional transition",
+     "collectivism versus individualism",
      "totalitarianism (communist, theocratic, tribal, right-wing)",
+     "representative democracy",
      "proportional representation versus first-past-the-post",
      "political risk",
-     "market economy",
-     "command economy",
-     "mixed economy",
-     "varieties of capitalism (Hall and Soskice)",
-     "coordinated versus liberal market economy",
-     "common law",
-     "civil law",
-     "religious law",
+     "market, command and mixed economies",
+     "coordinated market economy",
+     "liberal market economy",
+     "common law, civil law and religious law",
      "UN Convention on Contracts for the International Sale of Goods",
-     "patents, copyrights, trademarks",
-     "Paris Convention",
-     "product liability",
+     "property rights",
+     "patents, copyrights and trademarks",
      "corporate governance",
-     "Human Development Index",
-     "Sen's capabilities",
-     "North: institutions and performance"
+     "purchasing power parity (PPP)",
+     "Human Development Index (HDI)"
     ]
    },
    {
     "id": "nivt387r",
     "title": "Informal Institutions",
-    "guide": "Chapter 3: Informal Institutions",
+    "guide": "Chapter 3: Informal institutions: cultural, social and ethical challenges",
     "outcomes": [
-     "Define culture and explain how language and religion shape it",
-     "Discuss how cultures systematically differ (context, cluster and dimensions approaches)",
-     "Describe the importance of ethics and ways to deal with ethical dilemmas",
-     "Summarise the CSR challenges facing companies in the global economy and how institutions shape CSR and sustainability practices",
-     "Describe forms of corruption in international contexts and counter-policies"
+     "define what culture is and articulate two of its manifestations, namely language and religion",
+     "discuss how cultures systematically differ from each other",
+     "explain how language competences shape intercultural interactions, and how religions shape cultures",
+     "describe the importance of ethics",
+     "summarise corporate social responsibility challenges faced by companies operating in the global economy",
+     "discuss how institutions influence companies' corporate social responsibility activities and sustainability practices",
+     "describe forms of corruption in international contexts, and suggest counter-policies",
+     "participate in leading debates about culture, social responsibility and sustainability, and draw implications for management action"
     ],
     "topics": [
      {
@@ -1176,11 +1203,11 @@
      },
      {
       "id": "context-approach-cluster-approach-dimensions-app",
-      "title": "Context approach, cluster approach, dimensions approach (Hofstede, Trompenaars)"
+      "title": "Context approach, cluster approach, dimensions approach"
      },
      {
       "id": "managing-cultural-diversity-language-and-unspoke",
-      "title": "Managing cultural diversity; language and unspoken communication"
+      "title": "Managing cultural diversity; language and unspoken language"
      },
      {
       "id": "religion-and-its-effect-on-business",
@@ -1188,15 +1215,15 @@
      },
      {
       "id": "ethics-ethical-dilemmas-relativism-imperialism-d",
-      "title": "Ethics: ethical dilemmas, relativism, imperialism, Donaldson's middle road"
+      "title": "Ethics: ethical dilemmas, relativism/imperialism, Donaldson"
      },
      {
       "id": "csr-stakeholder-analysis-triple-bottom-line-four",
-      "title": "CSR, stakeholder analysis, triple bottom line, four CSR concerns"
+      "title": "CSR, stakeholder analysis, triple bottom line, four issues"
      },
      {
       "id": "csr-strategies-willard-s-sustainability-journey",
-      "title": "CSR strategies; Willard's sustainability journey; circular economy"
+      "title": "CSR strategies; Willard's sustainability journey"
      },
      {
       "id": "corruption-and-how-to-reduce-it",
@@ -1204,52 +1231,52 @@
      }
     ],
     "terms": [
+     "culture",
      "ethnocentrism",
-     "high-context and low-context cultures",
-     "Huntington's civilisations",
-     "Hofstede's six dimensions",
-     "power distance",
-     "uncertainty avoidance",
-     "masculinity versus femininity",
-     "indulgence versus restraint",
-     "Trompenaars' seven dimensions",
-     "universalism versus particularism",
-     "lingua franca",
      "cross-cultural literacy",
+     "high-context and low-context cultures",
+     "cultural clusters (Ronen and Shenkar, GLOBE, Huntington)",
+     "Hofstede's six dimensions",
+     "Trompenaars' seven dimensions",
+     "Friedman doctrine",
      "ethical relativism",
      "ethical imperialism",
      "Donaldson's three principles",
+     "corporate social responsibility (CSR)",
      "primary and secondary stakeholders",
-     "instrumental versus normative view",
-     "triple bottom line",
-     "tragedy of the commons",
-     "race to the bottom",
-     "reactive, defensive, accommodative, proactive strategy",
+     "triple bottom line (profit, people, planet)",
+     "explicit and implicit CSR",
+     "reactive, defensive, accommodative and proactive strategies",
      "Willard's five-stage sustainability journey",
      "circular economy",
-     "pervasiveness and arbitrariness of corruption",
-     "OECD anti-bribery measure"
+     "Cuervo-Cazurra's corruption framework",
+     "Corruption Perceptions Index"
     ]
    },
    {
     "id": "uzjmuvcd",
     "title": "International Trade and Investment",
-    "guide": "Chapter 4: International Trade and Investment",
+    "guide": "Chapter 4: International trade and investment",
     "outcomes": [
-     "Describe and assess classical and modern theories of trade",
-     "Explain how governments regulate and restrain trade through tariff and non-tariff barriers",
-     "Debate free trade versus protectionism and its net effects on different parties",
-     "Explain the theories and conditions under which FDI makes business sense (OLI)",
-     "Assess the costs and benefits of FDI for the host country and the actions host governments take"
+     "describe and assess the relevance of classical and modern theories of trade",
+     "explain the role of governments in regulating and restraining international trade",
+     "debate the evidence on whether free trade or protectionism provide net advantages to host countries, home countries, consumers, domestic producers and MNEs making foreign direct investments (FDIs)",
+     "discuss the major theories and conditions under which an MNE strategy of FDI makes business sense",
+     "assess the costs and benefits of FDI from a host-country perspective and understand the actions host countries can and may take with regard to FDI",
+     "assess and make recommendations on the challenges MNEs face when undertaking international trade and FDI"
     ],
     "topics": [
      {
-      "id": "classical-theories-mercantilism-absolute-advanta",
-      "title": "Classical theories: mercantilism, absolute advantage, comparative advantage, factor endowments"
+      "id": "mercantilism-absolute-and-comparative-advantage",
+      "title": "Mercantilism, absolute and comparative advantage"
      },
      {
       "id": "modern-theories-product-life-cycle-strategic-tra",
-      "title": "Modern theories: product life cycle, strategic trade theory, Porter's diamond"
+      "title": "Modern theories: product life cycle, strategic trade theory"
+     },
+     {
+      "id": "porter-s-diamond-of-national-competitive-advanta",
+      "title": "Porter's diamond of national competitive advantage"
      },
      {
       "id": "tariff-and-non-tariff-barriers",
@@ -1257,11 +1284,11 @@
      },
      {
       "id": "free-trade-debate-political-and-economic-argumen",
-      "title": "Free trade debate: political and economic arguments for intervention"
+      "title": "Free trade debate: political and economic arguments"
      },
      {
       "id": "fdi-greenfield-versus-acquisition-flows-and-stoc",
-      "title": "FDI: greenfield versus acquisition, flows and stock, horizontal versus vertical"
+      "title": "FDI: greenfield versus acquisition, flows and stock"
      },
      {
       "id": "dunning-s-oli-framework",
@@ -1273,38 +1300,39 @@
      }
     ],
     "terms": [
+     "free trade",
+     "protectionism",
      "mercantilism",
-     "zero-sum game",
      "absolute advantage",
      "comparative advantage",
-     "factor endowments",
+     "Heckscher-Ohlin factor endowments",
      "product life cycle (Vernon)",
      "strategic trade theory",
-     "Porter diamond",
-     "tariff",
-     "subsidies",
-     "import quota",
-     "voluntary export restraints",
+     "first-mover advantage",
+     "Porter's diamond",
+     "tariffs and subsidies",
+     "import quotas and voluntary export restraints",
      "local content requirements",
-     "anti-dumping duties",
+     "anti-dumping policies",
      "infant industry argument",
+     "greenfield investment versus acquisition",
      "FDI flow and stock",
-     "horizontal and vertical FDI",
-     "greenfield investment",
-     "OLI framework",
      "ownership, location and internalisation advantages",
-     "liability of outsidership",
-     "agglomeration"
+     "agglomeration",
+     "pragmatic nationalism"
     ]
    },
    {
     "id": "x7fewq6r",
     "title": "Multilateral organisations and regional integration",
-    "guide": "Chapter 5: Multilateral Organisations and Regional Integration",
+    "guide": "Chapter 5: Multilateral organisations and regional integration",
     "outcomes": [
-     "Explain the multilateral institutions of the global trade system (GATT, WTO) and their current challenges",
-     "Describe the multilateral institutions of the global monetary system (IMF) and their challenges",
-     "Describe the advantages and disadvantages of regional and bilateral economic integration in Europe, the Americas and Asia Pacific"
+     "explain the multilateral institutions of the global trade system and their current challenges",
+     "describe the multilateral institutions of the global monetary system and discuss their current challenges",
+     "describe the advantages and disadvantages of regional and bilateral economic integration in Europe, the Americas and the Asia Pacific",
+     "discuss the EU's political institutions and how and why the institutional framework created by the EU is pivotal for business",
+     "participate in debates about further multilateral policy forums and institutions contributing to economic integration",
+     "outline the implications for management action"
     ],
     "topics": [
      {
@@ -1312,12 +1340,20 @@
       "title": "Five levels of regional economic integration"
      },
      {
+      "id": "economic-and-political-case-for-regional-integra",
+      "title": "Economic and political case for regional integration"
+     },
+     {
       "id": "trade-creation-versus-trade-diversion",
       "title": "Trade creation versus trade diversion"
      },
      {
       "id": "gatt-and-the-wto-functions-dispute-settlement-do",
-      "title": "GATT and the WTO: functions, dispute settlement, Doha Round, criticisms and challenges"
+      "title": "GATT and the WTO: functions, dispute settlement, Doha Round"
+     },
+     {
+      "id": "other-multilateral-agendas-development-climate-f",
+      "title": "Other multilateral agendas: development, climate, finance"
      },
      {
       "id": "imf-roles-and-criticisms",
@@ -1325,7 +1361,7 @@
      },
      {
       "id": "european-union-single-market-four-freedoms-free",
-      "title": "European Union: single market, four freedoms, free movement, euro"
+      "title": "European Union: single market, four freedoms, free movement"
      },
      {
       "id": "americas-nafta-and-usmca-mercosur-andean-communi",
@@ -1342,23 +1378,19 @@
      "common market",
      "economic union",
      "political union",
-     "trade creation",
-     "trade diversion",
+     "trade creation and trade diversion",
      "GATT",
-     "WTO",
-     "non-discrimination",
-     "most favoured nation",
-     "Doha Development Agenda",
-     "Dispute Settlement Body and Appellate Body",
-     "IMF lender of last resort",
-     "moral hazard",
-     "subsidiarity principle",
-     "Schengen Agreement",
-     "four freedoms",
-     "NAFTA",
-     "USMCA",
-     "Mercosur",
-     "Andean Community",
+     "World Trade Organization (WTO)",
+     "non-discrimination principle",
+     "Doha development agenda",
+     "Paris Agreement",
+     "International Monetary Fund (IMF)",
+     "IMF conditionality",
+     "European Union institutions",
+     "single market and four freedoms",
+     "euro",
+     "NAFTA and USMCA",
+     "Mercosur and Andean Community",
      "ASEAN",
      "RCEP"
     ]
@@ -1366,12 +1398,12 @@
    {
     "id": "f7bedikd",
     "title": "Exchange Rates",
-    "guide": "Chapter 6: Exchange Rates and IMS",
+    "guide": "Chapter 6: Exchange rates and the international monetary system",
     "outcomes": [
-     "Describe the determinants of exchange rates",
-     "Outline the development of the international monetary system",
-     "Discuss the role of the International Monetary Fund",
-     "Identify a company's possible management responses to currency exchange rate risk"
+     "describe the determinants of exchange rates",
+     "outline the development of the international monetary system",
+     "discuss the role of the International Monetary Fund",
+     "identify the company's possible management responses to dealing with currency exchange rate risks"
     ],
     "topics": [
      {
@@ -1391,62 +1423,68 @@
       "title": "Strategies to reduce foreign exchange risk"
      },
      {
-      "id": "gold-standard-bretton-woods-and-the-post-bretton",
-      "title": "Gold standard, Bretton Woods and the post-Bretton Woods system"
+      "id": "gold-standard-bretton-woods-and-the-post-1973-sy",
+      "title": "Gold standard, Bretton Woods and the post-1973 system"
      },
      {
-      "id": "exchange-rate-policies-floating-pegged-fixed-com",
-      "title": "Exchange rate policies: floating, pegged, fixed, common currency"
+      "id": "floating-pegged-fixed-and-common-currency-polici",
+      "title": "Floating, pegged, fixed and common currency policies"
+     },
+     {
+      "id": "currency-crises-and-the-role-of-the-imf",
+      "title": "Currency crises and the role of the IMF"
      },
      {
       "id": "strategic-hedging-diversification-currency-hedgi",
-      "title": "Strategic hedging, diversification, currency hedging and swaps"
+      "title": "Strategic hedging, diversification, currency hedging, swaps"
      }
     ],
     "terms": [
-     "spot exchange rate",
-     "interest rates and exchange rates",
-     "current account surplus and deficit",
-     "bandwagon effect",
+     "foreign exchange market",
+     "spot and forward exchange rates",
+     "hedging",
+     "arbitrage",
+     "purchasing power parity",
+     "inflation and interest rates",
+     "balance of payments",
+     "investor psychology and the bandwagon effect",
      "transaction exposure",
      "translation exposure",
      "economic exposure",
      "leading and lagging",
      "gold standard",
-     "Bretton Woods Agreement",
-     "IMF and World Bank",
-     "free float and managed float",
-     "pegged exchange rate",
+     "Bretton Woods system",
+     "free float, managed (dirty) float, pegged and fixed rates",
      "currency board",
-     "common currency (CFA franc)",
-     "strategic hedging",
-     "currency swap",
-     "bid and offer rate"
+     "common currency",
+     "currency, banking and foreign debt crises",
+     "moral hazard",
+     "strategic hedging and currency swap"
     ]
    },
    {
     "id": "4dhhuihn",
     "title": "Overview of Strategy and the Enterprise in International Context",
-    "guide": "Chapter 7: Strategy & Enterprise in International Contexts",
+    "guide": "Chapter 7: Overview of strategy and the enterprise in international contexts",
     "outcomes": [
-     "Define strategy, value creation and the value chain, and apply them to international cases",
-     "Identify economies from location, experience effects and scale",
-     "Describe the components of environmental analysis and apply PESTEL, SWOT, Minimax and CAGE",
-     "Develop international strategy with Ghemawat's AAA model",
-     "Choose among the four basic international strategies: international, localisation, global standardisation, transnational"
+     "define the concepts of strategy, value creation and the value chain of a company",
+     "apply these concepts to real-life cases in international business",
+     "identify economies from location, experience effects and scale, and apply these ideas to strategy development in international business",
+     "describe the major components of an environmental analysis and apply the PESTEL, SWOT, Minimax and CAGE frameworks to actual cases",
+     "explain how to develop international business strategy for an organisation using Ghemawat's AAA model and choosing a developmental path across the four basic international strategy types, namely international (home replication), localisation, global standardisation and transnational strategies"
     ],
     "topics": [
      {
       "id": "strategy-and-value-creation-unrealised-and-emerg",
-      "title": "Strategy and value creation; unrealised and emergent strategy"
+      "title": "Strategy and value creation; unrealised and emergent"
      },
      {
       "id": "value-chain-primary-and-support-activities",
       "title": "Value chain: primary and support activities"
      },
      {
-      "id": "location-economies-experience-curve-effects-econ",
-      "title": "Location economies, experience curve effects, economies of scale"
+      "id": "economies-from-location-experience-effects-and-s",
+      "title": "Economies from location, experience effects and scale"
      },
      {
       "id": "pestel-swot-and-minimax-analysis",
@@ -1470,37 +1508,40 @@
      }
     ],
     "terms": [
-     "value chain",
+     "strategy (Chandler; Hitt, Ireland and Hoskisson)",
+     "unrealised and emergent strategy",
+     "profitability and profit growth",
+     "value creation",
+     "primary and support activities",
      "core competencies",
-     "location economies",
-     "experience curve",
      "economies of scale",
+     "location economies",
+     "experience curve effects",
      "PESTEL",
      "SWOT",
-     "Minimax",
-     "CAGE (cultural, administrative, geographic, economic)",
+     "Minimax analysis",
+     "CAGE distance framework",
      "Four Cs: configuration, coordination, culture, cosmopolitanism",
      "AAA: adaptation, aggregation, arbitrage",
-     "economic arbitrage",
-     "pressure for cost reductions",
-     "pressure for local responsiveness",
+     "pressures for cost reductions and for local responsiveness",
      "international (home replication) strategy",
      "localisation (multi-domestic) strategy",
      "global standardisation strategy",
-     "transnational strategy",
-     "mass customisation"
+     "transnational strategy"
     ]
    },
    {
     "id": "s3qgzhaj",
     "title": "Competitive Strategy for International Business",
-    "guide": "Chapter 8: Competitive Strategy",
+    "guide": "Chapter 8: Competitive strategy for international business",
     "outcomes": [
-     "Describe, assess and apply the five forces framework for industry analysis",
-     "Summarise the generic strategies of cost leadership, differentiation and focus",
-     "Define the resource-based approach and apply the VRIO framework",
-     "Outline the institution-based view of international competitiveness",
-     "Explain how to choose a positioning, leverage or opportunity strategy"
+     "describe, assess and apply the five forces framework for industry analysis",
+     "summarise the generic strategies of cost leadership, differentiation and focus",
+     "define and assess the resource-based approach to competition, and how tangible and intangible resources and capabilities can be utilised to achieve competitiveness",
+     "apply the VRIO framework to organisational examples to assess the strengths and weaknesses of a business",
+     "outline the institution-based view on international competitiveness",
+     "explain how to choose the right position, leverage, or opportunity strategy",
+     "participate in the major contemporary debates arising from the study of competitive strategy for international business"
     ],
     "topics": [
      {
@@ -1513,11 +1554,7 @@
      },
      {
       "id": "resource-based-view-tangible-and-intangible-reso",
-      "title": "Resource-based view: tangible and intangible resources, human capital, capabilities"
-     },
-     {
-      "id": "capitalism-without-capital-the-4ss-of-intangible",
-      "title": "Capitalism without capital: the 4Ss of intangibles"
+      "title": "Resource-based view: tangible and intangible resources"
      },
      {
       "id": "vrio-framework",
@@ -1525,63 +1562,64 @@
      },
      {
       "id": "positioning-leverage-and-opportunity-strategies",
-      "title": "Positioning, leverage and opportunity strategies; arriving at the right strategy"
+      "title": "Positioning, leverage and opportunity strategies"
      },
      {
       "id": "debates-dynamic-capabilities-institution-based-v",
-      "title": "Debates: dynamic capabilities, institution-based view, the 4Rs of customer connection"
+      "title": "Debates: dynamic capabilities, institution-based view"
      }
     ],
     "terms": [
-     "five forces",
+     "five forces framework",
      "competitive rivalry",
-     "threat of entrants and entry barriers",
+     "barriers to entry",
      "threat of substitutes",
-     "bargaining power of buyers and suppliers",
-     "hypercompetition",
+     "buyer power and supplier power",
+     "switching costs",
      "complementors",
      "cost leadership",
      "differentiation",
+     "content, aura, personalisation, expertise (Mathur and Kenyon)",
      "focus (niche) strategy",
-     "content, aura, personalisation, expertise",
      "resource-based view",
      "tangible and intangible resources",
      "capabilities",
-     "sunk costs, scalability, spillovers, synergies (4Ss)",
-     "VRIO (value, rarity, imitability, organisation)",
-     "positioning strategy",
-     "leverage strategy",
-     "opportunity strategy",
+     "VRIO: value, rarity, imitability, organisation",
+     "positioning, leverage and opportunity strategies (Bingham, Eisenhardt and Furr)",
+     "simple rules",
      "dynamic capabilities",
-     "4Rs: recognise, request, respond, repeat"
+     "institution-based view of competition",
+     "four Rs: recognise, request, respond, repeat"
     ]
    },
    {
     "id": "zc4vwrqj",
     "title": "International Business Strategies: Market Entry and Growth",
-    "guide": "Chapter 9: Entry Strategies, Alliances and Evolution",
+    "guide": "Chapter 9: Entry strategies, alliances and evolution",
     "outcomes": [
-     "Establish the major decisions in entering an international market: why, where, when, how",
-     "Identify the six modes of foreign market entry, their advantages and risks, and the criteria for choosing",
-     "Compare strategic alliances, acquisitions and greenfield strategies as entry modes",
-     "Explain how firms evolve their international presence over time"
+     "explain the four decisions a company must address when entering foreign markets: why enter a foreign market, which market(s) to enter, when to enter the market(s) and on what scale and level of ownership",
+     "describe the advantages and disadvantages of the major ways that small and medium enterprises (SMEs) and multinational enterprises (MNEs) can enter foreign markets",
+     "identify the key factors that shape a company's choice of entry mode",
+     "discuss the advantages of acquisitions versus greenfield ventures as entry strategies",
+     "explain why companies enter into strategic alliances and the factors that can make such an entry mode effective or ineffective",
+     "determine how individual companies evolve and expand their international presence"
     ],
     "topics": [
      {
       "id": "why-and-where-to-enter-resource-market-efficienc",
-      "title": "Why and where to enter: resource, market, efficiency and innovation seeking"
+      "title": "Why and where to enter: resource/market/efficiency seeking"
      },
      {
       "id": "when-to-enter-first-mover-and-late-mover-advanta",
       "title": "When to enter: first-mover and late-mover advantages"
      },
      {
-      "id": "scale-and-ownership-born-global-firms-and-lean-i",
-      "title": "Scale and ownership; born-global firms and lean internationalisation"
+      "id": "scale-and-ownership-born-global-firms",
+      "title": "Scale and ownership; born-global firms"
      },
      {
       "id": "six-entry-modes-exporting-turnkey-licensing-fran",
-      "title": "Six entry modes: exporting, turnkey, licensing, franchising, joint venture, wholly owned subsidiary"
+      "title": "Six entry modes: exporting, turnkey, licensing, franchising"
      },
      {
       "id": "greenfield-versus-acquisition",
@@ -1597,36 +1635,37 @@
      }
     ],
     "terms": [
-     "first-mover advantage",
-     "born global",
+     "natural resource-seeking",
+     "market-seeking",
+     "efficiency-seeking",
+     "innovation-seeking",
+     "first-mover and late-mover advantages",
+     "born global firms",
      "lean internationalisation",
      "exporting",
      "letter of credit",
      "turnkey project",
-     "licensing",
-     "royalty",
-     "cross-licensing",
+     "build-operate-transfer",
+     "licensing and royalty",
      "franchising",
-     "master franchisee",
      "joint venture",
-     "wholly owned subsidiary",
-     "greenfield strategy",
-     "acquisition",
+     "fully owned subsidiary",
+     "greenfield versus acquisition",
      "strategic alliance",
-     "partner selection",
-     "alliance structure",
-     "market-seeking, resource-seeking, efficiency-seeking, innovation-seeking"
+     "partner selection, alliance structure, management capability",
+     "relational (social) capital",
+     "growth through evolution"
     ]
    },
    {
     "id": "j7gsqmv3",
     "title": "International Marketing and R&D Strategy",
-    "guide": "Chapter 10: International Marketing and R&D Strategy",
+    "guide": "Chapter 10: International marketing and R&D strategy",
     "outcomes": [
-     "Define and apply marketing strategy, segmentation and the marketing mix in international business",
-     "Discuss product, price and promotion strategies and how to shape them to country conditions",
-     "Apply distribution strategy concepts",
-     "Discuss why R&D matters and where to locate it, and how to protect IP"
+     "define and apply marketing strategy, segmentation and marketing mix concepts to real-life examples in international business",
+     "discuss product, price and promotion strategies and assess how they can be shaped to specific country conditions",
+     "articulate and apply major concepts in distribution strategy and supply chain management",
+     "discuss the main issues that make R&D important, that make its foreign location both attractive and challenging, and where to locate R&D"
     ],
     "topics": [
      {
@@ -1643,42 +1682,44 @@
      },
      {
       "id": "pricing-strategy-price-discrimination-and-strate",
-      "title": "Pricing strategy: price discrimination and strategic pricing"
+      "title": "Pricing strategy: price discrimination and strategic prices"
      },
      {
-      "id": "promotion-strategy-barriers-push-versus-pull-sta",
-      "title": "Promotion strategy: barriers, push versus pull, standardised advertising"
+      "id": "promotion-strategy-barriers-push-versus-pull",
+      "title": "Promotion strategy: barriers, push versus pull"
      },
      {
-      "id": "place-differences-in-distribution-systems-and-ch",
-      "title": "Place: differences in distribution systems and choosing a strategy"
+      "id": "place-differences-in-distribution-systems",
+      "title": "Place: differences in distribution systems"
      },
      {
       "id": "r-d-strategy-location-commercialisation-integrat",
-      "title": "R&D strategy: location, commercialisation, integration, IP protection"
+      "title": "R&D strategy: location, commercialisation, integration"
+     },
+     {
+      "id": "protecting-ip-from-international-r-d",
+      "title": "Protecting IP from international R&D"
      }
     ],
     "terms": [
-     "Ansoff Matrix",
-     "market penetration",
-     "market development",
-     "product development",
-     "diversification",
+     "Ansoff matrix",
+     "market penetration, market development, product development, diversification",
      "marketing mix (4Ps)",
      "market segmentation",
-     "customer relationship management",
+     "customer relationship management (CRM)",
+     "customer life cycle: awareness to bonding",
+     "content, aura and support attributes",
      "price discrimination",
      "price elasticity of demand",
      "predatory pricing",
      "multipoint pricing",
      "experience curve pricing",
-     "anti-dumping regulations",
-     "source effects",
-     "country-of-origin effects",
+     "source and country-of-origin effects",
      "noise levels",
      "push versus pull strategy",
-     "retail concentration",
-     "channel length, exclusivity and quality",
+     "standardised advertising",
+     "retail concentration, channel length, exclusivity and quality",
+     "supply chain management",
      "cross-functional teams",
      "innovation hubs"
     ]
@@ -1686,14 +1727,15 @@
    {
     "id": "skmfmztw",
     "title": "Organisation of International Business",
-    "guide": "Chapter 11: The Organisation of International Business",
+    "guide": "Chapter 11: The organisation of international business",
     "outcomes": [
      "describe the relationship between multinational strategy, structure and their evolution",
-     "weigh the arguments for centralised and decentralised decision-making in a firm operating across countries",
-     "match each international strategy to the structure that best supports it: international division, geographic area, global product division or global matrix",
-     "critically evaluate the strengths and weaknesses of the four structures and what a firm must change in its structure to fit its strategy",
-     "explain integrating mechanisms and the role of knowledge management, including explicit and tacit knowledge, in coordinating sub-units",
-     "define organisational architecture and apply the idea of fit between environment, strategy, structure and architecture to real cases, taking a contingency approach"
+     "define and assess when to employ four organisational structures commonly used in international business",
+     "critically evaluate the strengths and weaknesses of international division, geographic area, global product division and global matrix structures",
+     "discuss what an international business needs to change in its organisation structure to better match its strategy and select a more optimal path",
+     "explain the role of knowledge management as an integrating mechanism and the knowledge implications of different strategies and structures",
+     "define and discuss the concept of organisation architecture and the importance of fit for company performance, and be able to apply the concept of fit in analysing real life examples",
+     "analyse a real-life organisation's attempts to fit environment, strategy and organisation to achieve superior performance, taking a contingency approach"
     ],
     "topics": [
      {
@@ -1759,23 +1801,29 @@
    {
     "id": "n5et3j85",
     "title": "Global Sourcing and Production",
-    "guide": "Chapter 12: Global Sourcing of Production and Services",
+    "guide": "Chapter 12: Global sourcing of production and services",
     "outcomes": [
-     "Outline trends towards outsourcing, global sourcing and offshoring",
-     "List the factors that influence production location",
-     "Apply make-or-buy decision making",
-     "Describe offshoring and its challenges, and strategies to minimise risk in global sourcing",
-     "Apply a framework for global location attractiveness",
-     "Make business service and IT sourcing decisions and manage the outsourcing life cycle"
+     "outline the trends towards outsourcing, global sourcing and offshoring, and discuss the benefits and challenges of global sourcing of production for the company",
+     "list the major factors that influence production location",
+     "describe the components of make-or-buy decision making and be able to apply the concept to real case decisions",
+     "list the strategies for minimising risk in global sourcing",
+     "define the nature of offshoring and its challenges to business organisations, and identify challenges and make recommendations on offshoring strategy",
+     "describe and be able to apply a framework for identifying global location attractiveness",
+     "for services, make business services and IT sourcing decisions in a global context, while assessing and reducing the risks in offshoring",
+     "for services, define the principles of managing across the business services and IT outsourcing life cycle"
     ],
     "topics": [
      {
       "id": "key-terms-global-sourcing-outsourcing-internalis",
-      "title": "Key terms: global sourcing, outsourcing, internalisation, externalisation"
+      "title": "Key terms: global sourcing, outsourcing, internalisation"
      },
      {
       "id": "production-location-country-fixed-cost-technolog",
-      "title": "Production location: country, fixed cost, technological and product factors"
+      "title": "Production location: country, fixed cost, technology"
+     },
+     {
+      "id": "product-factors-multiple-or-few-production-locat",
+      "title": "Product factors; multiple or few production locations"
      },
      {
       "id": "make-or-buy-decisions-advantages-of-making-and-o",
@@ -1783,15 +1831,15 @@
      },
      {
       "id": "offshoring-when-it-is-problematic-managing-offsh",
-      "title": "Offshoring: when it is problematic, managing offshore outsourcing"
+      "title": "Offshoring: when it is problematic, managing offshoring"
      },
      {
       "id": "location-attractiveness-costs-skills-environment",
-      "title": "Location attractiveness: costs, skills, environment, infrastructure, risk, market potential"
+      "title": "Location attractiveness: costs, skills, environment, risk"
      },
      {
       "id": "outsourcing-models-and-strategic-sourcing-of-it",
-      "title": "Outsourcing models and strategic sourcing of IT (order winners, qualifiers, commodities, distractions)"
+      "title": "Outsourcing models and strategic sourcing of IT"
      },
      {
       "id": "offshoring-risks-and-the-outsourcing-life-cycle",
@@ -1802,34 +1850,33 @@
      "global sourcing",
      "outsourcing",
      "offshoring",
-     "internalisation and externalisation",
+     "captive offshoring versus offshore outsourcing",
+     "nearshoring",
+     "internalisation versus externalisation",
+     "logistics",
      "minimum efficient scale",
      "flexible manufacturing (lean production)",
-     "value to weight ratio",
-     "global learning",
+     "value-to-weight ratio",
      "make-or-buy decision",
-     "proprietary technology",
-     "total outsourcing",
-     "selective outsourcing",
+     "location attractiveness: 20 factors in six areas",
+     "total, selective and in-house sourcing",
      "multi-sourcing versus bundled services",
-     "order winners",
-     "qualifiers",
-     "useful commodities",
-     "distractions",
+     "order winners, qualifiers, useful commodities, distractions",
      "transparent, codifiable, opaque and non-codifiable processes",
-     "moral contract",
-     "outsourcing life cycle"
+     "retained capabilities",
+     "outsourcing life cycle",
+     "backsourcing"
     ]
    },
    {
     "id": "zhirjh9f",
     "title": "Global information systems management",
-    "guide": "Chapter 13: Global Information Systems Management",
+    "guide": "Chapter 13: Global information systems management",
     "outcomes": [
-     "Assess the importance and dimensions of aligning IT strategy, organisation, development, projects and operations with business strategy",
-     "Define global enterprise IT architecture and use four enterprise architecture models to fit international strategy",
-     "Explain the strengths and weaknesses of the multinational, international, transnational and global types of IT architecture",
-     "Recommend key success factors in building and transitioning enterprise IT architectures"
+     "assess the importance and dimensions of aligning IT strategy, organisation, development, projects and operations with business purpose and business strategy",
+     "define global enterprise IT architecture and work with four enterprise architecture models in making decisions about fit with international business strategy",
+     "explain and discuss the strengths and weaknesses of the multinational, global, transnational and international types of enterprise IT architecture",
+     "make recommendations on the key success factors in building and transitioning enterprise IT architectures over time"
     ],
     "topics": [
      {
@@ -1838,105 +1885,69 @@
      },
      {
       "id": "fifteen-practices-across-direction-it-organisati",
-      "title": "Fifteen practices across direction, IT organisation, development, operations"
+      "title": "Fifteen practices across direction, IT organisation"
+     },
+     {
+      "id": "alignment-frameworks-strategic-impact-grid-earl",
+      "title": "Alignment frameworks: strategic impact grid, Earl's methods"
      },
      {
       "id": "enterprise-it-architecture-enterprise-systems-an",
-      "title": "Enterprise IT architecture: enterprise systems and IT infrastructure"
+      "title": "Enterprise IT architecture: enterprise systems and IT infra"
      },
      {
       "id": "bartlett-and-ghoshal-s-four-approaches-multinati",
-      "title": "Bartlett and Ghoshal's four approaches: multinational, international, transnational, global"
+      "title": "Bartlett and Ghoshal's four approaches: multinational, etc."
      },
      {
       "id": "strengths-and-weaknesses-of-each-architecture",
       "title": "Strengths and weaknesses of each architecture"
+     },
+     {
+      "id": "transitioning-architectures-key-success-factors",
+      "title": "Transitioning architectures: key success factors"
      }
     ],
     "terms": [
-     "business-IT alignment",
+     "information technology (IT)",
      "business information system",
+     "business-IT alignment",
+     "chief information officer (CIO)",
+     "legacy systems",
+     "IT strategic impact grid",
+     "Earl's multiple methodologies (top-down, bottom-up, inside-out)",
+     "centralised, decentralised and federated IT organisation",
+     "nine core IT capabilities",
      "enterprise IT architecture",
      "enterprise systems",
      "IT infrastructure",
      "business flexibility versus business standardisation",
-     "Strategic Impact grid",
-     "federal IT structure",
-     "retained core IT capabilities",
-     "regionally shared services",
-     "decision rights",
-     "managed consensus",
-     "one-size-fits-all",
-     "legacy systems"
-    ]
-   },
-   {
-    "id": "p96a6t6q",
-    "title": "International Project Management",
-    "guide": "Chapter 15: International Project Management",
-    "outcomes": [
-     "Define project, project and programme management, and the project management office",
-     "Discuss the major project management methodologies, their uses, strengths and weaknesses",
-     "Assess the distinctive challenges of international projects",
-     "Analyse risk in international projects using risk-profiling frameworks and identify mitigation"
-    ],
-    "topics": [
-     {
-      "id": "projects-project-lifecycle-programme-management",
-      "title": "Projects, project lifecycle, programme management, the PMO"
-     },
-     {
-      "id": "methodologies-waterfall-agile-scrum-cpm-prism-pr",
-      "title": "Methodologies: Waterfall, Agile, Scrum, CPM, PRiSM, PRINCE2"
-     },
-     {
-      "id": "how-international-projects-differ-complexity-cul",
-      "title": "How international projects differ: complexity, cultures, time zones, risk intensity"
-     },
-     {
-      "id": "risk-management-process-and-four-mitigation-stra",
-      "title": "Risk management process and four mitigation strategies"
-     },
-     {
-      "id": "risk-profiling-frameworks",
-      "title": "Risk profiling frameworks"
-     }
-    ],
-    "terms": [
-     "project",
-     "project management lifecycle (initiation, planning, executing, completion)",
-     "programme management",
-     "project management office",
-     "Waterfall",
-     "Agile",
-     "Scrum",
-     "sprint",
-     "scope creep",
-     "critical path method",
-     "critical path",
-     "PRiSM",
-     "PRINCE2",
-     "risk register",
-     "probability and impact matrix",
-     "risk avoidance",
-     "risk acceptance",
-     "risk transfer",
-     "risk absorption and pooling",
-     "five risk areas (Lacity and Willcocks)"
+     "multinational (localisation) approach",
+     "international approach: regional shared services",
+     "transnational approach: managed consensus",
+     "global (standardisation) approach",
+     "one-size-fits-all"
     ]
    },
    {
     "id": "aypy998e",
     "title": "International Human Resource Management",
-    "guide": "Chapter 14: International Human Resource Management",
+    "guide": "Chapter 14: International dimensions of human resource management",
     "outcomes": [
-     "Define international HRM and discuss HR strategies in overseas operations",
-     "Assess expatriate challenges, selection criteria, and training and repatriation",
-     "Discuss the challenges of appraising performance and the elements of an international compensation package",
-     "Explain major labour relations issues internationally",
-     "Assess the impact of automation and the 2020-21 crisis on future HRM"
+     "define the term 'international human resource management' and discuss types of human resource strategies in overseas operations",
+     "assess the challenges experienced by expatriate employees and the policies required",
+     "describe the screening and selection issues and criteria used in choosing people for overseas assignments",
+     "relate some of the common types of training and development challenges with personnel who are going, and returning from, overseas",
+     "discuss the main challenges in appraising employee performance in international business",
+     "discuss the common elements of an international compensation package",
+     "explain the major and most typical labour relations issues in the international arena",
+     "assess the challenges and impact of automation and the 2020-21 crises for future IHRM policies"
     ],
     "topics": [
+     {
+      "id": "ihrm-and-its-fit-with-international-strategy",
+      "title": "IHRM and its fit with international strategy"
+     },
      {
       "id": "staffing-policy-ethnocentric-polycentric-geocent",
       "title": "Staffing policy: ethnocentric, polycentric, geocentric"
@@ -1955,47 +1966,110 @@
      },
      {
       "id": "compensation-going-rate-and-balance-sheet-approa",
-      "title": "Compensation: going-rate and balance sheet approaches, package components"
+      "title": "Compensation: going-rate and balance sheet approaches"
      },
      {
       "id": "labour-relations-and-country-specific-practices",
       "title": "Labour relations and country-specific practices"
      },
      {
-      "id": "emerging-issues-automation-covid-19-gartner-tren",
-      "title": "Emerging issues: automation, Covid-19, Gartner trends"
+      "id": "ihrm-prospects-automation-and-the-2020-21-crises",
+      "title": "IHRM prospects: automation and the 2020-21 crises"
      }
     ],
     "terms": [
-     "ethnocentric policy",
-     "polycentric policy",
-     "geocentric policy",
+     "international human resource management (IHRM)",
+     "staffing policy",
+     "ethnocentric, polycentric and geocentric approaches",
      "parent-country, host-country and third-country nationals",
      "cultural myopia",
      "expatriate failure",
      "Mendenhall and Oddou's four dimensions",
      "global mindset",
+     "expatriate roles",
      "cultural, language and practical training",
+     "culture shock",
      "repatriation",
+     "management development",
      "going-rate approach",
      "balance sheet approach",
-     "hardship allowance",
-     "collective bargaining",
-     "industrial democracy",
-     "work councils",
-     "gig workers"
+     "base salary, premium, allowances, tax, benefits",
+     "organised labour",
+     "industrial democracy and work councils",
+     "automation and work"
+    ]
+   },
+   {
+    "id": "p96a6t6q",
+    "title": "International Project Management",
+    "guide": "Chapter 15: International project management",
+    "outcomes": [
+     "define project, project and programme management, and project management office",
+     "discuss the major project management methodologies, what each is useful for, and their strengths and weaknesses",
+     "assess the distinctive challenges presented by international projects",
+     "explain the critical practices that make international project management effective",
+     "analyse risk in international projects, using risk-profiling frameworks",
+     "identify how the risks can be mitigated, and international projects managed effectively"
+    ],
+    "topics": [
+     {
+      "id": "projects-project-lifecycle-programme-management",
+      "title": "Projects, project lifecycle, programme management, the PMO"
+     },
+     {
+      "id": "methodologies-waterfall-agile-scrum-cpm-prism-pr",
+      "title": "Methodologies: Waterfall, Agile, Scrum, CPM, PRiSM, PRINCE2"
+     },
+     {
+      "id": "critical-success-factors-for-international-proje",
+      "title": "Critical success factors for international projects"
+     },
+     {
+      "id": "how-international-projects-differ-complexity-cul",
+      "title": "How international projects differ: complexity, cultures"
+     },
+     {
+      "id": "risk-management-process-and-four-mitigation-stra",
+      "title": "Risk management process and four mitigation strategies"
+     },
+     {
+      "id": "risk-profiling-frameworks",
+      "title": "Risk profiling frameworks"
+     }
+    ],
+    "terms": [
+     "project",
+     "project management life cycle",
+     "iron triangle and sustainability",
+     "programme management",
+     "project management office (PMO)",
+     "project management methodology",
+     "Waterfall",
+     "Agile and time-boxing",
+     "Scrum and sprints",
+     "critical path method (CPM)",
+     "PRiSM",
+     "PRINCE2",
+     "critical success factors",
+     "risk intensity",
+     "risk register",
+     "probability and impact matrix",
+     "risk avoidance, acceptance, transfer, absorption and pooling",
+     "emergent risk",
+     "five risk areas (Lacity and Willcocks)"
     ]
    },
    {
     "id": "z33gh628",
     "title": "Global Digital Management",
-    "guide": "Chapter 16: Global Digital Management",
+    "guide": "Chapter 16: Global digital management",
     "outcomes": [
-     "Define digitisation, digitalisation and digital transformation",
-     "Describe and assess the 10 major digital technologies used in building digital business",
-     "Explain the components of a digital business model and apply them to international businesses",
-     "Identify the building blocks of digital business and analyse digital transformation progress",
-     "Discuss why digital transformation fails or succeeds, with international examples"
+     "define digitisation, digitalisation and digital transformation",
+     "assess the major challenges and critical success factors when building a digital business",
+     "describe and assess 10 major digital technologies used in building digital business",
+     "explain the components of a digital business model, and apply these to assessing actual international businesses",
+     "identify the building blocks of digital business, and analyse an international business's digital transformation progress",
+     "participate in discussions on digital transformation: why, how; and support arguments with international business examples of failure and success"
     ],
     "topics": [
      {
@@ -2031,23 +2105,21 @@
      "digitisation",
      "digitalisation",
      "digital transformation",
-     "SMAC",
+     "SMAC/BRAIDA technologies",
      "cloud computing",
      "blockchain",
-     "distributed ledger",
-     "robotic process automation",
-     "cognitive automation",
+     "robotic process automation and cognitive automation",
      "Internet of Things",
-     "digital fabrication (3D printing)",
-     "augmented reality",
-     "content, experience, platform framework",
-     "digital preparedness",
+     "digital business model: content, experience, platform",
+     "digital preparedness (Gurbaxani and Dunkle)",
      "shared customer insights",
      "operational backbone",
      "digital platform",
      "accountability framework",
      "external developer platform",
-     "digital culture: impact, speed, openness, autonomy"
+     "six change management tracks",
+     "digital culture: impact, speed, openness, autonomy",
+     "DBS Bank"
     ]
    }
   ],

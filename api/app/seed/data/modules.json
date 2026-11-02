@@ -979,6 +979,60 @@
         ]
       },
       {
+        "id": "aypy998e",
+        "title": "International Human Resource Management",
+        "videos": [
+          {
+            "id": "v2m4nyhh",
+            "kind": "youtube",
+            "videoId": "awiUMdgyfq0",
+            "title": "Ch13 Managing Human Resources Globally",
+            "channel": "Thierry Brusselle",
+            "addedIn": "2026-11e"
+          },
+          {
+            "id": "yjhdveu7",
+            "kind": "youtube",
+            "videoId": "U9ogq9pqkl8",
+            "title": "Staffing Strategy in International Busines | From a Business Professor",
+            "channel": "Business School 101",
+            "addedIn": "2026-11e"
+          },
+          {
+            "id": "uwus87ap",
+            "kind": "youtube",
+            "videoId": "tl3ZAR8PMcM",
+            "title": "Expatriate Management | International Business | From A Business Professor",
+            "channel": "Business School 101",
+            "addedIn": "2026-11e"
+          },
+          {
+            "id": "3dwa63kn",
+            "kind": "youtube",
+            "videoId": "yU8DEithHsc",
+            "title": "Introtain - International HR Management - Repatriation (english version)",
+            "channel": "Leuphana Universität Lüneburg",
+            "addedIn": "2026-11e"
+          },
+          {
+            "id": "fzkmmpvb",
+            "kind": "youtube",
+            "videoId": "4Ho5UObReRg",
+            "title": "IHRM 10.3: Compensation of Expatriates and HCNs",
+            "channel": "Prof. Fabian Froese",
+            "addedIn": "2026-11e"
+          },
+          {
+            "id": "v6rx3gpe",
+            "kind": "youtube",
+            "videoId": "AyZKOPcuftU",
+            "title": "Labor Relations in a Global Context",
+            "channel": "TalentActualization",
+            "addedIn": "2026-11e"
+          }
+        ]
+      },
+      {
         "id": "p96a6t6q",
         "title": "International Project Management",
         "videos": [
@@ -988,18 +1042,6 @@
             "videoId": "ngiDb1ugbnM",
             "title": "International-Project-Management",
             "channel": "Mohamed Khalil"
-          }
-        ]
-      },
-      {
-        "id": "aypy998e",
-        "title": "International Human Resource Management",
-        "videos": [
-          {
-            "id": "q6nv536p",
-            "kind": "youtube",
-            "videoId": "mubdwgK6Ss",
-            "unavailable": true
           }
         ]
       },

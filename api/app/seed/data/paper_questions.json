@@ -4047,12 +4047,13 @@
     "page": 3,
     "anchor": "3. ‘There are different types of international business strategy which fit with",
     "chapters": [
-     "4dhhuihn",
-     "zhirjh9f"
+     "skmfmztw",
+     "4dhhuihn"
     ],
     "topics": [
-     "4dhhuihn:four-international-strategies-and-how-strategy-e",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati"
+     "skmfmztw:fitting-structure-to-international-strategy",
+     "skmfmztw:organisational-architecture-and-fit",
+     "4dhhuihn:four-international-strategies-and-how-strategy-e"
     ]
    },
    {
@@ -4150,7 +4151,7 @@
     ],
     "topics": [
      "4dhhuihn:value-chain-primary-and-support-activities",
-     "4dhhuihn:location-economies-experience-curve-effects-econ"
+     "4dhhuihn:economies-from-location-experience-effects-and-s"
     ]
    },
    {
@@ -4223,11 +4224,11 @@
     "page": 4,
     "anchor": "8. ‘An international firm requires an ideal fit be tween its business objectives and its",
     "chapters": [
-     "4dhhuihn"
+     "skmfmztw"
     ],
     "topics": [
-     "4dhhuihn:pressures-for-cost-reduction-and-local-responsiv",
-     "4dhhuihn:four-international-strategies-and-how-strategy-e"
+     "skmfmztw:centralised-versus-decentralised-decision-making",
+     "skmfmztw:fitting-structure-to-international-strategy"
     ]
    }
   ]
@@ -4387,12 +4388,13 @@
     "page": 3,
     "anchor": "3. ‘In international business structure must follow strategy, but given its importance,",
     "chapters": [
+     "skmfmztw",
      "zhirjh9f"
     ],
     "topics": [
-     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
-     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+     "skmfmztw:geographic-area-structure",
+     "skmfmztw:organisational-architecture-and-fit",
+     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an"
     ]
    },
    {
@@ -4530,12 +4532,12 @@
     "page": 4,
     "anchor": "5. “International business strategy only gets executed effectively when it is",
     "chapters": [
-     "4dhhuihn",
+     "skmfmztw",
      "zhirjh9f"
     ],
     "topics": [
-     "4dhhuihn:four-international-strategies-and-how-strategy-e",
-     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an",
+     "skmfmztw:fitting-structure-to-international-strategy",
+     "skmfmztw:organisational-architecture-and-fit",
      "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati"
     ]
    },
@@ -4687,12 +4689,13 @@
     "page": 4,
     "anchor": "8. “An international business needs to get its organi sation structure right , and its",
     "chapters": [
+     "skmfmztw",
      "zhirjh9f"
     ],
     "topics": [
-     "zhirjh9f:business-and-it-alignment-and-how-it-is-achieved",
-     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an",
-     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+     "skmfmztw:centralised-versus-decentralised-decision-making",
+     "skmfmztw:global-matrix-structure",
+     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an"
     ]
    }
   ]
@@ -4893,12 +4896,13 @@
     "page": 3,
     "anchor": "6. To be effective in an international business enterprise information technology",
     "chapters": [
+     "skmfmztw",
      "zhirjh9f"
     ],
     "topics": [
-     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
-     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+     "skmfmztw:fitting-structure-to-international-strategy",
+     "skmfmztw:organisational-architecture-and-fit",
+     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an"
     ]
    },
    {
@@ -5037,13 +5041,13 @@
     "page": 4,
     "anchor": "Question 8. ‘ Faced with dynamic, uncertain environments, designing organisation",
     "chapters": [
-     "4dhhuihn",
-     "zhirjh9f"
+     "skmfmztw",
+     "4dhhuihn"
     ],
     "topics": [
-     "4dhhuihn:pressures-for-cost-reduction-and-local-responsiv",
-     "4dhhuihn:four-international-strategies-and-how-strategy-e",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati"
+     "skmfmztw:centralised-versus-decentralised-decision-making",
+     "skmfmztw:fitting-structure-to-international-strategy",
+     "4dhhuihn:four-international-strategies-and-how-strategy-e"
     ]
    }
   ]
@@ -5146,7 +5150,7 @@
     "topics": [
      "aypy998e:staffing-policy-ethnocentric-polycentric-geocent",
      "aypy998e:labour-relations-and-country-specific-practices",
-     "aypy998e:emerging-issues-automation-covid-19-gartner-tren"
+     "aypy998e:ihrm-prospects-automation-and-the-2020-21-crises"
     ]
    },
    {
@@ -5194,7 +5198,7 @@
      "4dhhuihn"
     ],
     "topics": [
-     "g8u2nfmy:economic-systems-market-command-and-mixed-variet",
+     "g8u2nfmy:economic-systems-market-command-and-mixed",
      "4dhhuihn:cage-distance-framework-and-the-four-cs",
      "4dhhuihn:aaa-model-adaptation-aggregation-arbitrage"
     ]
@@ -5465,7 +5469,7 @@
     ],
     "topics": [
      "g8u2nfmy:institution-based-view-formal-and-informal-insti",
-     "g8u2nfmy:economic-systems-market-command-and-mixed-variet",
+     "g8u2nfmy:economic-systems-market-command-and-mixed",
      "nivt387r:culture-ethnocentrism-and-cultural-intelligence"
     ]
    },
@@ -5474,13 +5478,13 @@
     "page": 3,
     "anchor": "6. Types of international business strategy imply types of organization structure and",
     "chapters": [
-     "4dhhuihn",
-     "zhirjh9f"
+     "skmfmztw",
+     "4dhhuihn"
     ],
     "topics": [
-     "4dhhuihn:four-international-strategies-and-how-strategy-e",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
-     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+     "skmfmztw:fitting-structure-to-international-strategy",
+     "skmfmztw:organisational-architecture-and-fit",
+     "4dhhuihn:four-international-strategies-and-how-strategy-e"
     ]
    },
    {
@@ -5694,13 +5698,12 @@
     "page": 3,
     "anchor": "5. International business operations depend on the alignment of organisation",
     "chapters": [
-     "4dhhuihn",
-     "zhirjh9f"
+     "skmfmztw"
     ],
     "topics": [
-     "4dhhuihn:four-international-strategies-and-how-strategy-e",
-     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati"
+     "skmfmztw:centralised-versus-decentralised-decision-making",
+     "skmfmztw:geographic-area-structure",
+     "skmfmztw:global-matrix-structure"
     ]
    },
    {
@@ -5815,7 +5818,7 @@
      "nivt387r"
     ],
     "topics": [
-     "j7gsqmv3:promotion-strategy-barriers-push-versus-pull-sta",
+     "j7gsqmv3:promotion-strategy-barriers-push-versus-pull",
      "nivt387r:csr-stakeholder-analysis-triple-bottom-line-four",
      "nivt387r:csr-strategies-willard-s-sustainability-journey"
     ]
@@ -5825,13 +5828,13 @@
     "page": 4,
     "anchor": "6. ‘The 2020-21 pandemic has demonstrated how critical it is to align the ma nagement",
     "chapters": [
-     "zhirjh9f",
-     "4dhhuihn"
+     "skmfmztw",
+     "zhirjh9f"
     ],
     "topics": [
-     "zhirjh9f:business-and-it-alignment-and-how-it-is-achieved",
-     "zhirjh9f:fifteen-practices-across-direction-it-organisati",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati"
+     "skmfmztw:organisational-architecture-and-fit",
+     "skmfmztw:fitting-structure-to-international-strategy",
+     "zhirjh9f:business-and-it-alignment-and-how-it-is-achieved"
     ]
    },
    {
@@ -5879,7 +5882,7 @@
     ],
     "topics": [
      "zc4vwrqj:why-and-where-to-enter-resource-market-efficienc",
-     "zc4vwrqj:scale-and-ownership-born-global-firms-and-lean-i",
+     "zc4vwrqj:scale-and-ownership-born-global-firms",
      "zc4vwrqj:six-entry-modes-exporting-turnkey-licensing-fran"
     ]
    },
@@ -5929,12 +5932,13 @@
     "page": 3,
     "anchor": "5. ‘Operationally, it is critical for an international business to align its organisation structure and",
     "chapters": [
+     "skmfmztw",
      "zhirjh9f"
     ],
     "topics": [
-     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an",
-     "zhirjh9f:strengths-and-weaknesses-of-each-architecture",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati"
+     "skmfmztw:organisational-architecture-and-fit",
+     "skmfmztw:fitting-structure-to-international-strategy",
+     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an"
     ]
    },
    {
@@ -5960,7 +5964,7 @@
     ],
     "topics": [
      "4dhhuihn:value-chain-primary-and-support-activities",
-     "4dhhuihn:location-economies-experience-curve-effects-econ",
+     "4dhhuihn:economies-from-location-experience-effects-and-s",
      "4dhhuihn:pressures-for-cost-reduction-and-local-responsiv"
     ]
    },
@@ -5969,9 +5973,13 @@
     "page": 4,
     "anchor": "8. ‘A firm must aspire to align its organisational structure with its organisational strategy’",
     "chapters": [
-     "4dhhuihn"
+     "skmfmztw"
     ],
-    "topics": []
+    "topics": [
+     "skmfmztw:centralised-versus-decentralised-decision-making",
+     "skmfmztw:organisational-architecture-and-fit",
+     "skmfmztw:fitting-structure-to-international-strategy"
+    ]
    }
   ]
  },
@@ -6049,13 +6057,13 @@
     "page": 3,
     "anchor": "6. Types of international business strategy imply types of organization structure and",
     "chapters": [
-     "4dhhuihn",
-     "zhirjh9f"
+     "skmfmztw",
+     "4dhhuihn"
     ],
     "topics": [
-     "4dhhuihn:four-international-strategies-and-how-strategy-e",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
-     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+     "skmfmztw:fitting-structure-to-international-strategy",
+     "skmfmztw:organisational-architecture-and-fit",
+     "4dhhuihn:four-international-strategies-and-how-strategy-e"
     ]
    },
    {
@@ -6081,7 +6089,7 @@
     ],
     "topics": [
      "g8u2nfmy:institution-based-view-formal-and-informal-insti",
-     "g8u2nfmy:economic-systems-market-command-and-mixed-variet",
+     "g8u2nfmy:economic-systems-market-command-and-mixed",
      "nivt387r:culture-ethnocentrism-and-cultural-intelligence"
     ]
    }
@@ -6124,12 +6132,12 @@
     "page": 2,
     "anchor": "3. ‘The organisational architecture of a global fi rm is a critical element for its",
     "chapters": [
-     "zhirjh9f"
+     "skmfmztw"
     ],
     "topics": [
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
-     "zhirjh9f:strengths-and-weaknesses-of-each-architecture",
-     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an"
+     "skmfmztw:organisational-architecture-and-fit",
+     "skmfmztw:geographic-area-structure",
+     "skmfmztw:global-product-division-structure"
     ]
    },
    {
@@ -6252,12 +6260,13 @@
     "page": 3,
     "anchor": "4. ‘International business operations are most effective when business strategy,",
     "chapters": [
+     "skmfmztw",
      "zhirjh9f"
     ],
     "topics": [
-     "zhirjh9f:business-and-it-alignment-and-how-it-is-achieved",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
-     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an"
+     "skmfmztw:centralised-versus-decentralised-decision-making",
+     "skmfmztw:global-matrix-structure",
+     "zhirjh9f:business-and-it-alignment-and-how-it-is-achieved"
     ]
    },
    {
@@ -6388,7 +6397,7 @@
     ],
     "topics": [
      "aypy998e:staffing-policy-ethnocentric-polycentric-geocent",
-     "aypy998e:emerging-issues-automation-covid-19-gartner-tren",
+     "aypy998e:ihrm-prospects-automation-and-the-2020-21-crises",
      "aypy998e:labour-relations-and-country-specific-practices"
     ]
    },
@@ -6450,7 +6459,7 @@
     ],
     "topics": [
      "zc4vwrqj:why-and-where-to-enter-resource-market-efficienc",
-     "zc4vwrqj:scale-and-ownership-born-global-firms-and-lean-i",
+     "zc4vwrqj:scale-and-ownership-born-global-firms",
      "zc4vwrqj:six-entry-modes-exporting-turnkey-licensing-fran"
     ]
    },
@@ -6716,7 +6725,7 @@
     "topics": [
      "aypy998e:staffing-policy-ethnocentric-polycentric-geocent",
      "aypy998e:expatriates-failure-selection-and-the-global-man",
-     "aypy998e:emerging-issues-automation-covid-19-gartner-tren"
+     "aypy998e:ihrm-prospects-automation-and-the-2020-21-crises"
     ]
    },
    {
@@ -6742,7 +6751,7 @@
     "topics": [
      "uzjmuvcd:modern-theories-product-life-cycle-strategic-tra",
      "uzjmuvcd:tariff-and-non-tariff-barriers",
-     "g8u2nfmy:economic-systems-market-command-and-mixed-variet"
+     "g8u2nfmy:economic-systems-market-command-and-mixed"
     ]
    },
    {
@@ -6879,13 +6888,13 @@
     "page": 4,
     "anchor": "8. ‘The alignment of international business strategy, organisation structure and",
     "chapters": [
-     "4dhhuihn",
-     "zhirjh9f"
+     "skmfmztw",
+     "4dhhuihn"
     ],
     "topics": [
-     "4dhhuihn:four-international-strategies-and-how-strategy-e",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati",
-     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+     "skmfmztw:fitting-structure-to-international-strategy",
+     "skmfmztw:organisational-architecture-and-fit",
+     "4dhhuihn:four-international-strategies-and-how-strategy-e"
     ]
    }
   ]
@@ -7021,7 +7030,7 @@
      "zc4vwrqj"
     ],
     "topics": [
-     "zc4vwrqj:scale-and-ownership-born-global-firms-and-lean-i",
+     "zc4vwrqj:scale-and-ownership-born-global-firms",
      "zc4vwrqj:six-entry-modes-exporting-turnkey-licensing-fran",
      "zc4vwrqj:strategic-alliances-reasons-criticisms-success-f"
     ]
@@ -7050,7 +7059,7 @@
     "topics": [
      "4dhhuihn:strategy-and-value-creation-unrealised-and-emerg",
      "4dhhuihn:value-chain-primary-and-support-activities",
-     "4dhhuihn:location-economies-experience-curve-effects-econ"
+     "4dhhuihn:economies-from-location-experience-effects-and-s"
     ]
    },
    {
@@ -7110,13 +7119,13 @@
     "page": 4,
     "anchor": "8. ‘For an international business to succeed structure must follow strategy.’ Discuss",
     "chapters": [
-     "4dhhuihn",
-     "zhirjh9f"
+     "skmfmztw",
+     "4dhhuihn"
     ],
     "topics": [
-     "4dhhuihn:four-international-strategies-and-how-strategy-e",
-     "4dhhuihn:pressures-for-cost-reduction-and-local-responsiv",
-     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati"
+     "skmfmztw:global-matrix-structure",
+     "skmfmztw:global-product-division-structure",
+     "4dhhuihn:aaa-model-adaptation-aggregation-arbitrage"
     ]
    }
   ]
@@ -7226,13 +7235,13 @@
     "page": 5,
     "anchor": "8. ‘To be effective, international business strategy must be aligned with organisatio nal",
     "chapters": [
-     "4dhhuihn",
+     "skmfmztw",
      "zhirjh9f"
     ],
     "topics": [
-     "4dhhuihn:four-international-strategies-and-how-strategy-e",
-     "zhirjh9f:enterprise-it-architecture-enterprise-systems-an",
-     "zhirjh9f:strengths-and-weaknesses-of-each-architecture"
+     "skmfmztw:global-product-division-structure",
+     "skmfmztw:centralised-versus-decentralised-decision-making",
+     "zhirjh9f:bartlett-and-ghoshal-s-four-approaches-multinati"
     ]
    }
   ]
@@ -8284,13 +8293,13 @@
     "page": 6,
     "anchor": "7. The following question concerns the effects of background characteristics and admission",
     "chapters": [
-     "9xtetwaf",
-     "48isg7ra"
+     "i3xv6ibs",
+     "9xtetwaf"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter",
-     "48isg7ra:variance-of-the-ols-estimators-multicollinearity",
-     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
+     "i3xv6ibs:interactions-involving-dummy-variables",
+     "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
     ]
    },
    {
@@ -8490,26 +8499,13 @@
     "page": 3,
     "anchor": "3. The following ordinary least squares estimates were made on a sample of 3,356 employed male",
     "chapters": [
-     "9xtetwaf",
-     "48isg7ra"
-    ],
-    "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
-    ]
-   },
-   {
-    "question": 4,
-    "page": 4,
-    "anchor": "4. (a) In the following panel data model",
-    "chapters": [
-     "48isg7ra",
+     "i3xv6ibs",
      "9xtetwaf"
     ],
     "topics": [
-     "48isg7ra:efficiency-of-ols-gauss-markov-theorem",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
-     "48isg7ra:variance-of-the-ols-estimators-multicollinearity"
+     "i3xv6ibs:models-with-quadratics-and-turning-points",
+     "i3xv6ibs:chow-test-for-differences-across-groups",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
     ]
    },
    {
@@ -8656,12 +8652,12 @@
     "page": 8,
     "anchor": "9. A team examines the determinants of restaurant ratings on TripAdvisor, the world's most",
     "chapters": [
-     "48isg7ra",
+     "i3xv6ibs",
      "9xtetwaf"
     ],
     "topics": [
-     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "48isg7ra:variance-of-the-ols-estimators-multicollinearity",
+     "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t",
+     "i3xv6ibs:interactions-involving-dummy-variables",
      "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
     ]
    }
@@ -8691,10 +8687,11 @@
     "page": 2,
     "anchor": "2. Consider the human capital earnings function given by",
     "chapters": [
+     "i3xv6ibs",
      "48isg7ra"
     ],
     "topics": [
-     "48isg7ra:motivation-for-multiple-regression",
+     "i3xv6ibs:models-with-quadratics-and-turning-points",
      "48isg7ra:mechanics-and-interpretation-of-ols"
     ]
    },
@@ -8858,13 +8855,13 @@
     "question": 5,
     "page": 5,
     "chapters": [
-     "48isg7ra",
-     "9xtetwaf"
+     "i3xv6ibs",
+     "48isg7ra"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
+     "i3xv6ibs:models-with-quadratics-and-turning-points",
      "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "48isg7ra:mechanics-and-interpretation-of-ols"
     ]
    },
    {
@@ -8964,9 +8961,13 @@
     "page": 3,
     "anchor": "5. Discuss how dummy variables can be used to test",
     "chapters": [
-     "48isg7ra"
+     "i3xv6ibs"
     ],
-    "topics": []
+    "topics": [
+     "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t",
+     "i3xv6ibs:interactions-involving-dummy-variables",
+     "i3xv6ibs:chow-test-for-differences-across-groups"
+    ]
    },
    {
     "question": 6,
@@ -9086,11 +9087,11 @@
     "page": 3,
     "anchor": "4. Consider the following simplified production function for a sample of taxi firms i:",
     "chapters": [
-     "48isg7ra",
+     "i3xv6ibs",
      "9xtetwaf"
     ],
     "topics": [
-     "48isg7ra:motivation-for-multiple-regression",
+     "i3xv6ibs:models-with-quadratics-and-turning-points",
      "9xtetwaf:testing-a-single-linear-combination-of-parameter"
     ]
    },
@@ -9099,12 +9100,13 @@
     "page": 3,
     "anchor": "5. An economist considers the Linear Probability Model (LPM) and a Logit model to examine",
     "chapters": [
-     "hifykydg"
+     "hifykydg",
+     "i3xv6ibs"
     ],
     "topics": [
      "hifykydg:lpm-drawbacks",
      "hifykydg:logit-and-probit",
-     "hifykydg:partial-effects-in-logit-probit"
+     "i3xv6ibs:models-with-interaction-terms"
     ]
    },
    {
@@ -9210,12 +9212,12 @@
     "page": 3,
     "anchor": "4. (a) Explain what you understand by a dummy vari able. Under what circumstances would you",
     "chapters": [
-     "9xtetwaf",
-     "48isg7ra"
+     "i3xv6ibs"
     ],
     "topics": [
-     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "i3xv6ibs:describing-qualitative-information",
+     "i3xv6ibs:interactions-involving-dummy-variables",
+     "i3xv6ibs:chow-test-for-differences-across-groups"
     ]
    },
    {
@@ -9322,13 +9324,13 @@
     "page": 4,
     "anchor": "6. A researcher studies how students' time allocation affects performance in a blended-learning",
     "chapters": [
-     "48isg7ra",
+     "i3xv6ibs",
      "w8jhm9u7"
     ],
     "topics": [
-     "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi",
-     "w8jhm9u7:consequences-of-heteroskedasticity-for-ols",
-     "48isg7ra:variance-of-the-ols-estimators-multicollinearity"
+     "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t",
+     "i3xv6ibs:models-with-interaction-terms",
+     "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi"
     ]
    },
    {
@@ -9406,12 +9408,12 @@
     "question": 4,
     "page": 5,
     "chapters": [
-     "48isg7ra",
-     "9xtetwaf"
+     "i3xv6ibs"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "i3xv6ibs:dummy-variables-for-multiple-and-ordinal-categor",
+     "i3xv6ibs:interactions-involving-dummy-variables",
+     "i3xv6ibs:chow-test-for-differences-across-groups"
     ]
    },
    {
@@ -9441,11 +9443,12 @@
     "question": 7,
     "page": 7,
     "chapters": [
-     "48isg7ra",
+     "i3xv6ibs",
      "9xtetwaf"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter",
+     "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t",
+     "i3xv6ibs:interactions-involving-dummy-variables",
      "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
     ]
    },
@@ -9539,12 +9542,12 @@
     "page": 6,
     "anchor": "6. In the model:",
     "chapters": [
-     "48isg7ra",
-     "9xtetwaf"
+     "i3xv6ibs",
+     "48isg7ra"
     ],
     "topics": [
-     "9xtetwaf:t-test-for-a-single-population-parameter",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
+     "i3xv6ibs:chow-test-for-differences-across-groups",
+     "i3xv6ibs:interactions-involving-dummy-variables",
      "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
     ]
    },
@@ -9670,13 +9673,13 @@
     "question": 8,
     "page": 8,
     "chapters": [
-     "48isg7ra",
-     "9xtetwaf"
+     "i3xv6ibs",
+     "48isg7ra"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
+     "i3xv6ibs:models-with-quadratics-and-turning-points",
      "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "48isg7ra:mechanics-and-interpretation-of-ols"
     ]
    }
   ]
@@ -10360,11 +10363,12 @@
     "page": 5,
     "anchor": "5. Let us consider the following cross-sectional model for household consumption C =β0 +β1Y +β2Y 2 +u,",
     "chapters": [
+     "i3xv6ibs",
      "48isg7ra"
     ],
     "topics": [
-     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted",
-     "48isg7ra:mechanics-and-interpretation-of-ols"
+     "i3xv6ibs:models-with-quadratics-and-turning-points",
+     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
     ]
    },
    {
@@ -10385,12 +10389,12 @@
     "page": 7,
     "anchor": "7. Let us consider the relationship between the natural logarithm of GDP , GDPt, and the lagged long-term interest",
     "chapters": [
-     "s7m9nt7j",
-     "9xtetwaf"
+     "i3xv6ibs",
+     "s7m9nt7j"
     ],
     "topics": [
-     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "i3xv6ibs:chow-test-for-differences-across-groups",
+     "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15"
     ]
    },
    {
@@ -10412,11 +10416,12 @@
     "page": 9,
     "anchor": "9. Let us consider a dataset containing information on government expenditure on education (EducE), gross domestic",
     "chapters": [
+     "i3xv6ibs",
      "w8jhm9u7"
     ],
     "topics": [
+     "i3xv6ibs:interactions-involving-dummy-variables",
      "w8jhm9u7:testing-for-heteroskedasticity-graphical-analysi",
-     "w8jhm9u7:weighted-least-squares",
      "w8jhm9u7:heteroskedasticity-robust-inference-after-ols"
     ]
    }
@@ -10908,17 +10913,6 @@
      "hifykydg:heteroskedasticity-in-the-lpm",
      "hifykydg:maximum-likelihood"
     ]
-   },
-   {
-    "question": 10,
-    "page": 8,
-    "anchor": "10. (a) Consider a model K it 1 j jit i it j 2 Y X u ; i 1 ,2, ,n ; t 1 ,2, ,T",
-    "chapters": [
-     "48isg7ra"
-    ],
-    "topics": [
-     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
-    ]
    }
   ]
  },
@@ -11078,12 +11072,12 @@
     "page": 4,
     "anchor": "4. You have been given the task of estimating an earnings function using data from a data set on 2868 individuals.",
     "chapters": [
-     "48isg7ra",
-     "9xtetwaf"
+     "i3xv6ibs"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
-     "48isg7ra:variance-of-the-ols-estimators-multicollinearity"
+     "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t",
+     "i3xv6ibs:interactions-involving-dummy-variables",
+     "i3xv6ibs:chow-test-for-differences-across-groups"
     ]
    },
    {
@@ -11221,12 +11215,12 @@
     "question": 7,
     "page": 7,
     "chapters": [
-     "48isg7ra",
-     "9xtetwaf"
+     "i3xv6ibs"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "i3xv6ibs:describing-qualitative-information",
+     "i3xv6ibs:interactions-involving-dummy-variables",
+     "i3xv6ibs:chow-test-for-differences-across-groups"
     ]
    },
    {
@@ -11305,12 +11299,12 @@
     "question": 5,
     "page": 5,
     "chapters": [
-     "48isg7ra",
-     "9xtetwaf"
+     "i3xv6ibs"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
+     "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t",
+     "i3xv6ibs:interactions-involving-dummy-variables",
+     "i3xv6ibs:chow-test-for-differences-across-groups"
     ]
    },
    {
@@ -11438,16 +11432,6 @@
     ]
    },
    {
-    "question": 8,
-    "page": 5,
-    "chapters": [
-     "48isg7ra"
-    ],
-    "topics": [
-     "48isg7ra:expected-value-of-the-ols-estimators-and-omitted"
-    ]
-   },
-   {
     "question": 9,
     "page": 6,
     "anchor": "9. (a) Consider a model 0 1 1 2 i i i Y β β X u ; i , , ,n = + + = K",
@@ -11465,12 +11449,13 @@
     "page": 7,
     "anchor": "10. The following ordinary least squares (OLS) estimates were obtained of the demand for labour in manufacturing using",
     "chapters": [
-     "9xtetwaf",
+     "i3xv6ibs",
      "s7m9nt7j"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "i3xv6ibs:chow-test-for-differences-across-groups",
+     "s7m9nt7j:testing-for-autocorrelation",
+     "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
     ]
    }
   ]
@@ -11614,12 +11599,12 @@
     "page": 5,
     "anchor": "4. The following ordinary least squares (OLS) estimates were obtained of the demand for labour in manufacturing using",
     "chapters": [
-     "s7m9nt7j",
-     "9xtetwaf"
+     "i3xv6ibs",
+     "s7m9nt7j"
     ],
     "topics": [
+     "i3xv6ibs:chow-test-for-differences-across-groups",
      "s7m9nt7j:testing-for-autocorrelation",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
      "s7m9nt7j:properties-of-ols-with-serially-correlated-error"
     ]
    },
@@ -11668,12 +11653,13 @@
     "page": 8,
     "anchor": "8. Data on household expenditure on clothing (CLOTH) is obtained from a survey of 3000 households in a two week period.",
     "chapters": [
-     "9xtetwaf",
-     "48isg7ra"
+     "i3xv6ibs",
+     "9xtetwaf"
     ],
     "topics": [
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
-     "48isg7ra:mechanics-and-interpretation-of-ols"
+     "i3xv6ibs:interactions-involving-dummy-variables",
+     "i3xv6ibs:chow-test-for-differences-across-groups",
+     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
     ]
    }
   ]
@@ -12451,11 +12437,12 @@
     "page": 5,
     "anchor": "5. Regressing profits (P t) on sales (St) for UK manufacturing corporations using quarterly",
     "chapters": [
-     "48isg7ra"
+     "i3xv6ibs"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "48isg7ra:motivation-for-multiple-regression"
+     "i3xv6ibs:interactions-involving-dummy-variables",
+     "i3xv6ibs:dummy-variables-for-multiple-and-ordinal-categor",
+     "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t"
     ]
    },
    {
@@ -12572,11 +12559,12 @@
     "page": 5,
     "anchor": "6. The following question concerns the effects of background characteristics on student’s per",
     "chapters": [
-     "48isg7ra"
+     "i3xv6ibs"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "48isg7ra:motivation-for-multiple-regression"
+     "i3xv6ibs:models-with-quadratics-and-turning-points",
+     "i3xv6ibs:models-with-interaction-terms",
+     "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t"
     ]
    },
    {
@@ -12704,9 +12692,11 @@
     "question": 6,
     "page": 6,
     "chapters": [
+     "i3xv6ibs",
      "mtitgdpr"
     ],
     "topics": [
+     "i3xv6ibs:adjusted-r-squared-and-selection-of-regressors",
      "mtitgdpr:properties-of-ols-on-any-sample-fitted-values-re"
     ]
    },
@@ -12761,11 +12751,13 @@
     "page": 3,
     "anchor": "2. Write brief answers on any three of the following:",
     "chapters": [
-     "s7m9nt7j"
+     "s7m9nt7j",
+     "i3xv6ibs"
     ],
     "topics": [
      "s7m9nt7j:related-trends-unit-roots-cointegration-ch-15",
-     "s7m9nt7j:related-static-and-finite-distributed-lag-models"
+     "i3xv6ibs:a-single-dummy-variable-and-the-dummy-variable-t",
+     "i3xv6ibs:chow-test-for-differences-across-groups"
     ]
    },
    {
@@ -12797,11 +12789,12 @@
     "page": 5,
     "anchor": "5. Data on household expenditure on clothing (CLOTH) is obtained from a survey of 3000",
     "chapters": [
-     "48isg7ra",
+     "i3xv6ibs",
      "9xtetwaf"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
+     "i3xv6ibs:chow-test-for-differences-across-groups",
+     "i3xv6ibs:interactions-involving-dummy-variables",
      "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
     ]
    },
@@ -13205,11 +13198,11 @@
     "page": 10,
     "anchor": "10. To investigate the relationship between the price of wine and consumption of wine, an",
     "chapters": [
-     "9xtetwaf",
-     "48isg7ra"
+     "i3xv6ibs",
+     "9xtetwaf"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
+     "i3xv6ibs:interactions-involving-dummy-variables",
      "9xtetwaf:t-test-for-a-single-population-parameter",
      "9xtetwaf:confidence-intervals"
     ]
@@ -13254,12 +13247,13 @@
     "page": 4,
     "anchor": "3. To try to explain an apparent decline in Soviet defence expenditure, the following",
     "chapters": [
-     "48isg7ra",
-     "s7m9nt7j"
+     "i3xv6ibs",
+     "48isg7ra"
     ],
     "topics": [
-     "48isg7ra:mechanics-and-interpretation-of-ols",
-     "s7m9nt7j:testing-for-autocorrelation"
+     "i3xv6ibs:chow-test-for-differences-across-groups",
+     "i3xv6ibs:interactions-involving-dummy-variables",
+     "48isg7ra:mechanics-and-interpretation-of-ols"
     ]
    },
    {
@@ -13625,19 +13619,6 @@
      "9xtetwaf:t-test-for-a-single-population-parameter",
      "9xtetwaf:testing-multiple-linear-restrictions-the-f-test",
      "48isg7ra:mechanics-and-interpretation-of-ols"
-    ]
-   },
-   {
-    "question": 5,
-    "page": 5,
-    "anchor": "5. (a) In the following panel data model",
-    "chapters": [
-     "6jmn24c5",
-     "9xtetwaf"
-    ],
-    "topics": [
-     "6jmn24c5:structure-of-economic-data-cross-sectional-time",
-     "9xtetwaf:testing-multiple-linear-restrictions-the-f-test"
     ]
    },
    {
@@ -14219,7 +14200,7 @@
      "nynrjjzb"
     ],
     "topics": [
-     "nynrjjzb:equity-and-efficiency"
+     "nynrjjzb:edgeworth-box-and-contract-curve"
     ]
    },
    {
@@ -14456,7 +14437,8 @@
      "nynrjjzb"
     ],
     "topics": [
-     "nynrjjzb:equity-and-efficiency"
+     "nynrjjzb:general-equilibrium",
+     "nynrjjzb:edgeworth-box-and-contract-curve"
     ]
    },
    {
@@ -14567,9 +14549,11 @@
     "page": 3,
     "anchor": "3. The supply of wine to a lo cal market comes from local growers",
     "chapters": [
+     "nynrjjzb",
      "j86yz7hk"
     ],
     "topics": [
+     "nynrjjzb:general-equilibrium",
      "j86yz7hk:comparative-statics",
      "j86yz7hk:industry-supply-curves"
     ]
@@ -15543,7 +15527,7 @@
      "nynrjjzb"
     ],
     "topics": [
-     "nynrjjzb:equity-and-efficiency"
+     "nynrjjzb:edgeworth-box-and-contract-curve"
     ]
    },
    {
@@ -16314,13 +16298,13 @@
     "page": 3,
     "anchor": "3. The demand for the local product of Fine Schmaeker’s Smoked Mountain Goat Cheese",
     "chapters": [
-     "3gu4spfp",
+     "nynrjjzb",
      "j86yz7hk"
     ],
     "topics": [
-     "3gu4spfp:shifts-in-demand-and-supply",
-     "3gu4spfp:equilibrium",
-     "j86yz7hk:comparative-statics"
+     "nynrjjzb:general-equilibrium",
+     "j86yz7hk:comparative-statics",
+     "j86yz7hk:industry-supply-curves"
     ]
    },
    {
@@ -17295,6 +17279,8 @@
      "nynrjjzb"
     ],
     "topics": [
+     "nynrjjzb:edgeworth-box-and-contract-curve",
+     "nynrjjzb:general-equilibrium",
      "nynrjjzb:equity-and-efficiency"
     ]
    },

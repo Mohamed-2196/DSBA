@@ -166,6 +166,9 @@ describe('describeAudit', () => {
     expect(
       describeAudit(entry('module.seed_lessons', { title: 'Machine Learning', batch: '2026-11', lessons: 93 })),
     ).toBe('added 93 lessons from the Hub’s seed to the module “Machine Learning”');
+    expect(
+      describeAudit(entry('module.seed_order', { title: 'Business and Management', batch: '2026-11e', moved: 2 })),
+    ).toBe('put the chapters of the module “Business and Management” in the Hub’s seed order');
     expect(describeAudit(entry('request.status', { title: 'ST2133 2019 paper', from: 'open', to: 'done' }))).toBe(
       'marked the request “ST2133 2019 paper” done',
     );

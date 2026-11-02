@@ -38,10 +38,12 @@ from app.schemas.career import CareerDoc
 from app.schemas.newsletter import IssueCover, IssueSection
 from app.seed.loader import (
     BROKEN_CHAPTERS,
+    BROKEN_LESSONS,
     REFILED,
     RETIRED_FILES,
     RETIRED_FOLDERS,
     SEED_LESSONS,
+    SEED_ORDER,
     daily_guess_words,
     load_all,
     load_daily,
@@ -163,7 +165,9 @@ def test_seed_loads_everything_once(db: Session) -> None:
         **files,
         "broken-chapters": 0,
         "new-lessons": 0,
+        "broken-lessons": 0,
         "unit-codes": 0,
+        "chapter-order": 0,
         "chapter-words": 0,  # the modules arrive with their words
         "chapter-outlines": outlines,
         "career": 1,
@@ -194,7 +198,9 @@ def test_seed_loads_everything_once(db: Session) -> None:
         "modules": 0,
         "broken-chapters": 0,
         "new-lessons": 0,
+        "broken-lessons": 0,
         "unit-codes": 0,
+        "chapter-order": 0,
         "chapter-words": 0,
         "chapter-outlines": 0,
         "calendar": 0,
@@ -307,7 +313,9 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
         "modules": 0,
         "broken-chapters": 0,
         "new-lessons": 0,
+        "broken-lessons": 0,
         "unit-codes": 0,
+        "chapter-order": 0,
         "chapter-words": 0,
         "chapter-outlines": 0,
         "calendar": 0,
@@ -474,6 +482,95 @@ def test_the_seeds_later_chapters_and_lessons_reach_a_catalogue_loaded_before_th
     db.commit()
     assert db.get(Lesson, gone_lesson) is None
     assert db.get(Chapter, gone_chapter) is None
+
+
+def test_the_seed_removes_a_broken_lesson_and_moves_students_notes_to_its_stand_in(
+    db: Session, client_for: Clients, make_user: Callable[..., User], set_feature: Callable[..., None]
+) -> None:
+    files = read("modules")
+    lessons = {v["id"]: c for m in files for c in m.get("chapters") or [] for v in c["videos"]}
+    assert not any(lesson_id in lessons for lesson_id in BROKEN_LESSONS)
+    assert all(stand_in in lessons for stand_in in BROKEN_LESSONS.values())
+    first_load(db)
+
+    # an install seeded before: the broken lesson is still in its chapter, with a student's note on it
+    broken_id, stand_in = next(iter(BROKEN_LESSONS.items()))
+    stand_in_lesson = db.get(Lesson, stand_in)
+    assert stand_in_lesson is not None
+    chapter = stand_in_lesson.chapter
+    chapter.lessons.insert(0, Lesson(id=broken_id, module_id=chapter.module_id, kind="youtube", video_id="x" * 10))
+    for position, lesson in enumerate(chapter.lessons):
+        lesson.position = position
+    db.commit()
+    set_feature("notes", "everyone")
+    me = client_for(make_user())
+    made = me.post(f"{API}/notes", json={"title": "IHRM", "moduleId": chapter.module_id, "lessonId": broken_id})
+    assert made.status_code == 201, made.text
+    db.expire_all()
+    module = db.get(Module, chapter.module_id)
+    assert module is not None
+    version = module.version
+
+    assert load_all(db, only="broken-lessons") == {"broken-lessons": 1}
+    db.commit()
+    db.expire_all()
+    assert db.get(Lesson, broken_id) is None
+    moved = db.get(Note, uuid.UUID(made.json()["id"]))
+    assert moved is not None
+    assert moved.lesson_id == stand_in
+    stand_in_lesson = db.get(Lesson, stand_in)
+    assert stand_in_lesson is not None
+    assert [v.position for v in stand_in_lesson.chapter.lessons] == list(range(len(stand_in_lesson.chapter.lessons)))
+    module = db.get(Module, stand_in_lesson.chapter.module_id)
+    assert module is not None
+    assert module.version == version + 1
+    assert load_all(db, only="broken-lessons") == {"broken-lessons": 0}
+
+
+def test_the_seed_puts_a_modules_chapters_in_its_new_order_once_and_then_leaves_them_to_content_managers(
+    db: Session,
+) -> None:
+    first_load(db)
+    seed = [c["id"] for c in next(m for m in read("modules") if m["id"] == "business")["chapters"]]
+
+    def reorder(ids: list[str]) -> None:
+        module = db.get(Module, "business")
+        assert module is not None
+        by_id = {c.id: c for c in module.chapters}
+        module.chapters = [by_id[i] for i in ids]
+        for position, chapter in enumerate(module.chapters):
+            chapter.position = position
+        db.commit()
+        db.expire_all()
+
+    # a catalogue loaded before the new order (two chapters the other way round), which the order hasn't reached
+    db.execute(delete(AuditEntry).where(AuditEntry.action == SEED_ORDER))
+    before = [*seed]
+    before[-3], before[-2] = before[-2], before[-3]
+    reorder(before)
+    module = db.get(Module, "business")
+    assert module is not None
+    version = module.version
+
+    assert load_all(db, only="chapter-order") == {"chapter-order": 1}
+    db.commit()
+    db.expire_all()
+    module = db.get(Module, "business")
+    assert module is not None
+    assert [c.id for c in module.chapters] == seed
+    assert [c.position for c in module.chapters] == list(range(len(seed)))
+    assert module.version == version + 1
+    entry = db.scalars(select(AuditEntry).where(AuditEntry.action == SEED_ORDER)).one()
+    assert (entry.actor_id, entry.target_id, entry.data["moved"], entry.data["via"]) == (None, "business", 2, "cli")
+
+    # a content manager's own order afterwards stays
+    reorder(before)
+    assert load_all(db, only="chapter-order") == {"chapter-order": 0}
+    db.commit()
+    db.expire_all()
+    module = db.get(Module, "business")
+    assert module is not None
+    assert [c.id for c in module.chapters] == before
 
 
 def test_the_seed_gives_a_module_without_a_unit_code_the_seeds_and_keeps_one_a_content_manager_set(db: Session) -> None:

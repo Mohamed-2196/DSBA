@@ -114,6 +114,20 @@ def load_modules(db: Session) -> int:
 # Chapters the first catalogue held by mistake, each with its lessons' stand-ins in the chapter it repeats:
 # MN1178's second "International Project Management", whose only lesson was a half-downloaded file.
 BROKEN_CHAPTERS: dict[str, dict[str, str]] = {"fjdyedyg": {"6z8mmrtu": "me34n26c"}}
+# Lessons whose video is gone (YouTube refuses the id), each with the lesson that stands in for it.
+BROKEN_LESSONS: dict[str, str] = {"q6nv536p": "v2m4nyhh"}  # MN1178 international HRM: the first of its new lessons
+
+
+def _to_stand_in(db: Session, lesson_id: str, stand_in: str) -> None:
+    """Students' notes and study-board cards on a lesson that goes move to its stand-in; a note loses its lesson, and
+    a card goes, when the stand-in is gone too or the card's board already holds it."""
+    to = stand_in if db.get(Lesson, stand_in) is not None else None
+    db.execute(update(Note).where(Note.lesson_id == lesson_id).values(lesson_id=to))
+    cards = BoardCard.lesson_id == lesson_id
+    if to is not None:  # a board holds a lesson once: where it holds both, the broken one's card goes
+        has_it = select(BoardCard.board_id).where(BoardCard.lesson_id == to)
+        db.execute(update(BoardCard).where(cards, BoardCard.board_id.not_in(has_it)).values(lesson_id=to))
+    db.execute(delete(BoardCard).where(cards))
 
 
 def remove_broken_chapters(db: Session) -> int:
@@ -127,19 +141,34 @@ def remove_broken_chapters(db: Session) -> int:
         if chapter is None:
             continue
         for lesson_id, stand_in in stand_ins.items():
-            to = stand_in if db.get(Lesson, stand_in) is not None else None
-            db.execute(update(Note).where(Note.lesson_id == lesson_id).values(lesson_id=to))
-            cards = BoardCard.lesson_id == lesson_id
-            if to is not None:  # a board holds a lesson once: where it holds both, the broken one's card goes
-                has_it = select(BoardCard.board_id).where(BoardCard.lesson_id == to)
-                db.execute(update(BoardCard).where(cards, BoardCard.board_id.not_in(has_it)).values(lesson_id=to))
-            db.execute(delete(BoardCard).where(cards))
+            _to_stand_in(db, lesson_id, stand_in)
         module = chapter.module
         module.chapters.remove(chapter)
         db.delete(chapter)
         for position, c in enumerate(module.chapters):
             c.position = position
         module.version += 1
+        db.flush()
+        n += 1
+    return n
+
+
+def remove_broken_lessons(db: Session) -> int:
+    """BROKEN_LESSONS, removed wherever they still are, after the new lessons came (a stand-in is usually one of
+    them): their notes and cards move to the stand-in (_to_stand_in), watched marks and tags go with the lesson. The
+    chapter's lessons are numbered again and the module's version goes up. How many lessons it removed."""
+    n = 0
+    for lesson_id, stand_in in BROKEN_LESSONS.items():
+        lesson = db.get(Lesson, lesson_id)
+        if lesson is None:
+            continue
+        _to_stand_in(db, lesson_id, stand_in)
+        chapter = lesson.chapter
+        chapter.lessons.remove(lesson)
+        db.delete(lesson)
+        for position, other in enumerate(chapter.lessons):
+            other.position = position
+        chapter.module.version += 1
         db.flush()
         n += 1
     return n
@@ -204,6 +233,50 @@ def load_new_lessons(db: Session) -> int:
             audit.record(db, None, SEED_LESSONS, "module", module.id, data)
             db.flush()  # a later batch finds the chapters this one brought
             n += added
+    db.flush()
+    return n
+
+
+SEED_ORDER = "module.seed_order"
+# Modules whose chapters the seed file puts in a new order, by batch: each reaches a module once (the audit log keeps
+# that it did), after which the order is the content managers' again.
+CHAPTER_ORDERS: dict[str, tuple[str, ...]] = {
+    "2026-11e": ("business",),  # MN1178: the guide's ch 14 (international HRM) before ch 15 (project management)
+}
+
+
+def load_chapter_order(db: Session) -> int:
+    """The chapters of a module CHAPTER_ORDERS names, put in the seed file's order, once per (module, batch): the
+    seed's chapters take the places they hold among themselves, so a chapter a content manager added keeps its own.
+    How many modules it reordered."""
+    done = {
+        (target, (data or {}).get("batch"))
+        for target, data in db.execute(
+            select(AuditEntry.target_id, AuditEntry.data).where(AuditEntry.action == SEED_ORDER)
+        )
+    }
+    specs = {m["id"]: m for m in read("modules")}
+    n = 0
+    for batch, module_ids in CHAPTER_ORDERS.items():
+        for module_id in module_ids:
+            module = db.get(Module, module_id)
+            if module is None or (module_id, batch) in done or module_id not in specs:
+                continue
+            order = {c["id"]: i for i, c in enumerate(specs[module_id].get("chapters") or [])}
+            chapters = list(module.chapters)
+            slots = [i for i, c in enumerate(chapters) if c.id in order]
+            ordered = sorted((chapters[i] for i in slots), key=lambda c: order[c.id])
+            moved = sum(chapters[i] is not c for i, c in zip(slots, ordered, strict=True))
+            for i, c in zip(slots, ordered, strict=True):
+                chapters[i] = c
+            for position, c in enumerate(chapters):
+                c.position = position
+            module.chapters = chapters
+            if moved:
+                module.version += 1
+                n += 1
+            data = {"title": module.name, "batch": batch, "moved": moved, "via": "cli"}
+            audit.record(db, None, SEED_ORDER, "module", module.id, data)
     db.flush()
     return n
 
@@ -549,7 +622,9 @@ SECTIONS: dict[str, Callable[[Session], int]] = {
     "modules": load_modules,
     "broken-chapters": remove_broken_chapters,
     "new-lessons": load_new_lessons,
+    "broken-lessons": remove_broken_lessons,
     "unit-codes": load_unit_codes,
+    "chapter-order": load_chapter_order,
     "chapter-words": load_chapter_words,
     "chapter-outlines": load_chapter_outlines,
     "calendar": load_calendar,
