@@ -1,7 +1,7 @@
 // /modules: the year's modules as a contents page: a spine of module tiles (the module's illustration, or its unit
 // code where it has none yet, or a plate with its icon for Year 3 modules, which have no code), each row with name,
-// description, counts, next exam and lesson progress. Follows the global year; the segmented control peeks at
-// another year without changing it (?year=3).
+// description, counts, next exam and lesson progress. Follows the global year; ?year=3 (a module's back link) peeks
+// at another year without changing it.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -9,7 +9,6 @@ import type { ModuleSummary } from '../../api/types';
 import { useAuth } from '../../auth';
 import {
   COHORTS,
-  YEARS,
   cohortColor,
   normalizeYear,
   useDocumentTitle,
@@ -27,7 +26,6 @@ import {
   Page,
   PageHeader,
   ProgressRing,
-  SegmentedControl,
   Skeleton,
   cx,
   countOf,
@@ -226,25 +224,9 @@ export default function ModulesPage() {
         section="modules"
         title="Modules"
         description={`Books, past papers, students’ notes and video lessons for every ${COHORTS[viewYear].label} module.`}
-        actions={
-          <SegmentedControl
-            label="Show modules for"
-            className="mod-index__years"
-            value={viewYear}
-            onChange={(y) => setPeek(y === activeYear ? null : y, { replace: true })}
-            options={YEARS.map((y) => ({
-              value: y,
-              label: COHORTS[y].label,
-              color: COHORTS[y].color,
-              onColor: COHORTS[y].on,
-            }))}
-          />
-        }
         meta={
           <>
-            <span className="mod-index__wide">
-              <CohortBadge year={viewYear} />
-            </span>
+            <CohortBadge year={viewYear} />
             <span className="mod-index__fact">{countOf(rows.length, 'module')}</span>
             {hasVideos ? (
               <span className="mod-index__fact">

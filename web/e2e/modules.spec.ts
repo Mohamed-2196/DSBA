@@ -22,6 +22,30 @@ test('a guest browses the modules and a module’s tabs', async ({ guest }) => {
   await expect(guest.locator('[data-hub="progress-offer"]')).toBeVisible();
 });
 
+test('Modules has no year control of its own: ?year= shows another year, and a module there links back', async ({
+  guest,
+}) => {
+  await guest.goto('/modules');
+  await expect(guest.getByRole('list', { name: 'Year 2 modules' })).toBeVisible();
+  await expect(guest.locator('main').getByRole('radiogroup')).toHaveCount(0);
+
+  await guest.goto('/modules?year=3');
+  await expect(guest.getByRole('list', { name: 'Year 3 modules' })).toBeVisible();
+  await expect(guest.locator('.ui-page-header__meta')).toContainText('Year 3');
+  await guest.locator('[data-hub="module-tile"]').first().click();
+  await guest.locator('main a[href="/modules?year=3"]').first().click();
+  await expect(guest.getByRole('list', { name: 'Year 3 modules' })).toBeVisible();
+
+  await guest.getByRole('button', { name: 'Back to Year 2' }).click();
+  await expect(guest.getByRole('list', { name: 'Year 2 modules' })).toBeVisible();
+});
+
+test('the top bar has no upload button, and the footer still does', async ({ guest }) => {
+  await guest.goto('/modules');
+  await expect(guest.locator('[data-hub="topbar"]').getByRole('button', { name: 'Upload a file' })).toHaveCount(0);
+  await expect(guest.locator('footer').getByRole('link', { name: 'Upload a file' })).toBeVisible();
+});
+
 test('on a shared computer, someone else’s guest progress can be left out when signing in', async ({ browser }) => {
   const ctx = await browser.newContext({ baseURL: env.baseURL });
   await ctx.addInitScript(() => {
