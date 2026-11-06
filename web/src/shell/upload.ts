@@ -1,5 +1,5 @@
-// "Upload a file" from anywhere (decision D6: Contribute means upload): the top bar, More, the footer, the command
-// palette and About call openUpload(), and the shell's UploadHost opens the upload dialog over the page on screen
+// "Upload a file" from anywhere (decision D6: Contribute means upload): More, the footer, the command palette and
+// About call openUpload(), and the shell's UploadHost opens the upload dialog over the page on screen
 // (with its module chosen, on a module's page). Guests sign in first. A link with ?upload=1 does the same on any
 // page. It shows only while uploading can work (showsUpload).
 import { useSyncExternalStore } from 'react';

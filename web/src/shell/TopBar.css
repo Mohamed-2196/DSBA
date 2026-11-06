@@ -53,8 +53,7 @@
   .shell-topbar__brand .shell-brand__name {
     font-size: 17px;
   }
-  .shell-topbar__search,
-  .shell-topbar__contribute {
+  .shell-topbar__search {
     display: none;
   }
   .shell-topbar__search-icon {

@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ErrorBoundary, Icon, IconButton, HubLogo, SearchField, cx, glyph } from '../ui';
+import { ErrorBoundary, Icon, IconButton, HubLogo, SearchField, cx, glyph } from '../ui';
 import { openCommandPalette } from '../features/search/public';
 import { NotificationsMenu } from '../features/notifications/public';
 import { YearSwitcher } from './YearSwitcher';
 import { ProfileMenu } from './ProfileMenu';
-import { openUpload, useUploadShown } from './upload';
 import './TopBar.css';
 
 function useScrolled(threshold = 4): boolean {
@@ -19,10 +18,9 @@ function useScrolled(threshold = 4): boolean {
   return scrolled;
 }
 
-/** Sticky top bar: search (opens ⌘K palette), notifications, Upload a file. Mobile: brand + year + icons + account. */
+/** Sticky top bar: search (opens ⌘K palette), notifications. Mobile: brand + year + icons + account. */
 export function TopBar() {
   const scrolled = useScrolled();
-  const uploadShown = useUploadShown();
   return (
     <header className={cx('shell-topbar', scrolled && 'is-scrolled')} data-hub="topbar">
       <div className="shell-topbar__inner">
@@ -49,16 +47,6 @@ export function TopBar() {
           <ErrorBoundary name="NotificationsMenu" fallback={null}>
             <NotificationsMenu />
           </ErrorBoundary>
-          {uploadShown ? (
-            <Button
-              className="shell-topbar__contribute"
-              leadingIcon={<Icon glyph={glyph.upload} />}
-              onClick={openUpload}
-              data-hub="contribute"
-            >
-              Upload a file
-            </Button>
-          ) : null}
           <span className="shell-topbar__profile">
             <ProfileMenu placement="topbar" />
           </span>
