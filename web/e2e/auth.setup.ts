@@ -139,8 +139,10 @@ setup(
     expect(Object.keys(progress.body.watched).sort()).toEqual([...lessons].sort());
 
     // Home picks up where she left off; clearing the module's progress offers an undo.
+    await api(page, 'PATCH', '/api/v1/me', { preferences: { homeBlocks: ['continue'] } });
     await page.goto('/');
     await expect(page.locator('[data-hub="continue-learning"]')).toContainText('ST2133');
+    await api(page, 'PATCH', '/api/v1/me', { preferences: { homeBlocks: null } });
     await page.goto('/modules/advanced-stats-distribution?tab=lessons');
     await page.getByRole('button', { name: 'Lesson options' }).click();
     await page.getByRole('menuitem', { name: 'Clear my progress in this module' }).click();
