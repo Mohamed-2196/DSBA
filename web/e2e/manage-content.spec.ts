@@ -2,7 +2,11 @@
 // renames this week's Daily theme in Daily puzzles, sees the new name in the preview of today and a guest sees it on
 // the Daily. Each is put back as it was.
 import { expect, test } from './fixtures';
-import { api } from './support';
+import { api, switchBack, switchOn } from './support';
+
+test.beforeAll(async ({ browser }) => switchOn(browser, 'manage-content', ['daily']));
+
+test.afterAll(async ({ browser }) => switchBack(browser, 'manage-content'));
 
 test('a Site settings change shows on the site', async ({ admin, guest, run }) => {
   const before = await api<{ version: number; data: { tagline: string } }>(admin, 'GET', '/api/v1/site/edit');

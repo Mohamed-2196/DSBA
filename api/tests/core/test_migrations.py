@@ -77,7 +77,7 @@ def test_the_baseline_seeds_what_the_api_needs(scratch: tuple[Config, Engine]) -
             "student": "forum.post,library.upload,newsletter.react,reports.create",
         }
         switches = dict(c.execute(text("SELECT feature, mode FROM feature_switches")).tuples().all())
-        features = ("forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora")
+        features = ("forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades")
         assert switches == dict.fromkeys(features, "everyone") | {
             "notes": "off",
             "board": "off",
@@ -86,6 +86,7 @@ def test_the_baseline_seeds_what_the_api_needs(scratch: tuple[Config, Engine]) -
             "forum.follow": "off",
             "newsletter.polls": "off",
             "career.seniors": "off",
+            "noora": "off",
             "noora.ai": "off",
             "library.questions": "off",
             "summary": "off",
@@ -223,6 +224,41 @@ def test_the_suggested_videos_switch_keeps_its_mode_and_roles_under_its_name(scr
     with engine.connect() as c:
         assert _switch(c, "video_suggestions") == set_by_admin
         assert _switch(c, "modules.video-suggestions") is None
+
+
+def test_mini_noora_and_the_daily_puzzles_are_switched_off_whatever_they_were(scratch: tuple[Config, Engine]) -> None:
+    """0058 switches them off, roles dropped, on an install where they were on; the switches next to them stay as
+    they were; going back gives Mini Noora her first setting and leaves the other two off."""
+    cfg, engine = scratch
+    command.upgrade(cfg, _before(cfg, "0058"))
+    admin = uuid.uuid4()
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO users (id, email) VALUES (:id, 'admin@example.com')"), {"id": admin})
+        c.execute(
+            text(
+                "UPDATE feature_switches SET mode = 'everyone', updated_by = :id WHERE feature IN ('noora.ai', 'daily')"
+            ),
+            {"id": admin},
+        )
+        c.execute(
+            text("UPDATE feature_switches SET mode = 'roles', updated_by = :id WHERE feature = 'noora'"), {"id": admin}
+        )
+        c.execute(
+            text("INSERT INTO feature_switch_roles (feature, role_id) SELECT 'noora', id FROM roles WHERE slug = 'rep'")
+        )
+        c.execute(text("UPDATE feature_switches SET mode = 'everyone' WHERE feature = 'library.daily-question'"))
+    command.upgrade(cfg, "0058")
+    with engine.connect() as c:
+        for feature in ("noora", "noora.ai", "daily"):
+            assert _switch(c, feature) == ("off", None, [])
+        kept = _switch(c, "library.daily-question")
+        assert kept is not None
+        assert kept[0] == "everyone"
+    command.downgrade(cfg, _before(cfg, "0058"))
+    with engine.connect() as c:
+        assert _switch(c, "noora") == ("everyone", None, [])
+        assert _switch(c, "noora.ai") == ("off", None, [])
+        assert _switch(c, "daily") == ("off", None, [])
 
 
 def test_boards_made_from_the_revision_template_become_study_boards_and_keep_their_columns(

@@ -122,7 +122,7 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
         "year": 3,
         "roles": [{"id": r.json()["roles"][0]["id"], "slug": "student", "name": "Student", "badge": None}],
         "boxes": ["forum.post", "library.upload", "newsletter.react", "reports.create"],
-        "features": ["forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "noora"],
+        "features": ["forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades"],
         "status": "active",
         "email": "me@example.com",
         "emailConfirmed": True,

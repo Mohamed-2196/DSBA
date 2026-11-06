@@ -4,7 +4,7 @@
 // stack without the Daily's content has no puzzles: the spec says so and skips.
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { api, gotoAccount, newPassword, personaContext } from './support';
+import { api, gotoAccount, newPassword, personaContext, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -114,10 +114,13 @@ function solveSudoku(givens: number[]): number[] {
 let answers: Answers | string;
 
 test.beforeAll(async ({ browser }) => {
+  await switchOn(browser, 'daily', ['daily']);
   const ctx = await personaContext(browser, 'admin');
   answers = await todaysAnswers(await ctx.newPage());
   await ctx.close();
 });
+
+test.afterAll(async ({ browser }) => switchBack(browser, 'daily'));
 
 const known = (): Answers => {
   test.skip(typeof answers === 'string', typeof answers === 'string' ? answers : '');

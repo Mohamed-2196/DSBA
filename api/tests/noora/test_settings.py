@@ -42,6 +42,12 @@ def fields(r: Any) -> dict[str, str]:
     return out
 
 
+@pytest.fixture(autouse=True)
+def noora_on(set_feature: Callable[..., None]) -> None:
+    """Her switch starts off."""
+    set_feature("noora", "everyone")
+
+
 @pytest.fixture
 def admin(make_user: MakeUser) -> User:
     return make_user(name="Amina Admin", roles=("student", "admin"))

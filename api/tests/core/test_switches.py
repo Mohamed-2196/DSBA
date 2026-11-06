@@ -105,6 +105,7 @@ OFF_AT_FIRST = (
     "notes",
     "board",
     "requests",
+    "noora",
     "noora.ai",
     "forum.anonymous",
     "forum.follow",

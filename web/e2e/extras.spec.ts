@@ -1,6 +1,10 @@
 // Career Navigator, the grades calculator (marks stay in the browser) and Mini Noora.
 import { expect, test } from './fixtures';
-import { env, prepareContext } from './support';
+import { env, prepareContext, switchBack, switchOn } from './support';
+
+test.beforeAll(async ({ browser }) => switchOn(browser, 'extras', ['noora']));
+
+test.afterAll(async ({ browser }) => switchBack(browser, 'extras'));
 
 test('Career Navigator lists where to apply and filters by track', async ({ guest }) => {
   await guest.goto('/career');

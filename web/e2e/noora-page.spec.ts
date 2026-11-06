@@ -7,7 +7,7 @@ import { personaContext, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-test.beforeAll(async ({ browser }) => switchOn(browser, 'noora-page', ['noora.ai']));
+test.beforeAll(async ({ browser }) => switchOn(browser, 'noora-page', ['noora', 'noora.ai']));
 
 test.afterAll(async ({ browser }) => switchBack(browser, 'noora-page'));
 
