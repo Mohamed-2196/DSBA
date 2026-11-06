@@ -55,6 +55,15 @@
 .carry__row {
   align-items: flex-start;
 }
+.carry__play {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  aspect-ratio: 32 / 40;
+  border: 1px solid var(--line-strong); /* the covers' edge, so it reads as a page in a column of pages */
+  border-radius: 4px;
+  background: var(--surface);
+}
 .carry__clock {
   margin-top: var(--sp-4);
   color: var(--ink);

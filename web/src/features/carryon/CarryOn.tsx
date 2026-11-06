@@ -9,10 +9,14 @@ import type { CarryOnRow, VisitKind } from './recent';
 import { useCarryOn } from './useCarryOn';
 import './CarryOn.css';
 
-/** Notes are drawn documents; a lesson is a play button. Files use their first page. */
+/** Notes are drawn documents; a lesson is a play button on a tile the size of a page. Files use their first page. */
 const ICON: Record<'note' | 'lesson', ReactNode> = {
   note: <DocThumb tone="note" size="md" />,
-  lesson: <Icon glyph={glyph.play} size={24} />,
+  lesson: (
+    <span className="carry__play">
+      <Icon glyph={glyph.play} size={20} />
+    </span>
+  ),
 };
 const WHAT: Record<VisitKind, string> = { paper: 'Past paper', file: 'File', note: 'Note', lesson: 'Lesson' };
 
