@@ -297,7 +297,6 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  overscroll-behavior: contain;
   padding: 4px 8px 12px;
   scrollbar-gutter: stable;
   /* Rows scroll away under a soft edge instead of being cut off. */
