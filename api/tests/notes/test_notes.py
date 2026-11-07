@@ -114,6 +114,33 @@ def test_own_notebooks_rename_move_and_delete(
     assert db.get(Notebook, book["id"]) is None
 
 
+def test_a_note_after_its_notebook_is_deleted(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
+    """Any notebook can be deleted from /notes, a module's and the first of the student's own included: the next note
+    gets a new notebook for the module, or goes to the next of their own, or to a new "My notebook"."""
+    c = client_for(make_user())
+    on_module = new_note(c, moduleId=module.id)
+    assert c.delete(f"{API}/notebooks/{on_module['notebookId']}").status_code == 204
+    again = new_note(c, moduleId=module.id)
+    assert again["notebookId"] != on_module["notebookId"]
+    by_id = {b["id"]: b for b in c.get(f"{API}/notebooks").json()["items"]}
+    assert (by_id[again["notebookId"]]["title"], by_id[again["notebookId"]]["moduleId"]) == (
+        "TS1000 Test module",
+        module.id,
+    )
+
+    first = new_note(c)["notebookId"]
+    later = c.post(f"{API}/notebooks", json={"title": "Stats revision"}).json()["id"]
+    assert c.delete(f"{API}/notebooks/{first}").status_code == 204
+    assert new_note(c)["notebookId"] == later
+    assert c.patch(f"{API}/notebooks/{later}", json={"title": "Finals"}).status_code == 200
+
+    assert c.delete(f"{API}/notebooks/{later}").status_code == 204
+    loose = new_note(c)
+    assert loose["notebookId"] not in (first, later)
+    by_id = {b["id"]: b for b in c.get(f"{API}/notebooks").json()["items"]}
+    assert (by_id[loose["notebookId"]]["title"], by_id[loose["notebookId"]]["moduleId"]) == ("My notebook", None)
+
+
 def other_module(db: Session, *, hidden: bool = False) -> Module:
     m = Module(
         id=f"notes-other-{uuid.uuid4().hex[:6]}",

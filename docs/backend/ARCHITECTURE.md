@@ -488,7 +488,8 @@ re-chains them at merge.
   flip it on the Access screen. The API enforces it: a switched-off feature answers 404 `feature_off`, and search
   leaves it out. Media, uploads, downloads, calendar feeds, stats, reports and queued emails follow their feature
   too. A test fails on any route that neither declares a feature nor is listed as feature-free. Admins see every
-  feature, so they can try one before switching it on.
+  feature, so they can try one before switching it on, except Mini Noora, her AI answers, the Daily puzzles and time
+  stamps in recordings: those follow their switch for admins too (`ADMINS_FOLLOW_SWITCH` in `core/access.py`).
 - **D13 PostHog stays anonymous analytics.** Its own feature flags stay off. Switches reach it only as the list of
   features on during a visit, set by the web app.
 - **D14 Content editing needs an admin's session, not a fresh code** (Mohamed, 2026-10-18). Site settings and the

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Notebook } from '../../api/types';
-import { firstOwnNotebook, notebookActions } from './notebooks';
+import { notebookActions } from './notebooks';
 
 const book = (id: string, createdAt: string, over: Partial<Notebook> = {}): Notebook => ({
   id,
@@ -12,36 +12,23 @@ const book = (id: string, createdAt: string, over: Partial<Notebook> = {}): Note
   ...over,
 });
 
-describe('the notebook a note without one goes to', () => {
-  it('is the first of the student’s own, whatever its title', () => {
-    const list = [
-      book('m', '2026-01-01T00:00:00Z', { moduleId: 'ST2133', title: 'ST2133' }),
-      book('later', '2026-03-01T00:00:00Z'),
-      book('first', '2026-02-01T00:00:00Z', { title: 'Renamed long ago' }),
-    ];
-    expect(firstOwnNotebook(list)?.id).toBe('first');
-    expect(firstOwnNotebook([list[0]])).toBeNull();
-  });
-});
-
 describe('what a student can do with a notebook', () => {
   const list = [
     book('m', '2026-01-01T00:00:00Z', { moduleId: 'ST2133', title: 'ST2133' }),
     book('first', '2026-02-01T00:00:00Z'),
     book('later', '2026-03-01T00:00:00Z'),
   ];
-  const first = firstOwnNotebook(list);
 
   it('deletes any of them, the first of their own and a module’s included', () => {
-    for (const b of list) expect(notebookActions(b, first, { readOnly: false }).delete).toBe(true);
+    for (const b of list) expect(notebookActions(b, { readOnly: false }).delete).toBe(true);
   });
 
-  it('renames only their own notebooks after the first', () => {
-    expect(list.map((b) => notebookActions(b, first, { readOnly: false }).rename)).toEqual([false, false, true]);
+  // The first of their own can be deleted, so the next would become "first": it must not lose Rename then.
+  it('renames any of their own, the first included, but not a module’s', () => {
+    expect(list.map((b) => notebookActions(b, { readOnly: false }).rename)).toEqual([false, true, true]);
   });
 
   it('does neither while the account is suspended', () => {
-    for (const b of list)
-      expect(notebookActions(b, first, { readOnly: true })).toEqual({ rename: false, delete: false });
+    for (const b of list) expect(notebookActions(b, { readOnly: true })).toEqual({ rename: false, delete: false });
   });
 });

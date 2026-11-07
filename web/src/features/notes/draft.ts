@@ -112,6 +112,12 @@ export function writeDraft(id: string, doc: NoteDoc, base: number): void {
 
 export const dropDraft = (id: string): void => removeStored(draftKey(id));
 
+/** Everything this device keeps for a note that is gone: its unsent text and its unsent handwriting. */
+export function dropNoteCopies(id: string): void {
+  removeStored(draftKey(id));
+  removeStored(inkDraftKey(id));
+}
+
 /** The ink waiting to be sent for a note, by sheet. */
 export function readInkDraft(id: string): InkDraft {
   const value = readStored<unknown>(inkDraftKey(id), () => null);

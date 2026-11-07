@@ -50,11 +50,11 @@ import {
   useNotes,
   useRenameNotebook,
 } from './api';
-import { EMPTY_DOC, draftIds, dropDraft, labelParts, lessonLabel, noteLabel } from './draft';
+import { EMPTY_DOC, draftIds, dropNoteCopies, labelParts, lessonLabel, noteLabel } from './draft';
 import { TITLE_MAX } from './limits';
 import { useLessonPlace } from './lessonPlace';
 import { MathLine } from './MathLine';
-import { firstOwnNotebook, notebookActions } from './notebooks';
+import { notebookActions } from './notebooks';
 import { nearlyFull, type Budget } from './storage';
 import { lineParts } from './text/mathText';
 import { useStartNote } from './useStartNote';
@@ -365,14 +365,13 @@ function NotesList() {
 
   const notebooks = notebooksQuery.data?.items ?? [];
   const storage = notebooksQuery.data?.storage;
-  const ownFirst = firstOwnNotebook(notebooks);
   const narrow = useMediaQuery(NARROW);
   const bookName = (b: Notebook) => {
     const mod = b.moduleId ? getModule(b.moduleId) : null;
     return mod ? (mod.unitCode ?? mod.shortName) : b.title;
   };
   const bookOptions = (b: Notebook): MenuItem[] => {
-    const can = notebookActions(b, ownFirst, { readOnly });
+    const can = notebookActions(b, { readOnly });
     return [
       ...(can.rename
         ? [{ id: 'rename', label: 'Rename', icon: <Icon glyph={glyph.edit} />, onSelect: () => setRenamingBook(b) }]
@@ -710,8 +709,11 @@ function NotesList() {
         error={deleteBook.error ? errorMessage(deleteBook.error) : null}
         onConfirm={() => {
           if (!deletingBook) return;
+          // its notes listed here: what this device keeps for them goes with the notebook
+          const gone = items.filter((n) => n.notebookId === deletingBook.id).map((n) => n.id);
           deleteBook.mutate(deletingBook.id, {
             onSuccess: () => {
+              gone.forEach(dropNoteCopies);
               if (selectedNotebookId === deletingBook.id) setSelectedNotebookId(null);
               setDeletingBook(null);
             },
@@ -736,7 +738,7 @@ function NotesList() {
           deleteNote.mutate(id, {
             // the copy on this device goes once the server has deleted the note, not before
             onSuccess: () => {
-              dropDraft(id);
+              dropNoteCopies(id);
               setDeletingNote(null);
             },
           });
