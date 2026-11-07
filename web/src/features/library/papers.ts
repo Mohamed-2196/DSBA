@@ -162,6 +162,38 @@ export function paperContext(sittings: Sitting[] | undefined, itemId: string): P
   return null;
 }
 
+const ZONE_ORDER: readonly SittingZone['zone'][] = [null, 'A', 'B', 'RTC'];
+
+/** A sitting's paper for a zone: the zone's own, else one for all zones, else another zone's (A, B, then RTC). Null
+ *  when the sitting has only reports or solutions. */
+function paperFor(sitting: Sitting, zone: SittingZone['zone']): LibraryItem | null {
+  const order = zone ? [zone, ...ZONE_ORDER.filter((z) => z !== zone)] : ZONE_ORDER;
+  for (const z of order) {
+    const found = sitting.zones.find((x) => x.zone === z)?.papers[0];
+    if (found) return found;
+  }
+  return null;
+}
+
+/** The past papers of the sittings either side of this one (sittings come newest first): the previous sitting's,
+ *  older, and the next one's, newer, each in this paper's zone when it has one. A sitting with no paper is skipped. */
+export function nearbyPapers(
+  sittings: Sitting[] | undefined,
+  paper: LibraryItem,
+): { previous: LibraryItem | null; next: LibraryItem | null } {
+  const list = sittings ?? [];
+  const at = list.findIndex((s) => s.zones.some((z) => z.papers.some((f) => f.id === paper.id)));
+  if (at < 0) return { previous: null, next: null };
+  const first = (from: Sitting[]) => {
+    for (const s of from) {
+      const found = paperFor(s, paper.zone);
+      if (found) return found;
+    }
+    return null;
+  };
+  return { previous: first(list.slice(at + 1)), next: first(list.slice(0, at).reverse()) };
+}
+
 type Numbered = Pick<PaperQuestion, 'section' | 'question'>;
 
 /** The number as the paper prints it: '3', or 'B1' on a paper that numbers each section from 1. */

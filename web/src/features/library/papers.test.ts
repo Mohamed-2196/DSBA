@@ -14,6 +14,7 @@ import {
   WORKED_LABEL,
   answerHref,
   answerLabel,
+  nearbyPapers,
   paperContext,
   questionAnchor,
   questionHref,
@@ -299,5 +300,61 @@ describe('the tagging of new past papers', () => {
     expect(taggingStatus('queued')).toEqual({ label: 'Waiting', tone: 'neutral' });
     expect(taggingStatus('done').label).toBe('Tagged');
     expect(taggingStatus('failed')).toEqual({ label: 'Failed', tone: 'alert' });
+  });
+});
+
+describe('nearbyPapers', () => {
+  const paper = (id: string, zone: LibraryItem['zone'], examYear: number, examSession: 'may' | 'october') => ({
+    ...file(id, 'past-paper', zone),
+    examYear,
+    examSession,
+  });
+  const sitting = (examYear: number, session: 'may' | 'october', ...papers: LibraryItem[]): Sitting => ({
+    examYear,
+    session,
+    zones: (['A', 'B', 'RTC', null] as const)
+      .map((zone) => ({ zone, papers: papers.filter((f) => f.zone === zone), reports: [], solutions: [] }))
+      .filter((z) => z.papers.length),
+  });
+  // newest first, as GET /library/papers lists them
+  const may25a = paper('may25a', 'A', 2025, 'may');
+  const may25b = paper('may25b', 'B', 2025, 'may');
+  const oct24b = paper('oct24b', 'B', 2024, 'october');
+  const may24a = paper('may24a', 'A', 2024, 'may');
+  const may24b = paper('may24b', 'B', 2024, 'may');
+  const oct23all = paper('oct23all', null, 2023, 'october');
+  const sittings = [
+    sitting(2025, 'may', may25a, may25b),
+    sitting(2024, 'october', oct24b),
+    sitting(2024, 'may', may24a, may24b),
+    sitting(2023, 'october', oct23all),
+  ];
+  const ids = (n: ReturnType<typeof nearbyPapers>) => [n.previous?.id ?? null, n.next?.id ?? null];
+
+  it('takes the next sitting either way, in the paper’s zone when it has one, else another zone’s', () => {
+    expect(ids(nearbyPapers(sittings, may24a))).toEqual(['oct23all', 'oct24b']);
+    expect(ids(nearbyPapers(sittings, oct24b))).toEqual(['may24b', 'may25b']);
+    expect(ids(nearbyPapers(sittings, may25a))).toEqual(['oct24b', null]);
+  });
+
+  it('prefers a paper for all zones to another zone’s, and gives one for all zones zone A’s first', () => {
+    const both = [sitting(2025, 'may', may25b, paper('may25all', null, 2025, 'may')), sitting(2024, 'may', may24a)];
+    expect(nearbyPapers(both, may24a).next?.id).toBe('may25all');
+    expect(ids(nearbyPapers(sittings, oct23all))).toEqual([null, 'may24a']);
+  });
+
+  it('skips a sitting with only a report', () => {
+    const reportOnly: Sitting = {
+      examYear: 2024,
+      session: 'october',
+      zones: [{ zone: null, papers: [], reports: [report], solutions: [] }],
+    };
+    expect(nearbyPapers([sittings[0], reportOnly, sittings[2]], may24a).next?.id).toBe('may25a');
+  });
+
+  it('has no next paper for the newest sitting, and nothing for a file outside the sittings', () => {
+    expect(nearbyPapers(sittings, may25b).next).toBeNull();
+    expect(ids(nearbyPapers(sittings, file('other', 'past-paper', 'A')))).toEqual([null, null]);
+    expect(ids(nearbyPapers(undefined, may25a))).toEqual([null, null]);
   });
 });

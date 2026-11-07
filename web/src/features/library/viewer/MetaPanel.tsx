@@ -5,11 +5,10 @@ import { hostOf } from '../../../lib/share';
 import { cohortTextColor } from '../../../state';
 import { useModules } from '../../../state/modules';
 import { useAuth } from '../../../auth';
-import { Button, CohortBadge, Count, Icon, Kbd, Skeleton, cx, formatDate, glyph, timeAgo } from '../../../ui';
-import { itemPath, openLinkHref, useLibraryList } from '../api';
+import { Button, CohortBadge, Count, Icon, Kbd, cx, formatDate, glyph, timeAgo } from '../../../ui';
+import { itemPath, openLinkHref } from '../api';
 import type { LinkState } from '../types';
-import { FileThumb } from '../components/FileThumb';
-import { addedAt, askAboutHref, examTitle, hasExamTitle, linkPlace, moduleTag, sizeLabel } from '../display';
+import { addedAt, askAboutHref, examTitle, hasExamTitle, linkPlace, moduleTag } from '../display';
 import { appUrl } from '../../../lib/share';
 import { PaperThreads, useStartsThreads } from '../../forum/public';
 import { examLabel } from '../../../lib/exams';
@@ -28,48 +27,8 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-/** Other published files of the same module: for a paper, the newest sittings first; else the most downloaded. */
-function MoreFromModule({ item, linkState }: { item: LibraryItem; linkState?: LinkState }) {
-  const more = useLibraryList(
-    { moduleId: item.moduleId, sort: EXAM_KINDS.has(item.kind) ? 'sitting' : 'popular' },
-    { limit: 6, enabled: !!item.moduleId },
-  );
-  if (!item.moduleId) return null;
-  const list = (more.data?.items ?? []).filter((f) => f.id !== item.id).slice(0, 5);
-  if (more.isPending) {
-    return (
-      <section className="lib-meta__related" aria-label="More from this module">
-        <Skeleton lines={3} />
-      </section>
-    );
-  }
-  if (!list.length) return null;
-  return (
-    <section className="lib-meta__related" aria-labelledby="lib-meta-related">
-      <h2 id="lib-meta-related" className="lib-meta__h">
-        More from this module
-      </h2>
-      <ul role="list">
-        {list.map((f) => (
-          <li key={f.id}>
-            <Link to={itemPath(f)} state={linkState} className="lib-related" title={f.title}>
-              <FileThumb item={f} size="related" />
-              <span className="lib-related__text">
-                <span className="lib-related__title">{examTitle(f, null)}</span>
-                <span className="lib-related__meta">
-                  {kindLabel(f.kind)}, {sizeLabel(f)}
-                </span>
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
 /** The file page's details column: module, facts, credit, description, the paper's sitting and its questions by
- *  topic, the original, more from the module. `onQuestion` opens a PDF at a tagged question. */
+ *  topic, and the original. `onQuestion` opens a PDF at a tagged question. */
 export function MetaPanel({
   item,
   linkState,
@@ -186,8 +145,6 @@ export function MetaPanel({
           </Button>
         </section>
       ) : null}
-
-      {item.status === 'published' ? <MoreFromModule item={item} linkState={linkState} /> : null}
 
       <section className="lib-meta__keys" aria-label="Keyboard shortcuts">
         <p>

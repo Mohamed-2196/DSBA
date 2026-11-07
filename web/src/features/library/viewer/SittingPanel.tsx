@@ -1,15 +1,25 @@
-// The paper page's "This sitting": the examiners' report and solutions for the paper, and the other zones' papers (zone A, zone B, RTC).
+// The paper page's "This sitting": the examiners' report and solutions for the paper, and the other zones' papers (zone A,
+// zone B, RTC). On a past paper, then the previous and next sittings' papers in its zone.
 import { Link } from 'react-router-dom';
 import type { LibraryItem } from '../../../api/types';
 import { itemPath } from '../api';
 import type { LinkState } from '../types';
 import { sittingLabel, zoneLabel } from '../../../lib/exams';
-import { WORKED_LABEL, paperContext, usePaperSittings } from '../papers';
+import { WORKED_LABEL, nearbyPapers, paperContext, usePaperSittings } from '../papers';
 
 export function SittingPanel({ item, linkState }: { item: LibraryItem; linkState?: LinkState }) {
   const papers = usePaperSittings(item.moduleId, { enabled: item.examYear !== null && item.source === 'file' });
   const ctx = paperContext(papers.data?.sittings, item.id);
   if (!ctx) return null;
+  const nearby = item.kind === 'past-paper' ? nearbyPapers(papers.data?.sittings, item) : null;
+  const around = nearby
+    ? [
+        { item: nearby.previous, label: 'Previous exam' },
+        { item: nearby.next, label: 'Next exam' },
+      ].flatMap((l) => (l.item ? [{ item: l.item, label: l.label }] : []))
+    : [];
+  const when = (f: LibraryItem) =>
+    `${f.examYear ? sittingLabel(f.examYear, f.examSession) : ''}${f.zone && f.zone !== item.zone ? `, ${zoneLabel(f.zone)}` : ''}`;
   const links: { item: LibraryItem; label: string }[] = [
     ...ctx.reports.map((f) => ({
       item: f,
@@ -46,6 +56,18 @@ export function SittingPanel({ item, linkState }: { item: LibraryItem; linkState
       ) : (
         <p className="lib-meta__sitting-none">No examiners’ report for this sitting yet.</p>
       )}
+      {around.length ? (
+        <ul role="list" className="lib-meta__sitting-list" aria-label="Other sittings" data-hub="file-nearby-papers">
+          {around.map((l) => (
+            <li key={l.label}>
+              <Link to={itemPath(l.item)} state={linkState} className="lib-meta__sitting-link" title={l.item.title}>
+                <span>{l.label}</span>
+                <span>{when(l.item)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }
