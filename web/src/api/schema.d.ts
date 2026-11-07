@@ -411,6 +411,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/progress/chapters/{chapter_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Studied
+         * @description Tick a chapter as studied, or undo it (404 when there is no such chapter). The lessons watched stay as they
+         *     are; a ticked chapter's lessons count as done, and their study-board cards move to Done (and stay there when the
+         *     tick is undone).
+         *
+         *     Errors: progress_off (409: the person doesn't keep their lesson progress).
+         */
+        put: operations["set_studied_api_v1_me_progress_chapters__chapter_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/progress/resume": {
         parameters: {
             query?: never;
@@ -445,7 +469,7 @@ export interface paths {
         post?: never;
         /**
          * Reset Module
-         * @description Forget the watched lessons and the last lesson of one module.
+         * @description Forget the watched lessons, the last lesson and the chapters ticked as studied of one module.
          */
         delete: operations["reset_module_api_v1_me_progress_modules__module_id__delete"];
         options?: never;
@@ -6491,6 +6515,11 @@ export interface components {
             /** Lessons */
             lessons: components["schemas"]["LessonOut"][];
         };
+        /** ChapterStudiedUpdate */
+        ChapterStudiedUpdate: {
+            /** Studied */
+            studied: boolean;
+        };
         /** ChecklistCert */
         ChecklistCert: {
             /**
@@ -10898,11 +10927,16 @@ export interface components {
             last: {
                 [key: string]: components["schemas"]["LastLesson"];
             };
+            /** Studied */
+            studied: {
+                [key: string]: components["schemas"]["StudiedChapter"];
+            };
         };
         /**
          * ProgressImport
          * @description Progress kept in the browser before signing in, merged into the account once (newest wins). `watched` is by
-         *     lesson id and `last` by module id. At most 5000 watched lessons and 100 modules (security review, finding 19).
+         *     lesson id, `last` by module id and `studied` by chapter id. At most 5000 watched lessons, 100 modules and 1000
+         *     chapters (security review, finding 19).
          */
         ProgressImport: {
             /** Watched */
@@ -10912,6 +10946,10 @@ export interface components {
             /** Last */
             last: {
                 [key: string]: components["schemas"]["LastLesson"];
+            };
+            /** Studied */
+            studied?: {
+                [key: string]: string;
             };
         };
         /** PublishedIssue */
@@ -12127,6 +12165,18 @@ export interface components {
             points: number[];
             anchor?: components["schemas"]["InkAnchor"] | null;
         };
+        /** StudiedChapter */
+        StudiedChapter: {
+            /** Moduleid */
+            moduleId: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Lessonids */
+            lessonIds: string[];
+        };
         /**
          * StudyTopic
          * @description A topic of a chapter, as its module's study guide lists it.
@@ -13254,6 +13304,7 @@ export type CertFile = components['schemas']['CertFile'];
 export type Chapter = components['schemas']['Chapter'];
 export type ChapterIn = components['schemas']['ChapterIn'];
 export type ChapterOut = components['schemas']['ChapterOut'];
+export type ChapterStudiedUpdate = components['schemas']['ChapterStudiedUpdate'];
 export type ChecklistCert = components['schemas']['ChecklistCert'];
 export type ChecklistForum = components['schemas']['ChecklistForum'];
 export type ChecklistItem = components['schemas']['ChecklistItem'];
@@ -13578,6 +13629,7 @@ export type StepUpResult = components['schemas']['StepUpResult'];
 export type StorageUse = components['schemas']['StorageUse'];
 export type Streak = components['schemas']['Streak'];
 export type Stroke = components['schemas']['Stroke'];
+export type StudiedChapter = components['schemas']['StudiedChapter'];
 export type StudyTopic = components['schemas']['StudyTopic'];
 export type SudokuView = components['schemas']['SudokuView'];
 export type SuggestionAccept = components['schemas']['SuggestionAccept'];
@@ -15277,6 +15329,95 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LessonWatchedUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Progress"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_studied_api_v1_me_progress_chapters__chapter_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                chapter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChapterStudiedUpdate"];
             };
         };
         responses: {

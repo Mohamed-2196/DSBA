@@ -101,9 +101,20 @@ class WatchedLesson(ApiModel):
     at: datetime
 
 
+class StudiedChapter(ApiModel):
+    module_id: str
+    at: datetime
+    lesson_ids: list[str]  # the chapter's lessons students see now: they count as done while it's ticked
+
+
 class Progress(ApiModel):
     watched: dict[str, WatchedLesson]  # by lesson id
     last: dict[str, LastLesson]  # by module id
+    studied: dict[str, StudiedChapter]  # chapters ticked as studied, by chapter id
+
+
+class ChapterStudiedUpdate(ApiModel):
+    studied: bool
 
 
 class LessonWatchedUpdate(ApiModel):
@@ -116,10 +127,12 @@ class ResumeUpdate(ApiModel):
 
 class ProgressImport(ApiModel):
     """Progress kept in the browser before signing in, merged into the account once (newest wins). `watched` is by
-    lesson id and `last` by module id. At most 5000 watched lessons and 100 modules (security review, finding 19)."""
+    lesson id, `last` by module id and `studied` by chapter id. At most 5000 watched lessons, 100 modules and 1000
+    chapters (security review, finding 19)."""
 
     watched: dict[str, datetime] = Field(max_length=5000)
     last: dict[str, LastLesson] = Field(max_length=100)
+    studied: dict[str, datetime] = Field(default_factory=dict, max_length=1000)
 
 
 # ── editing (content managers, R-9) ─────────────────────────────────────────────────────────

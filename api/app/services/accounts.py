@@ -11,15 +11,17 @@ from typing import Any, get_args
 
 from botocore.exceptions import BotoCoreError, ClientError
 from pydantic import ValidationError
-from sqlalchemy import delete, false, func, or_, select, update
+from sqlalchemy import CompoundSelect, delete, false, func, or_, select, union, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.orm import Session, object_session
+from sqlalchemy.orm import Session, object_session, selectinload
 
 from app.core.access import ADMIN, REP
 from app.core.errors import ApiError, conflict, forbidden, invalid, not_found
 from app.core.time import utcnow
 from app.models import (
     CalendarPrefs,
+    Chapter,
+    ChapterStudied,
     DailyPlay,
     DailyProfile,
     EmailOutbox,
@@ -32,6 +34,7 @@ from app.models import (
     LessonView,
     LibraryItem,
     LibraryStar,
+    Module,
     NewsletterIssue,
     NewsletterReaction,
     NooraUsage,
@@ -99,7 +102,7 @@ from app.schemas.common import UserPublic
 from app.schemas.modules import Progress, ProgressImport
 from app.schemas.notifications import NotificationKind
 from app.services import access, sessions
-from app.services.modules import link_of, student_lesson, student_lessons
+from app.services.modules import link_of, student_lesson, student_lessons, visible_lessons
 from app.services.outbox import ACCOUNT_NOTICE, ANSWER, answer_of, wants
 from app.services.storage import Storage
 
@@ -438,6 +441,7 @@ def reads_as_staff(text: str) -> bool:
 
 MAX_IMPORT_WATCHED = 5000
 MAX_IMPORT_LAST = 100
+MAX_IMPORT_STUDIED = 1000
 
 
 def require_lesson(db: Session, lesson_id: str) -> Lesson:
@@ -449,10 +453,11 @@ def require_lesson(db: Session, lesson_id: str) -> Lesson:
 
 
 def progress_of(db: Session, user: User) -> Progress:
-    """The lessons watched and the lesson to resume in each module. While the person keeps no progress, what was
-    recorded before stays stored but hidden, and comes back when they turn tracking on again."""
+    """The lessons watched, the lesson to resume in each module and the chapters ticked as studied. While the person
+    keeps no progress, what was recorded before stays stored but hidden, and comes back when they turn tracking on
+    again."""
     if not tracks_progress(user):
-        return Progress.model_validate({"watched": {}, "last": {}})
+        return Progress.model_validate({"watched": {}, "last": {}, "studied": {}})
     return recorded_progress(db, user.id)
 
 
@@ -474,7 +479,22 @@ def recorded_progress(db: Session, user_id: uuid.UUID) -> Progress:
             )
         ).tuples()
     }
-    return Progress.model_validate({"watched": watched, "last": last})
+    # A chapter hidden since it was ticked stays listed (the export holds it), with no lessons to count.
+    studied = {
+        chapter.id: {
+            "module_id": chapter.module_id,
+            "at": at,
+            "lesson_ids": [] if chapter.hidden or chapter.module.hidden else [x.id for x in visible_lessons(chapter)],
+        }
+        for chapter, at in db.execute(
+            select(Chapter, ChapterStudied.studied_at)
+            .join(ChapterStudied, ChapterStudied.chapter_id == Chapter.id)
+            .where(ChapterStudied.user_id == user_id)
+            .order_by(ChapterStudied.studied_at, Chapter.id)
+            .options(selectinload(Chapter.lessons), selectinload(Chapter.module))
+        ).tuples()
+    }
+    return Progress.model_validate({"watched": watched, "last": last, "studied": studied})
 
 
 def set_watched(db: Session, user_id: uuid.UUID, lesson_id: str, watched: bool) -> None:
@@ -488,6 +508,40 @@ def set_watched(db: Session, user_id: uuid.UUID, lesson_id: str, watched: bool) 
         )
     else:
         db.execute(delete(LessonView).where(LessonView.user_id == user_id, LessonView.lesson_id == lesson.id))
+
+
+def done_lessons(user_id: uuid.UUID) -> CompoundSelect[tuple[str]]:
+    """The ids of the lessons the student counts as done: watched, or in a chapter they ticked as studied."""
+    return union(
+        select(LessonView.lesson_id).where(LessonView.user_id == user_id),
+        select(Lesson.id)
+        .join(ChapterStudied, ChapterStudied.chapter_id == Lesson.chapter_id)
+        .where(ChapterStudied.user_id == user_id),
+    )
+
+
+def require_chapter(db: Session, chapter_id: str) -> Chapter:
+    """A chapter students see (it and its module aren't hidden), or 404."""
+    chapter = db.get(Chapter, chapter_id)
+    if chapter is None or chapter.hidden or chapter.module.hidden:
+        raise not_found("This chapter doesn't exist.")
+    return chapter
+
+
+def set_studied(db: Session, user_id: uuid.UUID, chapter_id: str, studied: bool, at: datetime | None = None) -> None:
+    """Ticks the chapter as studied, keeping the first time, or unticks it. Lessons watched don't change. 404 when
+    students don't see the chapter."""
+    chapter = require_chapter(db, chapter_id)
+    if studied:
+        db.execute(
+            pg_insert(ChapterStudied)
+            .values(user_id=user_id, chapter_id=chapter.id, studied_at=at or utcnow())
+            .on_conflict_do_nothing(index_elements=[ChapterStudied.user_id, ChapterStudied.chapter_id])
+        )
+    else:
+        db.execute(
+            delete(ChapterStudied).where(ChapterStudied.user_id == user_id, ChapterStudied.chapter_id == chapter.id)
+        )
 
 
 def set_resume(db: Session, user_id: uuid.UUID, lesson: Lesson, at: datetime) -> None:
@@ -508,6 +562,8 @@ def reset_module(db: Session, user_id: uuid.UUID, module_id: str) -> None:
     lessons = select(Lesson.id).where(Lesson.module_id == module_id)
     db.execute(delete(LessonView).where(LessonView.user_id == user_id, LessonView.lesson_id.in_(lessons)))
     db.execute(delete(LessonResume).where(LessonResume.user_id == user_id, LessonResume.module_id == module_id))
+    chapters = select(Chapter.id).where(Chapter.module_id == module_id)
+    db.execute(delete(ChapterStudied).where(ChapterStudied.user_id == user_id, ChapterStudied.chapter_id.in_(chapters)))
 
 
 def _past(at: datetime, now: datetime) -> datetime:
@@ -518,8 +574,13 @@ def _past(at: datetime, now: datetime) -> datetime:
 
 
 def import_progress(db: Session, user_id: uuid.UUID, body: ProgressImport) -> None:
-    """Merges a guest's progress: unknown lessons are skipped, the newest timestamp wins."""
-    if len(body.watched) > MAX_IMPORT_WATCHED or len(body.last) > MAX_IMPORT_LAST:
+    """Merges a guest's progress: unknown lessons and chapters are skipped, the newest timestamp wins (a chapter
+    ticked here already keeps its time)."""
+    if (
+        len(body.watched) > MAX_IMPORT_WATCHED
+        or len(body.last) > MAX_IMPORT_LAST
+        or len(body.studied) > MAX_IMPORT_STUDIED
+    ):
         raise invalid("watched", "There is too much progress to import at once.")
     now = utcnow()
     lessons = student_lessons(db, [*body.watched, *(last.lesson_id for last in body.last.values())])
@@ -540,6 +601,21 @@ def import_progress(db: Session, user_id: uuid.UUID, body: ProgressImport) -> No
         lesson = lessons.get(last.lesson_id)
         if lesson is not None and lesson.module_id == module_id:
             set_resume(db, user_id, lesson, _past(last.at, now))
+    if body.studied:
+        seen = set(
+            db.scalars(
+                select(Chapter.id)
+                .join(Module, Module.id == Chapter.module_id)
+                .where(Chapter.id.in_(body.studied), Chapter.hidden.is_(False), Module.hidden.is_(False))
+            )
+        )
+        rows = [
+            {"user_id": user_id, "chapter_id": chapter_id, "studied_at": _past(at, now)}
+            for chapter_id, at in body.studied.items()
+            if chapter_id in seen
+        ]
+        if rows:
+            db.execute(pg_insert(ChapterStudied).values(rows).on_conflict_do_nothing())
 
 
 # ── export ──────────────────────────────────────────────────────────────────────────────────

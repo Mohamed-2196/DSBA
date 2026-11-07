@@ -255,6 +255,29 @@ def test_a_watched_lesson_moves_its_card_to_the_first_done_column(
     assert add(c, link={"type": "lesson", "id": lesson_id(module, 0, 0)})["columnId"] == done
 
 
+def test_a_chapter_ticked_as_studied_moves_its_lesson_cards_to_done(
+    client_for: ClientFor, make_user: MakeUser, module: Module
+) -> None:
+    """A ticked chapter counts as done, so its lessons' cards go to Done as watched ones do, and stay there when the
+    tick is undone. A card added later for one of its lessons starts in Done."""
+    c = client_for(make_user(tracks=True))
+    board = make_board(c)
+    done = column(board, "Done")
+    first = [add(c, link={"type": "lesson", "id": lesson_id(module, 0, v)}) for v in (0, 1)]
+    elsewhere = add(c, link={"type": "lesson", "id": lesson_id(module, 1, 0)})
+    chapter = module.chapters[0].id
+    assert c.put(f"{API}/me/progress/chapters/{chapter}", json={"studied": True}).status_code == 200
+    got = {x["id"]: x for x in detail(c, board)["cards"]}
+    assert [got[x["id"]]["columnId"] for x in first] == [done, done]
+    assert all(got[x["id"]]["doneAt"] for x in first)
+    assert got[elsewhere["id"]]["columnId"] == column(board, "To do")
+    assert c.put(f"{API}/me/progress/chapters/{chapter}", json={"studied": False}).status_code == 200
+    assert {x["columnId"] for x in detail(c, board)["cards"] if x["id"] != elsewhere["id"]} == {done}
+    c.put(f"{API}/me/progress/chapters/{chapter}", json={"studied": True})
+    c.delete(f"{API}/board-cards/{first[0]['id']}")
+    assert add(c, link={"type": "lesson", "id": lesson_id(module, 0, 0)})["columnId"] == done
+
+
 def test_the_agenda_spans_the_active_boards(client_for: ClientFor, make_user: MakeUser) -> None:
     c = client_for(make_user())
     today = bahrain_today()

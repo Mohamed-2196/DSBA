@@ -61,7 +61,7 @@ import { useModuleDates } from './exams';
 import { chapterPosition, lastOpenedLabel, lessonHref, moduleTabOn } from './lessons';
 import { sharedBy, showsProgress } from './overview';
 import { MiniPoster } from './Poster';
-import { computeChapterProgress, type ProgressState, type ResumeKind, type ResumePoint } from './progress';
+import { chapterDone, computeChapterProgress, type ProgressState, type ResumeKind, type ResumePoint } from './progress';
 import { buildShelves, joinAnd } from './resources';
 
 const PICKUP_TITLE: Record<ResumeKind, string> = {
@@ -227,10 +227,7 @@ function YourProgress({
   const when = resume.kind === 'resume' || resume.kind === 'next' ? lastOpenedLabel(resume.at) : null;
   const whenText = when ? (resume.kind === 'resume' ? `Opened ${when}` : `Last studied ${when}`) : null;
   const color = cohortColor(m.year);
-  const done = m.chapters.filter((_, c) => {
-    const cp = computeChapterProgress(state, m, c);
-    return cp.total > 0 && cp.watched === cp.total;
-  }).length;
+  const done = m.chapters.filter((_, c) => chapterDone(state, m, c)).length;
   return (
     <Block
       title={PICKUP_TITLE[resume.kind]}
@@ -263,7 +260,7 @@ function YourProgress({
       <ol className="mod-prog__list" role="list">
         {m.chapters.slice(0, MAX_CHAPTERS).map((chapter, c) => {
           const cp = computeChapterProgress(state, m, c);
-          const complete = cp.total > 0 && cp.watched === cp.total;
+          const complete = chapterDone(state, m, c);
           const firstOpen = chapter.videos.findIndex((v) => !state.watched[v.id]);
           return (
             <li key={chapter.id}>

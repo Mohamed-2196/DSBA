@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Chapter, Video } from '../../api/types';
 import {
   EMPTY_PROGRESS,
+  chapterDone,
   computeChapterProgress,
   computeModuleProgress,
   computeResumePoint,
@@ -11,6 +12,7 @@ import {
   isEmptyProgress,
   normalizeStored,
   summaryProgress,
+  studiedFor,
   toImport,
   toServer,
   type ProgressState,
@@ -27,9 +29,16 @@ const chapter = (title: string, n: number): Chapter => ({
 const m = { id: 'advanced-stats-distribution', chapters: [chapter('MGFs', 2), chapter('Transformations', 1)] };
 const id = (c: number, v: number) => m.chapters[c].videos[v].id;
 const T = Date.parse('2026-10-01T10:00:00Z');
-const state = (watched: [number, number][], last?: { c: number; v: number }): ProgressState => ({
+const state = (
+  watched: [number, number][],
+  last?: { c: number; v: number },
+  studied: number[] = [],
+): ProgressState => ({
   watched: Object.fromEntries(watched.map(([c, v]) => [id(c, v), { m: m.id, at: T }])),
   last: last ? { [m.id]: { l: id(last.c, last.v), at: T } } : {},
+  studied: Object.fromEntries(
+    studied.map((c) => [m.chapters[c].id, { m: m.id, at: T, l: m.chapters[c].videos.map((v) => v.id) }]),
+  ),
 });
 
 describe('stored progress', () => {
@@ -44,24 +53,84 @@ describe('stored progress', () => {
       },
       last: { [m.id]: { l: id(0, 1), at: T }, 'Bad Module': { l: id(0, 0), at: T }, other: { c: 0, v: 0, at: T } },
     });
-    expect(s).toEqual({ watched: { [id(0, 0)]: { m: m.id, at: T } }, last: { [m.id]: { l: id(0, 1), at: T } } });
+    expect(s).toEqual({
+      watched: { [id(0, 0)]: { m: m.id, at: T } },
+      last: { [m.id]: { l: id(0, 1), at: T } },
+      studied: {},
+    });
+    const ticks = normalizeStored({
+      studied: {
+        mgfs: { m: m.id, at: T, l: [id(0, 0), 'Bad Lesson'] },
+        'Bad Chapter': { m: m.id, at: T, l: [] },
+        transformations: { m: m.id, at: T },
+      },
+    });
+    expect(ticks.studied).toEqual({ mgfs: { m: m.id, at: T, l: [id(0, 0)] } });
   });
 
   it('round-trips with the API’s shape', () => {
-    const s = state([[0, 0]], { c: 0, v: 1 });
+    const s = state([[0, 0]], { c: 0, v: 1 }, [1]);
     const at = new Date(T).toISOString();
     const out = toServer(s);
     expect(out).toEqual({
       watched: { [id(0, 0)]: { moduleId: m.id, at } },
       last: { [m.id]: { lessonId: id(0, 1), at } },
+      studied: { transformations: { moduleId: m.id, at, lessonIds: [id(1, 0)] } },
     });
     expect(fromServer(out)).toEqual(s);
-    expect(toImport(s)).toEqual({ watched: { [id(0, 0)]: at }, last: { [m.id]: { lessonId: id(0, 1), at } } });
+    expect(toImport(s)).toEqual({
+      watched: { [id(0, 0)]: at },
+      last: { [m.id]: { lessonId: id(0, 1), at } },
+      studied: { transformations: at },
+    });
   });
 
   it('knows empty progress', () => {
     expect(isEmptyProgress(EMPTY_PROGRESS)).toBe(true);
     expect(isEmptyProgress(state([[0, 0]]))).toBe(false);
+    expect(isEmptyProgress(state([], undefined, [0]))).toBe(false);
+  });
+});
+
+describe('chapters ticked as studied', () => {
+  it('counts a ticked chapter done, with its lessons, and leaves the watched marks alone', () => {
+    const s = state([[1, 0]], undefined, [0]);
+    expect(Object.keys(s.watched)).toEqual([id(1, 0)]);
+    expect(computeChapterProgress(s, m, 0)).toEqual({ watched: 2, total: 2, pct: 100 });
+    expect(chapterDone(s, m, 0)).toBe(true);
+    expect(computeModuleProgress(s, m)).toEqual({ watched: 3, total: 3, pct: 100 });
+    expect(summaryProgress(s, m.id, 3)).toEqual({ watched: 3, total: 3, pct: 100 });
+    expect(computeResumePoint(s, m)).toEqual({ c: 0, v: 0, at: null, kind: 'next' }); // Carry on follows watched marks
+  });
+
+  it('is done when every lesson is watched or the chapter is ticked, and not otherwise', () => {
+    expect(chapterDone(state([[0, 0]]), m, 0)).toBe(false);
+    expect(
+      chapterDone(
+        state([
+          [0, 0],
+          [0, 1],
+        ]),
+        m,
+        0,
+      ),
+    ).toBe(true);
+    expect(chapterDone(EMPTY_PROGRESS, m, 5)).toBe(false);
+    const empty = { ...m, chapters: [...m.chapters, chapter('Reading', 0)] };
+    expect(chapterDone(EMPTY_PROGRESS, empty, 2)).toBe(false);
+    expect(chapterDone({ ...EMPTY_PROGRESS, studied: { reading: { m: m.id, at: T, l: [] } } }, empty, 2)).toBe(true);
+  });
+
+  it('does not count a watched lesson twice when its chapter is ticked too', () => {
+    const s = state([[0, 0]], undefined, [0]);
+    expect(computeModuleProgress(s, m)).toEqual({ watched: 2, total: 3, pct: 67 });
+    expect(summaryProgress(s, m.id, 3)).toEqual({ watched: 2, total: 3, pct: 67 });
+  });
+
+  it('lists a module’s ticked chapters', () => {
+    const s = state([], undefined, [1]);
+    expect(Object.keys(studiedFor(s, m.id))).toEqual(['transformations']);
+    expect(studiedFor(s, 'other')).toEqual({});
   });
 });
 

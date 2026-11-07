@@ -1994,6 +1994,120 @@
         }
       }
     },
+    "/api/v1/me/progress/chapters/{chapter_id}": {
+      "put": {
+        "tags": [
+          "progress"
+        ],
+        "summary": "Set Studied",
+        "description": "Tick a chapter as studied, or undo it (404 when there is no such chapter). The lessons watched stay as they\nare; a ticked chapter's lessons count as done, and their study-board cards move to Done (and stay there when the\ntick is undone).\n\nErrors: progress_off (409: the person doesn't keep their lesson progress).",
+        "operationId": "set_studied_api_v1_me_progress_chapters__chapter_id__put",
+        "parameters": [
+          {
+            "name": "chapter_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9]{1,16}$",
+              "title": "Chapter Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChapterStudiedUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Progress"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/me/progress/resume": {
       "put": {
         "tags": [
@@ -2102,7 +2216,7 @@
           "progress"
         ],
         "summary": "Reset Module",
-        "description": "Forget the watched lessons and the last lesson of one module.",
+        "description": "Forget the watched lessons, the last lesson and the chapters ticked as studied of one module.",
         "operationId": "reset_module_api_v1_me_progress_modules__module_id__delete",
         "parameters": [
           {
@@ -35683,6 +35797,19 @@
         ],
         "title": "ChapterOut"
       },
+      "ChapterStudiedUpdate": {
+        "properties": {
+          "studied": {
+            "type": "boolean",
+            "title": "Studied"
+          }
+        },
+        "type": "object",
+        "required": [
+          "studied"
+        ],
+        "title": "ChapterStudiedUpdate"
+      },
       "ChecklistCert": {
         "properties": {
           "kind": {
@@ -48543,12 +48670,20 @@
             },
             "type": "object",
             "title": "Last"
+          },
+          "studied": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StudiedChapter"
+            },
+            "type": "object",
+            "title": "Studied"
           }
         },
         "type": "object",
         "required": [
           "watched",
-          "last"
+          "last",
+          "studied"
         ],
         "title": "Progress"
       },
@@ -48570,6 +48705,15 @@
             "type": "object",
             "maxProperties": 100,
             "title": "Last"
+          },
+          "studied": {
+            "additionalProperties": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": "object",
+            "maxProperties": 1000,
+            "title": "Studied"
           }
         },
         "type": "object",
@@ -48578,7 +48722,7 @@
           "last"
         ],
         "title": "ProgressImport",
-        "description": "Progress kept in the browser before signing in, merged into the account once (newest wins). `watched` is by\nlesson id and `last` by module id. At most 5000 watched lessons and 100 modules (security review, finding 19)."
+        "description": "Progress kept in the browser before signing in, merged into the account once (newest wins). `watched` is by\nlesson id, `last` by module id and `studied` by chapter id. At most 5000 watched lessons, 100 modules and 1000\nchapters (security review, finding 19)."
       },
       "PublishedIssue": {
         "properties": {
@@ -51990,6 +52134,33 @@
         ],
         "title": "Stroke",
         "description": "One line drawn with the pen or the highlighter. `points` is x, y, pressure (0-1), x, y, pressure, \u2026 in sheet\nunits, the sheet's top left at 0, 0. A stroke on paper has an `anchor`; one on a PDF's page keeps its place."
+      },
+      "StudiedChapter": {
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "title": "Moduleid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "lessonIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Lessonids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "moduleId",
+          "at",
+          "lessonIds"
+        ],
+        "title": "StudiedChapter"
       },
       "StudyTopic": {
         "properties": {

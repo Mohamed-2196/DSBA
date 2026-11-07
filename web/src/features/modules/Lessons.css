@@ -371,6 +371,57 @@
 .mod-ch__videos > li {
   min-width: 0;
 }
+/* The end of an open chapter: the "I've studied this chapter" tick, under a dashed rule. */
+.mod-ch__study {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+.mod-ch__tick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px 0 8px;
+  border: 0;
+  border-radius: var(--r-control);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-14);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+@media (hover: hover) {
+  .mod-ch__tick:hover {
+    background: var(--surface-2);
+  }
+}
+.mod-ch__box {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--ink-3);
+  border-radius: 50%;
+  font-size: 13px;
+}
+.mod-ch__tick.is-on {
+  color: var(--ink-2);
+}
+.mod-ch__tick.is-on .mod-ch__box {
+  border-color: var(--success);
+  background: var(--success-soft);
+  color: var(--success);
+}
+@media (pointer: coarse) {
+  .mod-ch__tick {
+    min-height: 48px;
+  }
+}
 @keyframes mod-reveal {
   from {
     opacity: 0;

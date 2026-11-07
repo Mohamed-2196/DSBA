@@ -1,4 +1,6 @@
-// Chapter list beside the player: chapters with per-chapter progress, expanding to their videos.
+// Chapter list beside the player: chapters with per-chapter progress, expanding to their videos. While a signed-in
+// student tracks their progress, an open chapter with lessons left to watch ends with the "I've studied this chapter"
+// tick: a chapter studied another way counts as done, its lessons' watched marks untouched.
 // Each video is a link to the lesson's address (/modules/<id>/lessons/<lesson id>), so lessons can be opened in a new
 // tab.
 import { useLayoutEffect, useRef, useState } from 'react';
@@ -8,7 +10,13 @@ import { videoThumbnailUrl } from '../../lib/modules';
 import { cohortColor } from '../../state';
 import { Icon, IconButton, Menu, ProgressRing, cx, glyph } from '../../ui';
 import { KIND_ICON, chapterLessons, lessonHref } from './lessons';
-import { computeChapterProgress, computeModuleProgress, type ProgressState } from './progress';
+import {
+  chapterDone,
+  computeChapterProgress,
+  computeModuleProgress,
+  type ProgressState,
+  type StudiedChapter,
+} from './progress';
 import { useThumbnail } from './thumbs';
 import { coversLine } from './topics/time';
 import './topics/Topics.css';
@@ -63,6 +71,7 @@ export function ChapterList({
   onReset,
   onTracking,
   onPick,
+  onStudied,
 }: {
   module: ModuleDetail;
   selection: { c: number; v: number };
@@ -74,6 +83,8 @@ export function ChapterList({
   nowLabel?: string;
   onReset: () => void;
   onPick?: () => void;
+  /** Ticks a chapter as studied, or undoes it; without it, there is no tick (guests). */
+  onStudied?: (chapter: StudiedChapter, on: boolean) => void;
 }) {
   const { c: selC, v: selV } = selection;
   const [open, setOpen] = useState<Set<number>>(() => new Set([selC]));
@@ -126,7 +137,7 @@ export function ChapterList({
           <p className="mod-chapters__sum">
             {tracking ? (
               <>
-                <b className="u-tabular">{p.watched}</b> of <span className="u-tabular">{p.total}</span> lessons watched
+                <b className="u-tabular">{p.watched}</b> of <span className="u-tabular">{p.total}</span> lessons done
               </>
             ) : (
               <>
@@ -178,7 +189,10 @@ export function ChapterList({
         {m.chapters.map((ch, ci) => {
           const cp = computeChapterProgress(state, m, ci);
           const isOpen = open.has(ci);
-          const done = cp.total > 0 && cp.watched === cp.total;
+          const done = chapterDone(state, m, ci);
+          const studied = !!state.studied[ch.id];
+          const watchedHere = ch.videos.filter((video) => state.watched[video.id]).length;
+          const allWatched = ch.videos.length > 0 && watchedHere === ch.videos.length;
           return (
             <li key={ci} className={cx('mod-ch', isOpen && 'is-open', ci === selC && 'is-current', done && 'is-done')}>
               <button
@@ -209,7 +223,13 @@ export function ChapterList({
                     {ch.title}
                   </span>
                   <span className="mod-ch__meta">
-                    {cp.watched ? `${cp.watched} of ${cp.total} watched` : chapterContents(ch)}
+                    {studied
+                      ? ch.videos.length
+                        ? `Studied · ${watchedHere} of ${ch.videos.length} watched`
+                        : 'Studied'
+                      : cp.watched
+                        ? `${cp.watched} of ${cp.total} watched`
+                        : chapterContents(ch)}
                   </span>
                 </span>
                 <Icon glyph={glyph.chevronDown} className="mod-ch__caret" />
@@ -263,6 +283,23 @@ export function ChapterList({
                       </li>
                     );
                   })}
+                  {tracking && onStudied && !allWatched ? (
+                    <li className="mod-ch__study">
+                      <button
+                        type="button"
+                        role="checkbox"
+                        aria-checked={studied}
+                        className={cx('mod-ch__tick', studied && 'is-on')}
+                        data-hub="chapter-studied"
+                        onClick={() => onStudied({ id: ch.id, lessonIds: ch.videos.map((v) => v.id) }, !studied)}
+                      >
+                        <span className="mod-ch__box" aria-hidden="true">
+                          {studied ? <Icon glyph={glyph.check} /> : null}
+                        </span>
+                        I’ve studied this chapter
+                      </button>
+                    </li>
+                  ) : null}
                 </ol>
               ) : null}
             </li>

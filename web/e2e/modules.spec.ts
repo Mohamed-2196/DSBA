@@ -84,3 +84,27 @@ test('on a shared computer, someone else’s guest progress can be left out when
   await expect(page.getByRole('dialog').filter({ hasText: 'Is this lesson progress yours?' })).toHaveCount(0);
   await ctx.close();
 });
+
+test('a student ticks a chapter as studied and undoes it; the watched lessons stay as they were', async ({ sara }) => {
+  interface Progress {
+    watched: Record<string, unknown>;
+    studied: Record<string, unknown>;
+  }
+  expect((await api(sara, 'PATCH', '/api/v1/me', { preferences: { trackProgress: true } })).status).toBe(200);
+  const progress = async () => (await api<Progress>(sara, 'GET', '/api/v1/me/progress')).body;
+  const watched = Object.keys((await progress()).watched).sort();
+  await sara.goto('/modules/advanced-stats-distribution?tab=lessons');
+  const chapter = sara.locator('.mod-ch').nth(1);
+  const head = chapter.locator('.mod-ch__head');
+  if ((await head.getAttribute('aria-expanded')) !== 'true') await head.click();
+  const tick = chapter.getByRole('checkbox', { name: 'I’ve studied this chapter' });
+  await expect(tick).toHaveAttribute('aria-checked', 'false');
+  await tick.click();
+  await expect(tick).toHaveAttribute('aria-checked', 'true');
+  await expect(chapter.locator('.mod-ch__meta')).toContainText('Studied');
+  await expect.poll(async () => Object.keys((await progress()).studied).length).toBe(1);
+  expect(Object.keys((await progress()).watched).sort()).toEqual(watched);
+  await tick.click();
+  await expect(tick).toHaveAttribute('aria-checked', 'false');
+  await expect.poll(async () => Object.keys((await progress()).studied).length).toBe(0);
+});

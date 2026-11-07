@@ -5,7 +5,8 @@ lessons that finish their cards.
 - A card may point at a calendar event, a lesson, a module or a library item, once per board. Its title, address and
   (for an event) date are read from the hub every time the board loads, so a renamed or moved event shows as it is
   now.
-- A lesson card moves to its board's first done column once the lesson is watched (`complete_lessons`).
+- A lesson card moves to its board's first done column once the lesson is watched or its chapter ticked as studied
+  (`complete_lessons`).
 - A revision plan's cards that aren't done are spread over the days left to the exam each time they are read, in
   board order (the columns nearest done first), so falling behind spreads the rest again and nothing is ever written
   to do it."""
@@ -32,7 +33,7 @@ from app.models import (
     BoardComment,
     BoardLabel,
     BoardPlan,
-    LessonView,
+    Lesson,
     Upload,
     UploadPurpose,
     UploadStatus,
@@ -53,7 +54,7 @@ from app.schemas.board import (
 from app.schemas.board import BoardCard as BoardCardOut
 from app.schemas.board import BoardPlan as BoardPlanOut
 from app.services import access, ratelimit
-from app.services.accounts import tracks_progress
+from app.services.accounts import done_lessons, tracks_progress
 from app.services.board.boards import (
     active_boards,
     boards_query,
@@ -272,10 +273,11 @@ def _canonical_link(db: Session, user: User, kind: str, raw: str) -> tuple[str, 
 
 
 def watched(db: Session, user: User, lesson_id: str) -> bool:
-    """Whether `user` watched the lesson; progress kept while tracking is off stays out of sight."""
+    """Whether `user` counts the lesson as done (watched, or in a chapter ticked as studied); progress kept while
+    tracking is off stays out of sight."""
     if not tracks_progress(user):
         return False
-    q = select(LessonView.lesson_id).where(LessonView.user_id == user.id, LessonView.lesson_id == lesson_id)
+    q = select(Lesson.id).where(Lesson.id == lesson_id, Lesson.id.in_(done_lessons(user.id)))
     return db.scalar(q) is not None
 
 
@@ -458,9 +460,9 @@ def delete_card(db: Session, card: BoardCard) -> None:
 
 
 def complete_lessons(db: Session, user_id: uuid.UUID) -> None:
-    """Moves the cards for lessons `user_id` has watched to the top of their board's first done column (a board
-    without one keeps them where they are)."""
-    seen = select(LessonView.lesson_id).where(LessonView.user_id == user_id)
+    """Moves the cards for lessons `user_id` counts as done (watched, or in a chapter ticked as studied) to the top
+    of their board's first done column (a board without one keeps them where they are)."""
+    seen = done_lessons(user_id)
     cards = db.scalars(
         select(BoardCard)
         .where(BoardCard.user_id == user_id, BoardCard.lesson_id.in_(seen), BoardCard.done_at.is_(None))

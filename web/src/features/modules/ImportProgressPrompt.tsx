@@ -45,6 +45,9 @@ export function ImportProgressPrompt() {
     const modules = new Set([
       ...lessons.map((w) => w.m),
       ...Object.keys(guest.state.last).filter((id) => getModule(id)),
+      ...Object.values(guest.state.studied)
+        .map((t) => t.m)
+        .filter((id) => getModule(id)),
     ]);
     return { lessons: lessons.length, modules: modules.size };
   }, [guest.state, getModule]);

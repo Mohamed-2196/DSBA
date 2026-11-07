@@ -62,7 +62,7 @@ def test_nothing_is_kept_until_it_is_turned_on(
 def test_mark_lessons_watched(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
     c = client_for(make_user(tracks=True))
     a, b = lesson_id(module, 0, 1), lesson_id(module, 1, 0)
-    assert c.get(f"{API}/me/progress").json() == {"watched": {}, "last": {}}
+    assert c.get(f"{API}/me/progress").json() == {"watched": {}, "last": {}, "studied": {}}
     r = _watch(c, a)
     assert r.status_code == 200, r.text
     first = r.json()["watched"][a]
@@ -145,7 +145,7 @@ def test_reset_a_module(client_for: ClientFor, make_user: MakeUser, module: Modu
 def test_progress_is_per_user(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
     a, b = client_for(make_user(tracks=True)), client_for(make_user(tracks=True))
     _watch(a, lesson_id(module, 0, 0))
-    assert b.get(f"{API}/me/progress").json() == {"watched": {}, "last": {}}
+    assert b.get(f"{API}/me/progress").json() == {"watched": {}, "last": {}, "studied": {}}
 
 
 def test_import_merges_and_the_newest_wins(
@@ -230,7 +230,7 @@ def test_progress_off_hides_what_was_recorded_and_on_brings_it_back(
     assert c.patch(f"{API}/me", json={"preferences": {"trackProgress": False}}).status_code == 200
     # Off: new marks are refused, and the old ones aren't served.
     assert c.put(f"{API}/me/progress/lessons/{lesson_id(module, 0, 1)}", json={"watched": True}).status_code == 409
-    assert c.get(f"{API}/me/progress").json() == {"watched": {}, "last": {}}
+    assert c.get(f"{API}/me/progress").json() == {"watched": {}, "last": {}, "studied": {}}
     # A card for the lesson doesn't jump to Done on hidden progress.
     card = c.post(f"{API}/board-cards", json={"link": {"type": "lesson", "id": lesson}})
     assert card.status_code == 201, card.text
@@ -242,3 +242,126 @@ def test_progress_off_hides_what_was_recorded_and_on_brings_it_back(
     progress = c.get(f"{API}/me/progress").json()
     assert lesson in progress["watched"]
     assert progress["last"][module.id]["lessonId"] == lesson
+
+
+# ── chapters ticked as studied ──────────────────────────────────────────────────────────────
+
+
+def _study(c: TestClient, chapter: str, studied: bool = True) -> Any:
+    return c.put(f"{API}/me/progress/chapters/{chapter}", json={"studied": studied})
+
+
+def test_tick_a_chapter_studied_and_undo_it(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
+    """A chapter ticked as studied is kept on its own: its lessons' watched marks and the lesson to resume stay as
+    they were. The tick lists the chapter's lessons, which then count as done. Undoing it removes the tick only."""
+    c = client_for(make_user(tracks=True))
+    one = module.chapters[0].id
+    watched = lesson_id(module, 0, 0)
+    _watch(c, watched)
+    _resume(c, watched)
+    r = _study(c, one)
+    assert r.status_code == 200, r.text
+    got = r.json()
+    assert list(got["watched"]) == [watched]
+    assert got["last"][module.id]["lessonId"] == watched
+    tick = got["studied"][one]
+    assert (tick["moduleId"], tick["lessonIds"]) == (module.id, [lesson_id(module, 0, 0), lesson_id(module, 0, 1)])
+    assert _study(c, one).json()["studied"][one] == tick  # ticking again keeps the first time
+    assert c.get(f"{API}/me/progress").json()["studied"] == {one: tick}
+
+    undone = _study(c, one, studied=False).json()
+    assert undone["studied"] == {}
+    assert list(undone["watched"]) == [watched]
+    assert _study(c, one, studied=False).status_code == 200  # already not ticked
+
+
+def test_a_ticked_chapter_lists_only_the_lessons_students_see(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
+) -> None:
+    c = client_for(make_user(tracks=True))
+    one = module.chapters[0]
+    _study(c, one.id)
+    one.lessons[1].hidden = True
+    db.commit()
+    assert c.get(f"{API}/me/progress").json()["studied"][one.id]["lessonIds"] == [lesson_id(module, 0, 0)]
+
+
+def test_unknown_and_hidden_chapters_are_404_and_bad_ids_422(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
+) -> None:
+    c = client_for(make_user(tracks=True))
+    assert _study(c, "nosuchchapter").status_code == 404
+    module.chapters[1].hidden = True
+    db.commit()
+    r = _study(c, module.chapters[1].id)
+    assert (r.status_code, r.json()["error"]["code"]) == (404, "not_found")
+    assert _study(c, "Not-An-Id").status_code == 422
+
+
+def test_ticks_need_tracking_belong_to_their_student_and_go_with_a_reset(
+    client: TestClient, client_for: ClientFor, make_user: MakeUser, module: Module
+) -> None:
+    one = module.chapters[0].id
+    assert _study(client, one).status_code == 401
+    untracked = client_for(make_user())
+    r = _study(untracked, one)
+    assert (r.status_code, r.json()["error"]["code"]) == (409, "progress_off")
+
+    c = client_for(make_user(tracks=True))
+    _study(c, one)
+    assert client_for(make_user(tracks=True)).get(f"{API}/me/progress").json()["studied"] == {}
+    assert one in c.get(f"{API}/me/export").json()["progress"]["studied"]
+    assert c.patch(f"{API}/me", json={"preferences": {"trackProgress": False}}).status_code == 200
+    assert c.get(f"{API}/me/progress").json()["studied"] == {}  # kept, hidden while tracking is off
+    assert c.patch(f"{API}/me", json={"preferences": {"trackProgress": True}}).status_code == 200
+    assert one in c.get(f"{API}/me/progress").json()["studied"]
+    assert c.delete(f"{API}/me/progress/modules/{module.id}").status_code == 204
+    assert c.get(f"{API}/me/progress").json()["studied"] == {}
+
+
+def test_import_brings_a_guests_ticks(client_for: ClientFor, make_user: MakeUser, module: Module) -> None:
+    c = client_for(make_user(tracks=True))
+    one = module.chapters[0].id
+    body = {
+        "watched": {},
+        "last": {},
+        "studied": {one: "2026-10-01T10:00:00Z", "nosuchchapter": "2026-10-01T10:00:00Z"},
+    }
+    r = c.post(f"{API}/me/progress/import", json=body)
+    assert r.status_code == 200, r.text
+    studied = r.json()["studied"]
+    assert list(studied) == [one]
+    assert _at(studied[one]["at"]) == _at("2026-10-01T10:00:00Z")
+
+
+def test_a_hidden_module_hides_its_chapters_and_a_reset_keeps_other_modules_ticks(
+    client_for: ClientFor, make_user: MakeUser, module: Module, db: Session
+) -> None:
+    other_id = f"{module.id}-c"
+    other = Module(
+        id=other_id,
+        name="Other",
+        short_name="O",
+        year=2,
+        description="",
+        chapters=chapters(other_id, [{"title": "x", "videos": [{"kind": "youtube", "video_id": "z"}]}]),
+    )
+    db.add(other)
+    db.commit()
+    c = client_for(make_user(tracks=True))
+    _study(c, module.chapters[0].id)
+    _study(c, other.chapters[0].id)
+    assert c.delete(f"{API}/me/progress/modules/{module.id}").status_code == 204
+    assert list(c.get(f"{API}/me/progress").json()["studied"]) == [other.chapters[0].id]
+    other.hidden = True
+    db.commit()
+    r = _study(c, other.chapters[0].id, studied=False)
+    assert (r.status_code, r.json()["error"]["code"]) == (404, "not_found")
+    # kept for the export, but it lists no lessons to count while students don't see it
+    assert c.get(f"{API}/me/progress").json()["studied"][other.chapters[0].id]["lessonIds"] == []
+
+
+def test_an_import_of_too_many_ticks_is_refused(client_for: ClientFor, make_user: MakeUser) -> None:
+    c = client_for(make_user(tracks=True))
+    body = {"watched": {}, "last": {}, "studied": {f"c{i}": "2026-10-01T10:00:00Z" for i in range(1001)}}
+    assert c.post(f"{API}/me/progress/import", json=body).status_code == 422

@@ -1,4 +1,5 @@
-"""Per-user activity: notifications and lesson progress. Moderation: reports and the audit log."""
+"""Per-user activity: notifications and lesson progress (lessons watched, chapters studied). Moderation: reports and
+the audit log."""
 
 from __future__ import annotations
 
@@ -49,6 +50,18 @@ class LessonView(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     lesson_id: Mapped[str] = mapped_column(ForeignKey("lessons.id", ondelete="CASCADE"), primary_key=True)
     watched_at: Mapped[datetime] = created_ts()
+
+
+class ChapterStudied(Base):
+    """A chapter a student ticked as studied, however they studied it. Kept apart from the lessons watched, which
+    stay as they are: a ticked chapter's lessons count as done."""
+
+    __tablename__ = "chapters_studied"
+    __table_args__ = (Index("ix_chapters_studied_chapter", "chapter_id"),)  # a chapter removed (CASCADE)
+
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    chapter_id: Mapped[str] = mapped_column(ForeignKey("chapters.id", ondelete="CASCADE"), primary_key=True)
+    studied_at: Mapped[datetime] = created_ts()
 
 
 class LessonResume(Base):

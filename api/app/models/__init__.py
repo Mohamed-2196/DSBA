@@ -1,7 +1,15 @@
 """All models, imported here so that Alembic and the app see the whole schema."""
 
 from app.models.access import AccessRole, FeatureSwitch, FeatureSwitchRole, RoleBox, RoleGrant
-from app.models.activity import AuditEntry, LessonResume, LessonView, Notification, Report, ReportStatus
+from app.models.activity import (
+    AuditEntry,
+    ChapterStudied,
+    LessonResume,
+    LessonView,
+    Notification,
+    Report,
+    ReportStatus,
+)
 from app.models.base import Base
 from app.models.board import (
     Board,
@@ -102,6 +110,7 @@ __all__ = [
     "CalendarEvent",
     "CalendarPrefs",
     "Chapter",
+    "ChapterStudied",
     "ChapterTopic",
     "ContentDoc",
     "DailyGuessWord",

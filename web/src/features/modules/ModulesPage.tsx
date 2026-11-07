@@ -157,7 +157,7 @@ function ModuleRow({
                   <span className="mod-row__watched">
                     <span className="u-tabular">{progress.watched}</span> of{' '}
                     <span className="u-tabular">{progress.total}</span>
-                    <span className="visually-hidden"> lessons watched</span>
+                    <span className="visually-hidden"> lessons done</span>
                   </span>
                 </>
               ) : (
@@ -234,7 +234,7 @@ export default function ModulesPage() {
                 {ready && tracking ? (
                   <span>
                     <b className="u-tabular">{totals.watched}</b> of <b className="u-tabular">{totals.videos}</b>{' '}
-                    lessons watched
+                    lessons done
                   </span>
                 ) : (
                   <span>

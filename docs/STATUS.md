@@ -12,6 +12,10 @@ is not deployed. Unlike other features, these three are hidden from admins too w
 fill puzzles, edit Mini Noora or review time stamps before a launch, switch it on for Some roles → Admin first.
 "Plan my revision" (`board.plan`) is off too, for admins as well; migration 0060 removed the plans made so far and
 their cards not done yet.
+A signed-in student who tracks their progress can tick a chapter as studied ("I've studied this chapter", at the end
+of an open chapter in the Lessons tab), however they studied it: the chapter counts as done and its lessons count
+towards the module's progress (their board cards go to Done, and plans skip them), while the lessons' watched marks,
+and so Carry on, stay as they are (`chapters_studied`, `PUT /me/progress/chapters/{id}`).
 
 - **Rounds 1 to 4.** The API and the web app for accounts, the forum, the library on S3, the newsletter, the
   calendar, Career Navigator, search, notifications and Manage; roles and feature switches (R-1, R-10), notes,

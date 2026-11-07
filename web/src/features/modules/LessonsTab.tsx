@@ -148,7 +148,7 @@ export function LessonsTab({
   const key = m.chapters[c].videos[v].id;
   const { push } = useToast();
   const { me, featureOn } = useAuth();
-  const { state, tracking, isWatched, setWatched, markOpened, resetModule, restore } = progress;
+  const { state, tracking, isWatched, setWatched, setStudied, markOpened, resetModule, restore } = progress;
   const track = useTracking();
   const watched = isWatched(key);
   const location = useLocation();
@@ -428,6 +428,7 @@ export function LessonsTab({
               nowLabel={stage === 'frame' ? 'Playing' : 'Selected'}
               onReset={onReset}
               onPick={revealPlayer}
+              onStudied={progress.mode === 'account' ? (chapter, on) => setStudied(m.id, chapter, on) : undefined}
             />
           </div>
         </div>

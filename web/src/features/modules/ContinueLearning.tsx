@@ -32,7 +32,7 @@ function ContinueRow({ item, featured }: { item: Item; featured: boolean }) {
       to={lessonHref(m.id, video.id)}
       className={cx('mod-cl__row', featured && 'is-featured')}
       data-module-id={m.id}
-      aria-label={`${resume.kind === 'resume' ? 'Resume' : 'Continue'} ${m.unitCode || m.name}: ${ch.title}, ${position.toLowerCase()}. ${progress.pct}% of the module watched.`}
+      aria-label={`${resume.kind === 'resume' ? 'Resume' : 'Continue'} ${m.unitCode || m.name}: ${ch.title}, ${position.toLowerCase()}. ${progress.pct}% of the module done.`}
     >
       <MiniPoster module={m} video={video} size={featured ? 'md' : 'sm'} className="mod-cl__poster" />
       <span className="mod-cl__text">

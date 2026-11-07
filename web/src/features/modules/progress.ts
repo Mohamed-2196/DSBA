@@ -1,9 +1,13 @@
 // Lesson progress, kept only while the person tracks it (tracking.ts: opt in). Signed in: kept by the API
-// (/me/progress…), with optimistic updates. Guests: kept in this browser (localStorage 'hub.progress'). After signing in, the student is asked once whether that progress is
-// theirs (ImportProgressPrompt): computers at BIBF are shared, so it may be someone else's.
+// (/me/progress…), with optimistic updates. Guests: kept in this browser (localStorage 'hub.progress'). After
+// signing in, the student is asked once whether that progress is theirs (ImportProgressPrompt): computers at BIBF are
+// shared, so it may be someone else's.
 //   state.watched  { [lessonId]: { m: module id, at: watchedAt (ms) } }
 //   state.last     { [moduleId]: { l: lesson id, at (ms) } }  the lesson last opened (played or marked) in each
 //                  module; it drives "Pick up where you left off" and Home's Continue learning.
+//   state.studied  { [chapterId]: { m: module id, at (ms), l: its lesson ids } }  chapters the student ticked as
+//                  studied, however they studied them. Their lessons count as done; the watched marks (and so
+//                  Carry on) stay as they are.
 // Lessons are known by their id, which never changes: a content manager reordering a module moves nothing here.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
@@ -12,7 +16,7 @@ import type { Chapter, ModuleDetail, Progress, ProgressImport, Video } from '../
 import { useAuth } from '../../auth';
 import { useLocalStorage, useToast } from '../../state';
 import { progressKey } from '../../api/keys';
-import { deleteModuleProgress, fetchProgress, importProgress, putResume, putWatched } from './api';
+import { deleteModuleProgress, fetchProgress, importProgress, putResume, putStudied, putWatched } from './api';
 import { useTracking } from './tracking';
 
 export interface WatchedMark {
@@ -27,15 +31,28 @@ export interface LessonPointer {
   at: number;
 }
 
+export interface StudiedMark {
+  /** the chapter's module */
+  m: string;
+  at: number;
+  /** the chapter's lessons when it was read: they count as done while it's ticked */
+  l: readonly string[];
+}
+
 export interface ProgressState {
   watched: Readonly<Record<string, WatchedMark>>;
   last: Readonly<Record<string, LessonPointer>>;
+  studied: Readonly<Record<string, StudiedMark>>;
 }
 
-export const EMPTY_PROGRESS: ProgressState = Object.freeze({ watched: Object.freeze({}), last: Object.freeze({}) });
+export const EMPTY_PROGRESS: ProgressState = Object.freeze({
+  watched: Object.freeze({}),
+  last: Object.freeze({}),
+  studied: Object.freeze({}),
+});
 
 export function isEmptyProgress(s: ProgressState): boolean {
-  return Object.keys(s.watched).length === 0 && Object.keys(s.last).length === 0;
+  return [s.watched, s.last, s.studied].every((part) => Object.keys(part).length === 0);
 }
 
 // ── Shapes: the browser's store and the API ───────────────────────────────────
@@ -63,7 +80,15 @@ export function normalizeStored(raw: unknown): ProgressState {
       if (isModule(m) && isRecord(p) && isLesson(p.l) && isTime(p.at)) last[m] = { l: p.l, at: p.at };
     }
   }
-  return { watched, last };
+  const studied: Record<string, StudiedMark> = {};
+  if (isRecord(raw.studied)) {
+    for (const [c, t] of Object.entries(raw.studied)) {
+      if (isLesson(c) && isRecord(t) && isModule(t.m) && isTime(t.at) && Array.isArray(t.l)) {
+        studied[c] = { m: t.m, at: t.at, l: t.l.filter(isLesson) };
+      }
+    }
+  }
+  return { watched, last, studied };
 }
 
 const time = (iso: string) => {
@@ -77,19 +102,28 @@ export function fromServer(p: Progress): ProgressState {
   for (const [l, w] of Object.entries(p.watched)) watched[l] = { m: w.moduleId, at: time(w.at) };
   const last: Record<string, LessonPointer> = {};
   for (const [m, l] of Object.entries(p.last)) last[m] = { l: l.lessonId, at: time(l.at) };
-  return { watched, last };
+  const studied: Record<string, StudiedMark> = {};
+  for (const [c, t] of Object.entries(p.studied)) studied[c] = { m: t.moduleId, at: time(t.at), l: t.lessonIds };
+  return { watched, last, studied };
 }
 
 export function toServer(s: ProgressState): Progress {
   return {
     watched: Object.fromEntries(Object.entries(s.watched).map(([l, w]) => [l, { moduleId: w.m, at: iso(w.at) }])),
     last: Object.fromEntries(Object.entries(s.last).map(([m, p]) => [m, { lessonId: p.l, at: iso(p.at) }])),
+    studied: Object.fromEntries(
+      Object.entries(s.studied).map(([c, t]) => [c, { moduleId: t.m, at: iso(t.at), lessonIds: [...t.l] }]),
+    ),
   };
 }
 
 export function toImport(s: ProgressState): ProgressImport {
-  const { watched, last } = toServer(s);
-  return { watched: Object.fromEntries(Object.entries(watched).map(([l, w]) => [l, w.at])), last };
+  const { watched, last, studied } = toServer(s);
+  return {
+    watched: Object.fromEntries(Object.entries(watched).map(([l, w]) => [l, w.at])),
+    last,
+    studied: Object.fromEntries(Object.entries(studied).map(([c, t]) => [c, t.at])),
+  };
 }
 
 // ── Pure helpers ──────────────────────────────────────────────────────────────
@@ -136,22 +170,44 @@ const fraction = (watched: number, total: number): Fraction => ({
   pct: total ? Math.round((watched / total) * 100) : 0,
 });
 
+/** Lessons done in a module: watched, or in a chapter ticked as studied. `watched` in the fraction counts them. */
 export function computeModuleProgress(state: ProgressState, m: WithChapters | null | undefined): Fraction {
   const lessons = flatLessons(m);
-  return fraction(lessons.filter((l) => state.watched[l.video.id]).length, lessons.length);
+  return fraction(
+    lessons.filter((l) => state.watched[l.video.id] || state.studied[l.chapter.id]).length,
+    lessons.length,
+  );
 }
 
 export function computeChapterProgress(state: ProgressState, m: WithChapters, c: number): Fraction {
   const ch = m.chapters[c];
   if (!ch) return fraction(0, 0);
+  if (state.studied[ch.id]) return fraction(ch.videos.length, ch.videos.length);
   return fraction(ch.videos.filter((video) => state.watched[video.id]).length, ch.videos.length);
 }
 
-/** Watched lessons of a module from the catalogue's count alone (no chapters needed): Home and the module list. */
+/** A chapter is done when the student ticked it as studied, or watched every lesson in it. */
+export function chapterDone(state: ProgressState, m: WithChapters, c: number): boolean {
+  const ch = m.chapters[c];
+  if (!ch) return false;
+  return !!state.studied[ch.id] || (ch.videos.length > 0 && ch.videos.every((video) => state.watched[video.id]));
+}
+
+/** The chapters of a module ticked as studied, by chapter id. */
+export function studiedFor(state: ProgressState, moduleId: string): Record<string, StudiedMark> {
+  return Object.fromEntries(Object.entries(state.studied).filter(([, t]) => t.m === moduleId));
+}
+
+/** Lessons done in a module from the catalogue's count alone (no chapters needed): Home and the module list. */
 export function summaryProgress(state: ProgressState, moduleId: string | null | undefined, total: number): Fraction {
   if (!moduleId || !total) return fraction(0, total);
-  const watched = Object.values(state.watched).filter((w) => w.m === moduleId).length;
-  return fraction(Math.min(watched, total), total);
+  const done = new Set(
+    Object.entries(state.watched)
+      .filter(([, w]) => w.m === moduleId)
+      .map(([l]) => l),
+  );
+  for (const t of Object.values(studiedFor(state, moduleId))) t.l.forEach((l) => done.add(l));
+  return fraction(Math.min(done.size, total), total);
 }
 
 export type ResumeKind = 'resume' | 'next' | 'start' | 'done';
@@ -192,23 +248,48 @@ export interface ProgressSnapshot {
   moduleId: string;
   watched: Record<string, WatchedMark>;
   last: LessonPointer | null;
+  studied: Record<string, StudiedMark>;
+}
+
+/** A chapter to tick: its id and the lessons it has now. */
+export interface StudiedChapter {
+  id: string;
+  lessonIds: readonly string[];
 }
 
 function withWatched(s: ProgressState, moduleId: string, lessonId: string, on: boolean, now: number): ProgressState {
   const watched = { ...s.watched };
   if (on) watched[lessonId] = watched[lessonId] ?? { m: moduleId, at: now };
   else delete watched[lessonId];
-  return { watched, last: { ...s.last, [moduleId]: { l: lessonId, at: now } } };
+  return { ...s, watched, last: { ...s.last, [moduleId]: { l: lessonId, at: now } } };
 }
 
 function withOpened(s: ProgressState, moduleId: string, lessonId: string, now: number): ProgressState {
-  return { watched: s.watched, last: { ...s.last, [moduleId]: { l: lessonId, at: now } } };
+  return { ...s, last: { ...s.last, [moduleId]: { l: lessonId, at: now } } };
+}
+
+/** Ticks a chapter (keeping the first time) or unticks it; the watched marks and the lesson to resume stay. */
+function withStudied(
+  s: ProgressState,
+  moduleId: string,
+  chapter: StudiedChapter,
+  on: boolean,
+  now: number,
+): ProgressState {
+  const studied = { ...s.studied };
+  if (on) studied[chapter.id] = studied[chapter.id] ?? { m: moduleId, at: now, l: [...chapter.lessonIds] };
+  else delete studied[chapter.id];
+  return { ...s, studied };
 }
 
 function withoutModule(s: ProgressState, moduleId: string): ProgressState {
   const last = { ...s.last };
   delete last[moduleId];
-  return { watched: Object.fromEntries(Object.entries(s.watched).filter(([, w]) => w.m !== moduleId)), last };
+  return {
+    watched: Object.fromEntries(Object.entries(s.watched).filter(([, w]) => w.m !== moduleId)),
+    last,
+    studied: Object.fromEntries(Object.entries(s.studied).filter(([, t]) => t.m !== moduleId)),
+  };
 }
 
 function snapshotOf(s: ProgressState, moduleId: string): ProgressSnapshot {
@@ -216,6 +297,7 @@ function snapshotOf(s: ProgressState, moduleId: string): ProgressSnapshot {
     moduleId,
     watched: Object.fromEntries(Object.entries(s.watched).filter(([, w]) => w.m === moduleId)),
     last: s.last[moduleId] ?? null,
+    studied: studiedFor(s, moduleId),
   };
 }
 
@@ -223,6 +305,7 @@ function withSnapshot(s: ProgressState, snap: ProgressSnapshot): ProgressState {
   return {
     watched: { ...s.watched, ...snap.watched },
     last: snap.last ? { ...s.last, [snap.moduleId]: snap.last } : s.last,
+    studied: { ...s.studied, ...snap.studied },
   };
 }
 
@@ -240,6 +323,9 @@ export interface ProgressApi {
   tracking: boolean;
   isWatched: (lessonId: string) => boolean;
   setWatched: (moduleId: string, lessonId: string, on: boolean) => void;
+  isStudied: (chapterId: string) => boolean;
+  /** Ticks a chapter as studied, or undoes it. */
+  setStudied: (moduleId: string, chapter: StudiedChapter, on: boolean) => void;
   /** The student pressed play on a lesson. */
   markOpened: (moduleId: string, lessonId: string) => void;
   /** Clears a module and returns what it held, for Undo. */
@@ -269,6 +355,9 @@ export function useGuestProgress(): ProgressApi & { clear: () => void } {
       isWatched: (lessonId: string) => !!state.watched[lessonId],
       setWatched: (moduleId: string, lessonId: string, on: boolean) =>
         write((s) => withWatched(s, moduleId, lessonId, on, Date.now())),
+      isStudied: (chapterId: string) => !!state.studied[chapterId],
+      setStudied: (moduleId: string, chapter: StudiedChapter, on: boolean) =>
+        write((s) => withStudied(s, moduleId, chapter, on, Date.now())),
       markOpened: (moduleId: string, lessonId: string) => write((s) => withOpened(s, moduleId, lessonId, Date.now())),
       resetModule: (moduleId: string) => {
         const snap = snapshotOf(state, moduleId);
@@ -285,6 +374,7 @@ export function useGuestProgress(): ProgressApi & { clear: () => void } {
 type Op =
   | { type: 'watched'; moduleId: string; lessonId: string; on: boolean }
   | { type: 'opened'; moduleId: string; lessonId: string }
+  | { type: 'studied'; moduleId: string; chapter: StudiedChapter; on: boolean }
   | { type: 'reset'; moduleId: string }
   | { type: 'restore'; snapshot: ProgressSnapshot };
 
@@ -297,6 +387,8 @@ function applyOp(s: ProgressState, op: Op): ProgressState {
       return withWatched(s, op.moduleId, op.lessonId, op.on, now);
     case 'opened':
       return withOpened(s, op.moduleId, op.lessonId, now);
+    case 'studied':
+      return withStudied(s, op.moduleId, op.chapter, op.on, now);
     case 'reset':
       return withoutModule(s, op.moduleId);
     case 'restore':
@@ -311,6 +403,8 @@ async function send(op: Op): Promise<Progress | null> {
       return putResume(op.lessonId);
     case 'opened':
       return putResume(op.lessonId);
+    case 'studied':
+      return putStudied(op.chapter.id, op.on);
     case 'reset':
       await deleteModuleProgress(op.moduleId);
       return null;
@@ -360,6 +454,9 @@ function useAccountProgress(userId: string | null): Omit<ProgressApi, 'tracking'
       isWatched: (lessonId: string) => !!state.watched[lessonId],
       setWatched: (moduleId: string, lessonId: string, on: boolean) =>
         mutate({ type: 'watched', moduleId, lessonId, on }),
+      isStudied: (chapterId: string) => !!state.studied[chapterId],
+      setStudied: (moduleId: string, chapter: StudiedChapter, on: boolean) =>
+        mutate({ type: 'studied', moduleId, chapter, on }),
       markOpened: (moduleId: string, lessonId: string) => mutate({ type: 'opened', moduleId, lessonId }),
       resetModule: (moduleId: string) => {
         const snap = snapshotOf(state, moduleId);
@@ -383,8 +480,10 @@ function untracked(mode: ProgressApi['mode'], ready: boolean): ProgressApi {
     tracking: false,
     isWatched: () => false,
     setWatched: nothing,
+    isStudied: () => false,
+    setStudied: nothing,
     markOpened: nothing,
-    resetModule: (moduleId: string) => ({ moduleId, watched: {}, last: null }),
+    resetModule: (moduleId: string) => ({ moduleId, watched: {}, last: null, studied: {} }),
     restore: nothing,
   };
 }

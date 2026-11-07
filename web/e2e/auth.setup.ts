@@ -118,7 +118,7 @@ setup(
       await expect(watched).toHaveAttribute('aria-pressed', 'true');
     }
     await page.reload();
-    await expect(page.locator('[data-hub="lesson-list"]')).toContainText(/2 of \d+ lessons watched/);
+    await expect(page.locator('[data-hub="lesson-list"]')).toContainText(/2 of \d+ lessons done/);
 
     // Sign back in: a wrong password first, answered as an unknown address would be.
     await page.getByRole('button', { name: 'Sign in', exact: true }).first().click();

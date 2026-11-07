@@ -172,6 +172,15 @@ def test_removing_a_plan_keeps_what_is_done(
     assert c.delete(f"{API}/board-plans/{module.id}").status_code == 404
 
 
+def test_a_plan_leaves_out_the_lessons_of_a_chapter_ticked_as_studied(
+    client_for: ClientFor, make_user: MakeUser, module: Module
+) -> None:
+    c = client_for(make_user(tracks=True))
+    c.put(f"{API}/me/progress/chapters/{module.chapters[0].id}", json={"studied": True})
+    plan(c, module, 30)
+    assert [x["link"]["id"] for x in board(c)["cards"]] == [lesson_id(module, 1, 0)]
+
+
 def test_with_plans_switched_off_their_cards_stay_as_ordinary_cards(
     client_for: ClientFor, make_user: MakeUser, module: Module, set_feature: Callable[..., None]
 ) -> None:

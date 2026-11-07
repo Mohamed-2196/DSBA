@@ -21,7 +21,6 @@ from app.models import (
     BoardPlan,
     ItemStatus,
     Lesson,
-    LessonView,
     LibraryItem,
     Module,
     PaperQuestion,
@@ -31,7 +30,7 @@ from app.models import (
 from app.schemas.board import BoardPlanCreate, BoardPlanMade
 from app.schemas.library import PAST_PAPER
 from app.services import access, ratelimit
-from app.services.accounts import tracks_progress
+from app.services.accounts import done_lessons, tracks_progress
 from app.services.board.boards import main_board
 from app.services.board.cards import check_room, plan_out
 from app.services.board.common import cards_in, columns_of, end_position, get_board
@@ -178,11 +177,7 @@ def make_plan(db: Session, user: User, body: BoardPlanCreate) -> BoardPlanMade:
     planned_papers, planned_lessons = still["library_item"], still["lesson"]
     papers = _papers(db, user, module, items_on, papers_wanted(days, body.paper_every) - planned_papers)
 
-    seen = (
-        set(db.scalars(select(LessonView.lesson_id).where(LessonView.user_id == user.id)))
-        if tracks_progress(user)
-        else set()
-    )
+    seen = set(db.scalars(done_lessons(user.id))) if tracks_progress(user) else set()
     unwatched = [
         lesson
         for chapter in visible_chapters(module)

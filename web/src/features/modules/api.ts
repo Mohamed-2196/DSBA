@@ -44,6 +44,15 @@ export function putWatched(lessonId: string, watched: boolean): Promise<Progress
   );
 }
 
+export function putStudied(chapterId: string, studied: boolean): Promise<Progress> {
+  return call(
+    api.PUT('/api/v1/me/progress/chapters/{chapter_id}', {
+      params: { path: { chapter_id: chapterId } },
+      body: { studied },
+    }),
+  );
+}
+
 export function putResume(lessonId: string): Promise<Progress> {
   return call(api.PUT('/api/v1/me/progress/resume', { body: { lessonId } }));
 }
