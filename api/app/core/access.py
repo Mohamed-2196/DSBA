@@ -317,7 +317,7 @@ class SwitchState:
 
 
 # Switched off, these are gone for admins too. Every other feature stays visible to admins while off.
-ADMINS_FOLLOW_SWITCH = frozenset({Feature.noora, Feature.noora_ai, Feature.daily})
+ADMINS_FOLLOW_SWITCH = frozenset({Feature.noora, Feature.noora_ai, Feature.daily, Feature.modules_time_stamps})
 
 
 def feature_on(feature: Feature, state: SwitchState | None, access: Access, *, active: bool) -> bool:

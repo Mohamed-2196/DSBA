@@ -261,6 +261,39 @@ def test_mini_noora_and_the_daily_puzzles_are_switched_off_whatever_they_were(sc
         assert _switch(c, "daily") == ("off", None, [])
 
 
+def test_time_stamps_are_switched_off_whatever_they_were(scratch: tuple[Config, Engine]) -> None:
+    """0059 switches time stamps off, roles dropped, on an install where an admin had switched them on (no migration
+    stores this switch); the switch next to them stays as it was; going back leaves them off."""
+    cfg, engine = scratch
+    command.upgrade(cfg, _before(cfg, "0059"))
+    admin = uuid.uuid4()
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO users (id, email) VALUES (:id, 'admin@example.com')"), {"id": admin})
+        c.execute(
+            text(
+                "INSERT INTO feature_switches (feature, mode, updated_by, updated_at) "
+                "VALUES ('modules.time-stamps', 'roles', :id, now())"
+            ),
+            {"id": admin},
+        )
+        c.execute(
+            text(
+                "INSERT INTO feature_switch_roles (feature, role_id) "
+                "SELECT 'modules.time-stamps', id FROM roles WHERE slug = 'rep'"
+            )
+        )
+        c.execute(text("UPDATE feature_switches SET mode = 'everyone' WHERE feature = 'modules.video-suggestions'"))
+    command.upgrade(cfg, "0059")
+    with engine.connect() as c:
+        assert _switch(c, "modules.time-stamps") == ("off", None, [])
+        kept = _switch(c, "modules.video-suggestions")
+        assert kept is not None
+        assert kept[0] == "everyone"
+    command.downgrade(cfg, _before(cfg, "0059"))
+    with engine.connect() as c:
+        assert _switch(c, "modules.time-stamps") == ("off", None, [])
+
+
 def test_boards_made_from_the_revision_template_become_study_boards_and_keep_their_columns(
     scratch: tuple[Config, Engine],
 ) -> None:

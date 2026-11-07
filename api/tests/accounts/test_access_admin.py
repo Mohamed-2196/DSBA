@@ -242,6 +242,28 @@ def test_admins_lose_noora_and_the_daily_puzzles_while_they_are_off(client_for: 
     assert (shown(), refused()) == ([], list(routes))
 
 
+def test_admins_lose_time_stamps_while_they_are_off(client_for: ClientFor, boss: User) -> None:
+    """Time stamps follow their switch for admins too: the lists, the queue in Manage and the feature list drop them,
+    and the Access screen still lists the switch so it can come back."""
+    c = client_for(boss)
+    stamps = "modules.time-stamps"
+    assert {f["feature"]: f["mode"] for f in c.get(f"{API}/admin/features").json()}[stamps] == "off"
+    routes = ("/lesson-topics/mine", "/content/lesson-topics")
+
+    def shown() -> bool:
+        return stamps in c.get(f"{API}/features").json()["features"]
+
+    def refused() -> list[str]:
+        answers = {p: c.get(f"{API}{p}") for p in routes}
+        return [p for p, r in answers.items() if r.status_code == 404 and r.json()["error"]["code"] == "feature_off"]
+
+    assert (shown(), refused()) == (False, list(routes))
+    assert c.put(f"{API}/admin/features/{stamps}", json={"mode": "everyone"}).status_code == 200
+    assert (shown(), refused()) == (True, [])
+    assert c.put(f"{API}/admin/features/{stamps}", json={"mode": "off"}).status_code == 200
+    assert (shown(), refused()) == (False, list(routes))
+
+
 def test_the_claude_budget_stays_in_reach_while_her_ai_answers_are_off(
     client_for: ClientFor,
     boss: User,

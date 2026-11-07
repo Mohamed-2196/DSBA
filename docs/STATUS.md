@@ -6,10 +6,10 @@ Update it whenever you finish or start something. Last updated 2026-11-01, after
 ## Where things stand
 
 `feature/backend` holds the real product: the API and the strict-TypeScript web app built on it. Every push to it
-deploys to the Railway **dev** environment (https://web-dev-254f.up.railway.app, all features on except Mini Noora
-and the Daily puzzles, which an admin can switch on in Manage, Access); production is not deployed. Unlike other
-features, these two are hidden from admins too while off, Manage tools included: to fill puzzles or edit Mini Noora
-before a launch, switch it on for Some roles → Admin first.
+deploys to the Railway **dev** environment (https://web-dev-254f.up.railway.app, all features on except Mini Noora,
+the Daily puzzles and time stamps in lessons' recordings, which an admin can switch on in Manage, Access); production
+is not deployed. Unlike other features, these three are hidden from admins too while off, Manage tools included: to
+fill puzzles, edit Mini Noora or review time stamps before a launch, switch it on for Some roles → Admin first.
 
 - **Rounds 1 to 4.** The API and the web app for accounts, the forum, the library on S3, the newsletter, the
   calendar, Career Navigator, search, notifications and Manage; roles and feature switches (R-1, R-10), notes,
