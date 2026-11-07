@@ -47,6 +47,7 @@ export const FEATURE_KEYS = [
   'notes',
   'notes.share',
   'board',
+  'board.plan',
   'requests',
   'requests.autoclose',
   'requests.done',

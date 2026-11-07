@@ -73,6 +73,7 @@ class Feature(enum.StrEnum):
     notes = "notes"  # each student's private notes
     notes_share = "notes.share"  # a note shared with its module's students
     board = "board"  # each student's private boards
+    board_plan = "board.plan"  # "Plan my revision": a module's lessons and past papers spread over the days to its exam
     requests = "requests"
     requests_autoclose = "requests.autoclose"  # paper and date requests that close themselves
     requests_done = "requests.done"  # the requests done lately, on the requests page and in the newsletter
@@ -215,6 +216,11 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.board: FeatureInfo(
         "Boards", "Each student's boards, cards, files on cards and reminders, and the add-to-board buttons."
     ),
+    Feature.board_plan: FeatureInfo(
+        "Plan my revision",
+        "The Plan my revision button and the plans on boards, for admins too. Plans made from now on come back when "
+        "it's on again. Needs Boards.",
+    ),
     Feature.requests: FeatureInfo("Requests", "Students' requests, their me-toos and the answers."),
     Feature.requests_autoclose: FeatureInfo(
         "Requests that close themselves",
@@ -317,7 +323,9 @@ class SwitchState:
 
 
 # Switched off, these are gone for admins too. Every other feature stays visible to admins while off.
-ADMINS_FOLLOW_SWITCH = frozenset({Feature.noora, Feature.noora_ai, Feature.daily, Feature.modules_time_stamps})
+ADMINS_FOLLOW_SWITCH = frozenset(
+    {Feature.noora, Feature.noora_ai, Feature.daily, Feature.modules_time_stamps, Feature.board_plan}
+)
 
 
 def feature_on(feature: Feature, state: SwitchState | None, access: Access, *, active: bool) -> bool:

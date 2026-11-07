@@ -81,6 +81,7 @@ def test_the_baseline_seeds_what_the_api_needs(scratch: tuple[Config, Engine]) -
         assert switches == dict.fromkeys(features, "everyone") | {
             "notes": "off",
             "board": "off",
+            "board.plan": "off",
             "requests": "off",
             "forum.anonymous": "off",
             "forum.follow": "off",
@@ -292,6 +293,88 @@ def test_time_stamps_are_switched_off_whatever_they_were(scratch: tuple[Config, 
     command.downgrade(cfg, _before(cfg, "0059"))
     with engine.connect() as c:
         assert _switch(c, "modules.time-stamps") == ("off", None, [])
+
+
+def test_plan_my_revision_is_stored_off_and_its_plans_and_unfinished_cards_go(scratch: tuple[Config, Engine]) -> None:
+    """0060 stores the revision plans' switch off, roles dropped, also where a development install had switched every
+    feature on, and removes every plan with its cards not done yet (cards done stay, without their plan; other cards
+    stay as they were). The boards' own switch stays as it was. Going back removes the switch; the plans stay gone."""
+    cfg, engine = scratch
+    command.upgrade(cfg, _before(cfg, "0060"))
+    ids = {
+        "owner": uuid.uuid4(),
+        "board": uuid.uuid4(),
+        "todo": uuid.uuid4(),
+        "done": uuid.uuid4(),
+        "plan": uuid.uuid4(),
+    }
+    with engine.begin() as c:
+        c.execute(text("UPDATE feature_switches SET mode = 'everyone' WHERE feature = 'board'"))
+        c.execute(
+            text(
+                "INSERT INTO feature_switches (feature, mode, updated_by, updated_at) "
+                "VALUES ('board.plan', 'roles', NULL, now())"
+            )
+        )
+        c.execute(
+            text(
+                "INSERT INTO feature_switch_roles (feature, role_id) "
+                "SELECT 'board.plan', id FROM roles WHERE slug = 'rep'"
+            )
+        )
+        c.execute(text("INSERT INTO users (id, email) VALUES (:owner, 'planner@example.com')"), ids)
+        c.execute(
+            text(
+                "INSERT INTO modules (id, name, short_name, year, description, position) "
+                "VALUES ('plan-mod', 'Planned', 'P', 1, '', 1)"
+            )
+        )
+        c.execute(
+            text(
+                "INSERT INTO boards (id, user_id, name, color, template, position) "
+                "VALUES (:board, :owner, 'Exams', 'teal', 'study', 1)"
+            ),
+            ids,
+        )
+        c.execute(
+            text(
+                "INSERT INTO board_columns (id, board_id, name, done, position) VALUES "
+                "(:todo, :board, 'To do', false, 1), (:done, :board, 'Done', true, 2)"
+            ),
+            ids,
+        )
+        c.execute(
+            text(
+                "INSERT INTO board_plans (id, user_id, module_id, exam_date, paper_every, board_id) "
+                "VALUES (:plan, :owner, 'plan-mod', '2027-01-10', 3, :board)"
+            ),
+            ids,
+        )
+        for title, column, plan, done in (
+            ("Planned, to do", "todo", True, False),
+            ("Planned, done", "done", True, True),
+            ("Own card", "todo", False, False),
+        ):
+            c.execute(
+                text(
+                    "INSERT INTO board_cards (id, user_id, board_id, column_id, position, title, priority, plan_id, "
+                    "done_at) VALUES (gen_random_uuid(), :owner, :board, :column, 1, :title, 'none', :plan, "
+                    "CASE WHEN :done THEN now() END)"
+                ),
+                {**ids, "column": ids[column], "title": title, "plan": ids["plan"] if plan else None, "done": done},
+            )
+    command.upgrade(cfg, "0060")
+    with engine.connect() as c:
+        assert _switch(c, "board.plan") == ("off", None, [])
+        kept = _switch(c, "board")
+        assert kept is not None
+        assert kept[0] == "everyone"
+        assert c.scalar(text("SELECT count(*) FROM board_plans")) == 0
+        cards = c.execute(text("SELECT title, plan_id FROM board_cards ORDER BY title")).tuples().all()
+        assert cards == [("Own card", None), ("Planned, done", None)]
+    command.downgrade(cfg, _before(cfg, "0060"))
+    with engine.connect() as c:
+        assert _switch(c, "board.plan") is None
 
 
 def test_boards_made_from_the_revision_template_become_study_boards_and_keep_their_columns(

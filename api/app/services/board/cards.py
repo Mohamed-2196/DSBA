@@ -21,6 +21,7 @@ from datetime import timedelta
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from app.core.access import Feature
 from app.core.errors import conflict, invalid
 from app.core.time import bahrain_today, utcnow
 from app.models import (
@@ -51,7 +52,7 @@ from app.schemas.board import (
 )
 from app.schemas.board import BoardCard as BoardCardOut
 from app.schemas.board import BoardPlan as BoardPlanOut
-from app.services import ratelimit
+from app.services import access, ratelimit
 from app.services.accounts import tracks_progress
 from app.services.board.boards import (
     active_boards,
@@ -103,8 +104,12 @@ def file_url(upload_id: uuid.UUID) -> str:
 # ── what a card shows ───────────────────────────────────────────────────────────────────────
 
 
-def _plans(db: Session, user_id: uuid.UUID) -> dict[uuid.UUID, BoardPlan]:
-    q = select(BoardPlan).where(BoardPlan.user_id == user_id).order_by(BoardPlan.exam_date, BoardPlan.created_at)
+def _plans(db: Session, user: User) -> dict[uuid.UUID, BoardPlan]:
+    """The student's revision plans, or none while "Plan my revision" is off for them: their cards then read as the
+    student's own, with no plan and no plan's day (the plans are kept)."""
+    if not access.feature_on(db, user, Feature.board_plan):
+        return {}
+    q = select(BoardPlan).where(BoardPlan.user_id == user.id).order_by(BoardPlan.exam_date, BoardPlan.created_at)
     return {p.id: p for p in db.scalars(q)}
 
 
@@ -158,7 +163,7 @@ class CardContext:
     def __init__(self, db: Session, user: User, cards: Sequence[BoardCard]) -> None:
         ids = [c.id for c in cards]
         self.links = resolve_links(db, user, [k for c in cards if (k := link_key(c)) is not None])
-        self.plans = _plans(db, user.id)
+        self.plans = _plans(db, user)
         self.plan_rows = _plan_cards(db, user.id) if self.plans else []
         self.plan_dates = plan_dates(self.plan_rows, self.plans, bahrain_today())
         self.labels: dict[uuid.UUID, list[uuid.UUID]] = {}
@@ -223,7 +228,7 @@ class CardContext:
 
 def plans_of(db: Session, user: User) -> list[BoardPlanOut]:
     """Every revision plan of the student, nearest exam first."""
-    plans = _plans(db, user.id)
+    plans = _plans(db, user)
     rows = _plan_cards(db, user.id) if plans else []
     today = bahrain_today()
     return [plan_out(p, rows, today) for p in plans.values()]

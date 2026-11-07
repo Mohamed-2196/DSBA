@@ -70,7 +70,8 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("board", "GET", "/board-links"),
     ("board", "POST", "/board-cards"),
     ("board", "POST", "/board-labels"),
-    ("board", "POST", "/board-plans"),
+    ("board.plan", "POST", "/board-plans"),
+    ("board.plan", "DELETE", "/board-plans/economics"),
     ("board", "GET", f"/board-files/{NOTHING}"),
     ("requests", "GET", "/requests"),
     ("requests", "GET", f"/requests/{NOTHING}"),
@@ -103,6 +104,7 @@ SWITCHED: list[tuple[str, str, str]] = [
 OFF_AT_FIRST = (
     "notes",
     "board",
+    "board.plan",
     "requests",
     "noora",
     "noora.ai",
@@ -125,7 +127,12 @@ OFF_AT_FIRST = (
 )
 
 # Features that live inside another one, whose routes need it on too.
-INSIDE: dict[str, str] = {"requests.done": "requests", "library.practice": "library.questions", "notes.share": "notes"}
+INSIDE: dict[str, str] = {
+    "requests.done": "requests",
+    "board.plan": "board",
+    "library.practice": "library.questions",
+    "notes.share": "notes",
+}
 
 # Routes with no feature of their own: the hub itself (spec, "Features without a switch"). A path here covers the
 # paths below it.

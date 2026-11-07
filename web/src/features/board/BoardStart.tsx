@@ -1,5 +1,6 @@
 // A student's first board: each template is one click from a board of its own, named after it and opened at once.
 import { useState, type CSSProperties } from 'react';
+import { useAuth } from '../../auth';
 import { Button, Icon, Spinner, cx, glyph } from '../../ui';
 import { useCreateBoard } from './api';
 import { colorVar, startName, TEMPLATES, type BoardTemplate } from './board';
@@ -14,6 +15,7 @@ export interface BoardStartProps {
 
 export function BoardStart({ taken, readOnly, onStarted }: BoardStartProps) {
   const create = useCreateBoard();
+  const planning = useAuth().featureOn('board.plan');
   const [starting, setStarting] = useState<BoardTemplate | null>(null);
 
   const start = (id: BoardTemplate) => {
@@ -76,15 +78,17 @@ export function BoardStart({ taken, readOnly, onStarted }: BoardStartProps) {
           </li>
         ))}
       </ul>
-      <div className="board-start__aside">
-        <p>
-          Revising for an exam? Open its module and choose <strong>Plan my revision</strong>: the lessons and past
-          papers go on a board, spread over the days you have.
-        </p>
-        <Button size="sm" variant="ghost" to="/modules" trailingIcon={<Icon glyph={glyph.forward} />}>
-          Your modules
-        </Button>
-      </div>
+      {planning ? (
+        <div className="board-start__aside">
+          <p>
+            Revising for an exam? Open its module and choose <strong>Plan my revision</strong>: the lessons and past
+            papers go on a board, spread over the days you have.
+          </p>
+          <Button size="sm" variant="ghost" to="/modules" trailingIcon={<Icon glyph={glyph.forward} />}>
+            Your modules
+          </Button>
+        </div>
+      ) : null}
     </section>
   );
 }

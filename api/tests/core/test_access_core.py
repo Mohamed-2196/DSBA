@@ -98,12 +98,12 @@ def test_switches() -> None:
     assert feature_on(Feature.calendar, None, admin, active=True)
 
 
-def test_admins_follow_the_switch_for_noora_the_daily_puzzles_and_time_stamps() -> None:
-    """While Mini Noora, her answers, the daily puzzles or time stamps are off, an active admin loses them like anyone
-    else."""
+def test_admins_follow_the_switch_for_noora_the_daily_puzzles_time_stamps_and_revision_plans() -> None:
+    """While Mini Noora, her answers, the daily puzzles, time stamps or revision plans are off, an active admin loses
+    them like anyone else."""
     testers = role("testers")
     admin = build_access([role(ADMIN)], {})
-    for feature in (Feature.noora, Feature.noora_ai, Feature.daily, Feature.modules_time_stamps):
+    for feature in (Feature.noora, Feature.noora_ai, Feature.daily, Feature.modules_time_stamps, Feature.board_plan):
         assert not feature_on(feature, SwitchState("off"), admin, active=True)
         assert not feature_on(feature, None, admin, active=True)
         assert feature_on(feature, SwitchState("everyone"), admin, active=True)  # switched back on: back for admins

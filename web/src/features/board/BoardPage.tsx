@@ -105,7 +105,7 @@ export default function BoardPage() {
 }
 
 function BoardApp() {
-  const { me } = useAuth();
+  const { me, featureOn } = useAuth();
   const suspended = me?.status === 'suspended';
   const isPhone = useMediaQuery(BREAKPOINTS.mobile);
   const navigate = useNavigate();
@@ -853,7 +853,7 @@ function BoardApp() {
       <ConfirmDialog
         open={!!deletingBoard}
         title={deletingBoard ? `Delete ${deletingBoard.name}?` : ''}
-        body="Its columns, cards, files and revision plans go with it. This can’t be undone. To keep them out of the way instead, archive the board."
+        body={`Its columns, cards, files${featureOn('board.plan') ? ' and revision plans' : ''} go with it. This can’t be undone. To keep them out of the way instead, archive the board.`}
         confirmLabel="Delete board"
         tone="danger"
         busy={removeBoard.isPending}

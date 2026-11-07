@@ -1,11 +1,11 @@
-// Revision plans and past papers on a board. With boards on, a student plans a module's revision from the module
-// page, finds the plan on its board, and removes it. The switch ends as it was.
+// Revision plans and past papers on a board. With boards and revision plans on, a student plans a module's revision
+// from the module page, finds the plan on its board, and removes it. The switches end as they were.
 import { expect, test } from './fixtures';
 import { api, switchBack, switchOn } from './support';
 
 test.describe.configure({ mode: 'serial' });
 
-test.beforeAll(async ({ browser }) => switchOn(browser, 'board-plans', ['board']));
+test.beforeAll(async ({ browser }) => switchOn(browser, 'board-plans', ['board', 'board.plan']));
 test.afterAll(async ({ browser }) => switchBack(browser, 'board-plans'));
 
 interface Boards {

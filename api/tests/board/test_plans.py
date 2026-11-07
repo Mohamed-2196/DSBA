@@ -172,6 +172,35 @@ def test_removing_a_plan_keeps_what_is_done(
     assert c.delete(f"{API}/board-plans/{module.id}").status_code == 404
 
 
+def test_with_plans_switched_off_their_cards_stay_as_ordinary_cards(
+    client_for: ClientFor, make_user: MakeUser, module: Module, set_feature: Callable[..., None]
+) -> None:
+    """While "Plan my revision" is off, nobody can plan or unplan, and a plan made before stops giving its cards days:
+    they stay on the board as the student's own cards, with no plan. Switched on again, the plan comes back."""
+    c = client_for(make_user())
+    made = plan(c, module, 9)
+    set_feature("board.plan", "off")
+    exam = (bahrain_today() + timedelta(days=9)).isoformat()
+    refused = [
+        c.post(f"{API}/board-plans", json={"moduleId": module.id, "examDate": exam}),
+        c.delete(f"{API}/board-plans/{module.id}"),
+    ]
+    assert [(r.status_code, r.json()["error"]["code"]) for r in refused] == [(404, "feature_off")] * 2
+    got = board(c)
+    assert got["plans"] == []
+    assert c.get(f"{API}/boards").json()["plans"] == []
+    assert len(got["cards"]) == made["added"]
+    assert {(x["planModuleId"], x["planDate"]) for x in got["cards"]} == {(None, None)}
+    assert c.get(f"{API}/calendar/mine/plan").json() == []  # undated cards: off the student's calendar
+    card = got["cards"][0]
+    assert c.get(f"{API}/board-cards/{card['id']}").json()["planDate"] is None
+    assert c.get(f"{API}/me/export").json()["boardPlans"] != []  # the plan is kept
+
+    set_feature("board.plan", "everyone")
+    assert board(c)["plans"] == [made["plan"]]
+    assert all(x["planDate"] for x in board(c)["cards"])
+
+
 def test_a_plan_must_fit_on_the_board_and_is_rate_limited(
     client_for: ClientFor, make_user: MakeUser, module: Module, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:

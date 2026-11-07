@@ -78,15 +78,16 @@ function ModuleHeader({
   const phone = useMediaQuery(COMPACT_HEADER);
   const [about, setAbout] = useState(false);
   const aboutId = useId();
-  const plan = featureOn('board') ? (
-    <PlanRevision
-      moduleId={m.id}
-      moduleName={m.unitCode || m.shortName || m.name}
-      examDate={exam.next?.event.date ?? null}
-      short={phone}
-      className="mod-head__action"
-    />
-  ) : null;
+  const plan =
+    featureOn('board') && featureOn('board.plan') ? (
+      <PlanRevision
+        moduleId={m.id}
+        moduleName={m.unitCode || m.shortName || m.name}
+        examDate={exam.next?.event.date ?? null}
+        short={phone}
+        className="mod-head__action"
+      />
+    ) : null;
   // The Files tab, at its past papers and its books.
   const pastPapers = shelfWithFiles(detail, 'past-paper')
     ? `/modules/${m.id}?tab=files#${shelfHash('past-paper')}`

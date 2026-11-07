@@ -280,7 +280,7 @@ def open_file(upload_id: uuid.UUID, user: CurrentUser, db: DB, download: bool = 
 # ── revision plans ──────────────────────────────────────────────────────────────────────────
 
 
-@router.post("/board-plans", response_model=BoardPlanMade)
+@router.post("/board-plans", response_model=BoardPlanMade, dependencies=[needs_feature(Feature.board_plan)])
 def make_plan(body: BoardPlanCreate, user: ActiveUser, db: DB) -> BoardPlanMade:
     """Plans a module's revision up to the exam: a card for each lesson not watched yet and a past paper every few
     days, in the board's first column. Planning the module again keeps its cards and board, adds what's missing and
@@ -291,7 +291,7 @@ def make_plan(body: BoardPlanCreate, user: ActiveUser, db: DB) -> BoardPlanMade:
     return made
 
 
-@router.delete("/board-plans/{module_id}", status_code=NO_CONTENT)
+@router.delete("/board-plans/{module_id}", status_code=NO_CONTENT, dependencies=[needs_feature(Feature.board_plan)])
 def delete_plan(module_id: str, user: ActiveUser, db: DB) -> Response:
     """Removes the module's plan and its cards still to do; cards done stay. Errors: not_found (404)."""
     plans.delete_plan(db, user, module_id)

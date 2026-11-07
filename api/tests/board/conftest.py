@@ -20,8 +20,10 @@ API = "/api/v1"
 
 @pytest.fixture(autouse=True)
 def board_on(set_feature: Callable[..., None]) -> None:
-    """The board arrives switched off; these tests switch it on for everyone unless they say otherwise."""
+    """The board and its revision plans arrive switched off; these tests switch them on for everyone unless they say
+    otherwise."""
     set_feature("board", "everyone")
+    set_feature("board.plan", "everyone")
 
 
 @pytest.fixture

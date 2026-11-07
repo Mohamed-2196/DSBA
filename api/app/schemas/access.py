@@ -51,6 +51,7 @@ FeatureKey = Literal[
     "notes",
     "notes.share",
     "board",
+    "board.plan",
     "requests",
     "requests.autoclose",
     "requests.done",

@@ -1,4 +1,5 @@
 import { useMemo, useRef } from 'react';
+import { useAuth } from '../../auth';
 import { BREAKPOINTS, cohortLabel, useMediaQuery } from '../../state';
 import {
   Button,
@@ -225,6 +226,7 @@ function Filters({ view }: { view: CalendarView }) {
 function UpcomingList({ view, today, calendarEmpty, onAddDate, onAddMine }: BrowseProps) {
   const { list, listFrom, eventId, cohortYear, open, types, clearTypes, setAllYears } = view;
   const months = useMemo(() => groupByMonth(list, listFrom), [list, listFrom]);
+  const { featureOn } = useAuth();
 
   if (!months.length) {
     let title = 'Nothing else on the calendar yet';
@@ -232,7 +234,9 @@ function UpcomingList({ view, today, calendarEmpty, onAddDate, onAddMine }: Brow
     let action = null;
     if (types.size === 1 && types.has('plan')) {
       title = 'Nothing planned ahead';
-      body = 'Give the cards on your boards a due date, or plan a module’s revision, and they show here.';
+      body = featureOn('board.plan')
+        ? 'Give the cards on your boards a due date, or plan a module’s revision, and they show here.'
+        : 'Give the cards on your boards a due date and they show here.';
       action = (
         <Button size="sm" variant="primary" to="/board">
           Open your boards
