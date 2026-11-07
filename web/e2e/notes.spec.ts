@@ -1,5 +1,6 @@
 // Notes: switched on for the run, a student writes a note that saves as she types, finds it by searching, adds
-// a quick note on a lesson, and deletes both. A guest is asked to sign in. Notes end switched off, as they start.
+// a quick note on a lesson, and deletes both. From the list she deletes a note and a notebook. A guest is asked to
+// sign in. Notes end switched off, as they start.
 import { expect, test } from './fixtures';
 import { api, switchBack, switchOn } from './support';
 
@@ -41,6 +42,26 @@ test('a student writes a note, finds it and deletes it', async ({ sara, run }) =
   await expect(sara).toHaveURL(/\/notes$/);
   const left = await api<{ items: { title: string }[] }>(sara, 'GET', `/api/v1/notes?q=${encodeURIComponent(run.tag)}`);
   expect(left.body.items.map((n) => n.title)).not.toContain(title); // another spec's note may share the run's tag
+});
+
+test('a student deletes a note and a notebook from the list', async ({ sara, run }) => {
+  const name = `Drafts [e2e ${run.tag}]`;
+  const book = await api<{ id: string }>(sara, 'POST', '/api/v1/notebooks', { title: name });
+  const title = `Scrap [e2e ${run.tag}]`;
+  await api(sara, 'POST', '/api/v1/notes', { title, notebookId: book.body.id, paper: 'blank', sheets: 1 });
+  await sara.goto(`/notes?notebook=${book.body.id}`);
+  const row = sara.locator('.notes-row', { hasText: title });
+  await row.locator('[data-hub="note-row-delete"]').click();
+  await expect(sara.getByRole('dialog')).toContainText('This can’t be undone.');
+  await sara.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+  await expect(row).toHaveCount(0);
+
+  const sidebar = sara.getByRole('complementary', { name: 'Notebooks' });
+  await sidebar.locator('.notebooks-sidebar__book', { hasText: name }).getByRole('button', { name: 'Options' }).click();
+  await sara.getByRole('menuitem', { name: 'Delete notebook' }).click();
+  await expect(sara.getByRole('dialog')).toContainText('The notebook is deleted.');
+  await sara.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+  await expect(sidebar.getByText(name)).toHaveCount(0);
 });
 
 test('a lesson keeps its own notes', async ({ sara, run }) => {

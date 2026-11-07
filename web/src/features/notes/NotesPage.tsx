@@ -44,22 +44,23 @@ import {
   NOTES_PAGE,
   useCreateNote,
   useCreateNotebook,
+  useDeleteNote,
   useDeleteNotebook,
   useNotebooks,
   useNotes,
   useRenameNotebook,
 } from './api';
-import { EMPTY_DOC, draftIds, labelParts, lessonLabel } from './draft';
+import { EMPTY_DOC, draftIds, dropDraft, labelParts, lessonLabel, noteLabel } from './draft';
 import { TITLE_MAX } from './limits';
 import { useLessonPlace } from './lessonPlace';
 import { MathLine } from './MathLine';
-import { firstOwnNotebook } from './notebooks';
+import { firstOwnNotebook, notebookActions } from './notebooks';
 import { nearlyFull, type Budget } from './storage';
 import { lineParts } from './text/mathText';
 import { useStartNote } from './useStartNote';
 import './NotesPage.css';
 
-function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
+function NoteRow({ note, unsent, onDelete }: { note: NoteSummary; unsent: boolean; onDelete: (() => void) | null }) {
   const { getModule } = useModules();
   const module = getModule(note.moduleId);
   const place = useLessonPlace(note.moduleId, note.lessonId);
@@ -97,6 +98,16 @@ function NoteRow({ note, unsent }: { note: NoteSummary; unsent: boolean }) {
           ) : null}
         </span>
       </Link>
+      {onDelete ? (
+        <IconButton
+          className="notes-row__delete"
+          icon={<Icon glyph={glyph.trash} />}
+          label={`Delete “${noteLabel(note)}”`}
+          tooltip
+          onClick={onDelete}
+          data-hub="note-row-delete"
+        />
+      ) : null}
     </li>
   );
 }
@@ -283,6 +294,17 @@ function RenameDialog({ notebook, onClose }: { notebook: Notebook; onClose: () =
   );
 }
 
+/** What the confirmation says goes with a notebook. */
+function notebookGoes(notes: number): string {
+  const what =
+    notes === 0
+      ? 'The notebook is deleted.'
+      : notes === 1
+        ? 'The notebook and its note are deleted.'
+        : `The notebook and its ${notes} notes are deleted.`;
+  return `${what} This can’t be undone.`;
+}
+
 /** Every note of a module as one print (the editor's code: loaded when it is asked for). */
 const PrintModule = lazy(() => import('./print/PrintModule').then((m) => ({ default: m.PrintModule })));
 
@@ -292,6 +314,7 @@ function NotesList() {
   const { year } = useYear();
   const notebooksQuery = useNotebooks();
   const deleteBook = useDeleteNotebook();
+  const deleteNote = useDeleteNote();
 
   const [q, setQ] = useQueryParam('q');
   const [selectedNotebookId, setSelectedNotebookId] = useQueryParam('notebook');
@@ -304,6 +327,7 @@ function NotesList() {
   const [newBookOpen, setNewBookOpen] = useState(false);
   const [renamingBook, setRenamingBook] = useState<Notebook | null>(null);
   const [deletingBook, setDeletingBook] = useState<Notebook | null>(null);
+  const [deletingNote, setDeletingNote] = useState<NoteSummary | null>(null);
 
   // one lesson's notes (from a lesson page's "See all"), a module's, or one notebook's
   const lesson = moduleId && lessonId ? { moduleId, lessonId } : null;
@@ -347,20 +371,25 @@ function NotesList() {
     const mod = b.moduleId ? getModule(b.moduleId) : null;
     return mod ? (mod.unitCode ?? mod.shortName) : b.title;
   };
-  // a module's notebook and the first of the student's own are kept: only the others can be renamed or deleted
-  const bookOptions = (b: Notebook): MenuItem[] =>
-    !readOnly && !b.moduleId && b.id !== ownFirst?.id
-      ? [
-          { id: 'rename', label: 'Rename', icon: <Icon glyph={glyph.edit} />, onSelect: () => setRenamingBook(b) },
-          {
-            id: 'delete',
-            label: 'Delete notebook',
-            icon: <Icon glyph={glyph.trash} />,
-            danger: true,
-            onSelect: () => setDeletingBook(b),
-          },
-        ]
-      : [];
+  const bookOptions = (b: Notebook): MenuItem[] => {
+    const can = notebookActions(b, ownFirst, { readOnly });
+    return [
+      ...(can.rename
+        ? [{ id: 'rename', label: 'Rename', icon: <Icon glyph={glyph.edit} />, onSelect: () => setRenamingBook(b) }]
+        : []),
+      ...(can.delete
+        ? [
+            {
+              id: 'delete',
+              label: 'Delete notebook',
+              icon: <Icon glyph={glyph.trash} />,
+              danger: true,
+              onSelect: () => setDeletingBook(b),
+            },
+          ]
+        : []),
+    ];
+  };
   const booksError = notebooksQuery.isError ? (
     <QueryError
       error={notebooksQuery.error}
@@ -646,7 +675,12 @@ function NotesList() {
               <Panel padding="none">
                 <ul className="notes-list" data-hub="notes-list">
                   {items.map((n) => (
-                    <NoteRow key={n.id} note={n} unsent={unsent.has(n.id)} />
+                    <NoteRow
+                      key={n.id}
+                      note={n}
+                      unsent={unsent.has(n.id)}
+                      onDelete={readOnly ? null : () => setDeletingNote(n)}
+                    />
                   ))}
                 </ul>
               </Panel>
@@ -668,8 +702,8 @@ function NotesList() {
       ) : null}
       <ConfirmDialog
         open={!!deletingBook}
-        title={`Delete “${deletingBook?.title ?? ''}”?`}
-        body="The notebook and every note in it are deleted. This can’t be undone."
+        title={`Delete “${deletingBook ? bookName(deletingBook) : ''}”?`}
+        body={notebookGoes(deletingBook?.noteCount ?? 0)}
         confirmLabel="Delete"
         tone="danger"
         busy={deleteBook.isPending}
@@ -686,6 +720,30 @@ function NotesList() {
         onClose={() => {
           deleteBook.reset();
           setDeletingBook(null);
+        }}
+      />
+      <ConfirmDialog
+        open={!!deletingNote}
+        title={`Delete “${deletingNote ? noteLabel(deletingNote) : ''}”?`}
+        body="Its text, handwriting, pictures and files are deleted everywhere. This can’t be undone."
+        confirmLabel="Delete"
+        tone="danger"
+        busy={deleteNote.isPending}
+        error={deleteNote.error ? errorMessage(deleteNote.error) : null}
+        onConfirm={() => {
+          if (!deletingNote) return;
+          const id = deletingNote.id;
+          deleteNote.mutate(id, {
+            // the copy on this device goes once the server has deleted the note, not before
+            onSuccess: () => {
+              dropDraft(id);
+              setDeletingNote(null);
+            },
+          });
+        }}
+        onClose={() => {
+          deleteNote.reset();
+          setDeletingNote(null);
         }}
       />
       {printing && printModule ? (

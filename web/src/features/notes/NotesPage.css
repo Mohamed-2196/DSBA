@@ -183,6 +183,19 @@
   padding: 0;
   list-style: none;
 }
+/* A note's link, then its delete button at the end of the row. */
+.notes-row {
+  display: flex;
+  align-items: flex-start;
+}
+.notes-row__link {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.notes-row__delete {
+  flex: none;
+  margin: var(--sp-8) var(--sp-8) 0 0;
+}
 .notes-row + .notes-row {
   border-top: 1px solid var(--line);
 }
