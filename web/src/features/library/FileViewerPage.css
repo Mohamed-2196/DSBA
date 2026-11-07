@@ -605,7 +605,7 @@
 }
 .lib-meta__sitting-link > span + span {
   color: var(--ink-2);
-  font-weight: var(--fw-regular, 400);
+  font-weight: var(--fw-regular);
   white-space: nowrap;
 }
 .lib-meta__sitting-none {

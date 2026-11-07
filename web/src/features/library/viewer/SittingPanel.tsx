@@ -1,5 +1,5 @@
 // The paper page's "This sitting": the examiners' report and solutions for the paper, and the other zones' papers (zone A,
-// zone B, RTC). On a past paper, then the previous and next sittings' papers in its zone.
+// zone B, RTC). On a past paper, a separate "Other sittings" block follows with the previous and next sittings' papers.
 import { Link } from 'react-router-dom';
 import type { LibraryItem } from '../../../api/types';
 import { itemPath } from '../api';
@@ -39,35 +39,43 @@ export function SittingPanel({ item, linkState }: { item: LibraryItem; linkState
     })),
   ];
   return (
-    <section className="lib-meta__sitting" aria-labelledby="lib-meta-sitting" data-hub="file-sitting">
-      <h2 id="lib-meta-sitting" className="lib-meta__h">
-        {sittingLabel(ctx.sitting.examYear, ctx.sitting.session)} sitting
-      </h2>
-      {links.length ? (
-        <ul role="list" className="lib-meta__sitting-list">
-          {links.map((l) => (
-            <li key={l.item.id}>
-              <Link to={itemPath(l.item)} state={linkState} className="lib-meta__sitting-link" title={l.item.title}>
-                <span>{l.label}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="lib-meta__sitting-none">No examiners’ report for this sitting yet.</p>
-      )}
+    <>
+      <section className="lib-meta__sitting" aria-labelledby="lib-meta-sitting" data-hub="file-sitting">
+        <h2 id="lib-meta-sitting" className="lib-meta__h">
+          {sittingLabel(ctx.sitting.examYear, ctx.sitting.session)} sitting
+        </h2>
+        {links.length ? (
+          <ul role="list" className="lib-meta__sitting-list">
+            {links.map((l) => (
+              <li key={l.item.id}>
+                <Link to={itemPath(l.item)} state={linkState} className="lib-meta__sitting-link" title={l.item.title}>
+                  <span>{l.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="lib-meta__sitting-none">No examiners’ report for this sitting yet.</p>
+        )}
+      </section>
       {around.length ? (
-        <ul role="list" className="lib-meta__sitting-list" aria-label="Other sittings" data-hub="file-nearby-papers">
-          {around.map((l) => (
-            <li key={l.label}>
-              <Link to={itemPath(l.item)} state={linkState} className="lib-meta__sitting-link" title={l.item.title}>
-                <span>{l.label}</span>
-                <span>{when(l.item)}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        // its own block, under its own heading: these papers are from other sittings, not this one
+        <section className="lib-meta__sitting" aria-labelledby="lib-meta-nearby" data-hub="file-nearby-papers">
+          <h2 id="lib-meta-nearby" className="lib-meta__h">
+            Other sittings
+          </h2>
+          <ul role="list" className="lib-meta__sitting-list">
+            {around.map((l) => (
+              <li key={l.label}>
+                <Link to={itemPath(l.item)} state={linkState} className="lib-meta__sitting-link" title={l.item.title}>
+                  <span>{l.label}</span>
+                  <span>{when(l.item)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
-    </section>
+    </>
   );
 }
