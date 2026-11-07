@@ -32,6 +32,7 @@ describe('while the account loads (UX-77)', () => {
     item('home'),
     item('noora', 'noora'),
     item('forum', 'forum'),
+    item('daily', 'daily'),
     { ...item('notes'), signedIn: true },
   ];
 
@@ -39,8 +40,8 @@ describe('while the account loads (UX-77)', () => {
     expect(loadingNav(nav, ['home', 'forum']).map((n) => n.id)).toEqual(['home', 'forum']);
   });
 
-  it('shows every entry that needs no account on a first visit', () => {
-    expect(loadingNav(nav, null).map((n) => n.id)).toEqual(['home', 'noora', 'forum']);
+  it('shows every entry that needs no account on a first visit, but Mini Noora and Daily, which start off', () => {
+    expect(loadingNav(nav, null).map((n) => n.id)).toEqual(['home', 'forum']);
   });
 
   it('reads back only a list of ids', () => {

@@ -16,10 +16,14 @@ export function rememberedNav(raw: unknown): string[] | null {
   return Array.isArray(raw) && raw.every((x) => typeof x === 'string') ? (raw as string[]) : null;
 }
 
+/** Features that start switched off, so a first visit doesn't show them while the account loads. */
+const OFF_AT_FIRST: ReadonlySet<Feature> = new Set<Feature>(['noora', 'daily']);
+
 /**
  * The entries to show while the account loads: the ones shown last time, or, on a first visit, every entry that
- * doesn't need an account (most features are on, and a missing one is less jarring than tabs popping in).
+ * doesn't need an account and isn't in OFF_AT_FIRST (a missing entry is less jarring than tabs popping in).
  */
 export function loadingNav(items: NavItem[], remembered: string[] | null): NavItem[] {
-  return remembered ? items.filter((n) => remembered.includes(n.id)) : items.filter((n) => !n.signedIn);
+  if (remembered) return items.filter((n) => remembered.includes(n.id));
+  return items.filter((n) => !n.signedIn && !(n.feature && OFF_AT_FIRST.has(n.feature)));
 }
