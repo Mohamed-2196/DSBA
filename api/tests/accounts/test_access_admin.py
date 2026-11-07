@@ -222,7 +222,7 @@ def test_admins_lose_noora_and_the_daily_puzzles_while_they_are_off(client_for: 
     calm = ("noora", "noora.ai", "daily")
     listed = {f["feature"]: f["mode"] for f in c.get(f"{API}/admin/features").json()}
     assert all(listed[f] == "off" for f in calm)
-    routes = ("/daily", "/mini-noora/script", "/admin/noora")  # the puzzles, Mini Noora, her answers' budget
+    routes = ("/daily", "/mini-noora/script", "/noora/status")  # the puzzles, Mini Noora, her AI answers
 
     def shown() -> list[str]:
         return [f for f in c.get(f"{API}/features").json()["features"] if f in calm]
@@ -240,6 +240,30 @@ def test_admins_lose_noora_and_the_daily_puzzles_while_they_are_off(client_for: 
     for f in calm:
         assert c.put(f"{API}/admin/features/{f}", json={"mode": "off"}).status_code == 200
     assert (shown(), refused()) == ([], list(routes))
+
+
+def test_the_claude_budget_stays_in_reach_while_her_ai_answers_are_off(
+    client_for: ClientFor,
+    boss: User,
+    make_user: MakeUser,
+    make_role: Callable[..., Any],
+    give_roles: Callable[..., None],
+    set_feature: Callable[..., None],
+) -> None:
+    """Paper tagging spends the same monthly Claude budget, so Manage keeps it while either feature is on."""
+    budget = f"{API}/admin/noora"
+    assert client_for(boss).get(budget).status_code == 200  # noora.ai is off; admins see library.autotag
+    viewer = make_user(name="Nadia Numbers", roles=())
+    give_roles(viewer, make_role("numbers", Box.stats_view).slug)
+    c = client_for(viewer)
+    r = c.get(budget)
+    assert (r.status_code, r.json()["error"]["code"]) == (404, "feature_off")  # noora.ai and library.autotag off
+    set_feature("library.autotag", "everyone")
+    assert c.get(budget).status_code == 200
+    set_feature("library.autotag", "off")
+    set_feature("noora.ai", "everyone")
+    assert c.get(budget).status_code == 200
+    assert client_for(make_user(name="Sara Student")).get(budget).status_code == 403
 
 
 def test_sixty_changes_in_ten_minutes_is_the_limit(client_for: ClientFor, boss: User, db: Session) -> None:
@@ -440,7 +464,6 @@ def test_suspending_an_admin_needs_a_recent_step_up(
     db: Session,
     older_sessions: Callable[..., None],
     outbox: Outbox,
-    set_feature: Callable[..., None],
 ) -> None:
     """AD-1: suspending or restoring another admin is an admin power; suspending a student isn't."""
     other = make_user(name="Other Admin", roles=ADMIN)

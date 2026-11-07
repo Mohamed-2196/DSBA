@@ -85,7 +85,8 @@ function Numbers() {
   return (
     <div className="manage-stack">
       <HubNumbers />
-      {featureOn('noora.ai') ? <NooraNumbers canEdit={isAdmin} /> : null}
+      {/* The Claude budget: paper tagging spends it too, so it stays while her answers are off. */}
+      {featureOn('noora.ai') || featureOn('library.autotag') ? <NooraNumbers canEdit={isAdmin} /> : null}
       {isAdmin ? <NotebookNumbers /> : null}
       {isAdmin ? <UploadBudgets /> : null}
     </div>

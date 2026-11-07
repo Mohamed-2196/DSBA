@@ -1,5 +1,8 @@
 """Mini Noora's AI answers (R-6): a question streamed to Claude and back, the student's questions left, and the
-limits and totals for Manage. The rules live in app/services/noora/ask.py."""
+limits and totals for Manage. The rules live in app/services/noora/ask.py.
+
+The limits and totals (`budget`) have a router of their own: paper tagging spends the same monthly Claude budget, so
+they stay in Manage while her answers are off and paper tagging is on."""
 
 from __future__ import annotations
 
@@ -9,14 +12,24 @@ from fastapi import Request
 from fastapi.responses import StreamingResponse
 
 from app.core.access import Box, Feature
+from app.core.errors import feature_off
 from app.core.security import DB, ActiveUser, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import SteppedUpAdmin, router_for
 from app.schemas.common import ErrorResponse
 from app.schemas.noora import NooraEvent, NooraLimitsIn, NooraQuestion, NooraStatus, NooraUsageOut
+from app.services import access
 from app.services.noora import ask
 
 router = router_for("noora", needs_feature(Feature.noora_ai))
+budget = router_for("noora")
+
+
+def _budget_in_use(db: DB, user: User) -> None:
+    """404 feature_off unless her AI answers or paper tagging, which share the budget, are on for this person."""
+    if not (access.feature_on(db, user, Feature.noora_ai) or access.feature_on(db, user, Feature.library_autotag)):
+        raise feature_off()
+
 
 # The answer's documented shape: a text/event-stream whose every `data:` line is one NooraEvent, as JSON.
 STREAM: dict[int | str, dict[str, Any]] = {
@@ -59,17 +72,20 @@ def noora_status(user: ActiveUser, db: DB) -> NooraStatus:
     return ask.status(db, user)
 
 
-@router.get("/admin/noora", response_model=NooraUsageOut)
+@budget.get("/admin/noora", response_model=NooraUsageOut)
 def noora_usage(user: Annotated[User, requires(Box.stats_view)], db: DB) -> NooraUsageOut:
-    """The limits, and the questions, tokens and estimated cost today and this month. Nothing per student."""
+    """The limits, and the questions, tokens and estimated cost today and this month. Nothing per student.
+    404 feature_off unless her AI answers or paper tagging are on for this person."""
+    _budget_in_use(db, user)
     return ask.usage(db)
 
 
-@router.put("/admin/noora", response_model=NooraUsageOut)
+@budget.put("/admin/noora", response_model=NooraUsageOut)
 def set_noora_limits(body: NooraLimitsIn, request: Request, user: SteppedUpAdmin, db: DB) -> NooraUsageOut:
     """Set the questions each student may ask a day (0 pauses the AI answers) and the monthly budget in US cents.
     Admins only, with a session started or stepped up in the last ten minutes (403 step_up_required). Audited
-    (`noora.limits`)."""
+    (`noora.limits`). 404 feature_off as GET."""
+    _budget_in_use(db, user)
     ask.set_limits(db, user, body, client_ip(request))
     db.commit()
     return ask.usage(db)

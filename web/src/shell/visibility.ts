@@ -16,7 +16,7 @@ export function rememberedNav(raw: unknown): string[] | null {
   return Array.isArray(raw) && raw.every((x) => typeof x === 'string') ? (raw as string[]) : null;
 }
 
-/** Features that start switched off, so a first visit doesn't show them while the account loads. */
+/** Features that start switched off (migration 0058), so a first visit doesn't show them while the account loads. */
 const OFF_AT_FIRST: ReadonlySet<Feature> = new Set<Feature>(['noora', 'daily']);
 
 /**

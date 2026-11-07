@@ -83,7 +83,6 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("library.practice", "PUT", "/library/question-marks"),
     ("noora.ai", "GET", "/noora/status"),
     ("noora.ai", "POST", "/noora/ask"),
-    ("noora.ai", "GET", "/admin/noora"),
     ("summary", "GET", "/summary/preview?year=2"),
     ("modules.video-suggestions", "POST", "/video-suggestions"),
     ("modules.video-suggestions", "GET", "/video-suggestions/mine"),
@@ -163,6 +162,8 @@ DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {
     ("GET", "/admin/gaps"): "lists the gaps of the features on for the viewer",
     ("GET", "/media/{upload_id}"): "a forum picture needs the forum, a newsletter picture the newsletter",
     ("GET", "/feeds/calendar/{token}.ics"): "a student's private feed: the calendar must be on for its owner",
+    ("GET", "/admin/noora"): "the Claude budget: Mini Noora's AI answers or paper tagging, which share it, must be on",
+    ("PUT", "/admin/noora"): "as GET /admin/noora",
 }
 # Where each feature's routes live: a route under one of these paths must declare that feature.
 AREAS: dict[str, Feature] = {
@@ -181,7 +182,6 @@ AREAS: dict[str, Feature] = {
     "/notes": Feature.notes,
     "/requests": Feature.requests,
     "/noora": Feature.noora_ai,
-    "/admin/noora": Feature.noora_ai,
     "/mini-noora": Feature.noora,
     "/grades": Feature.grades,
     "/video-suggestions": Feature.modules_video_suggestions,

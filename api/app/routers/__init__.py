@@ -75,3 +75,4 @@ for module in (
     home,
 ):
     api_router.include_router(module.router)
+api_router.include_router(noora.budget)  # the Claude budget: her AI answers or paper tagging (see noora.py)
