@@ -14,7 +14,7 @@ interface Answers {
   day: string;
   word: string;
   groups: string[][];
-  search: { start: Cell; end: Cell; letters: [string, string] }[];
+  search: Cell[][]; // each theme word's letters in order, the spangram's too
   quiz: { answer: number; options: number }[];
   nearest: string;
 }
@@ -25,33 +25,12 @@ interface Preview {
     puzzle:
       | { game: 'word'; answer: string }
       | { game: 'groups'; groups: { words: string[] }[] }
-      | { game: 'search'; words: string[]; grid: string[] }
+      | { game: 'search'; spangram: string; words: string[]; paths: Record<string, [number, number][]> }
       | { game: 'quiz'; questions: { answer: number; options: string[] }[] }
       | { game: 'nearest'; target: string }
       | null;
     problem: string | null;
   }[];
-}
-
-/** Where each word lies in the grid: its first and last letters, in any of the eight directions. */
-function findWords(grid: string[], words: string[]): Answers['search'] {
-  const size = grid.length;
-  const at = (r: number, c: number) => (r >= 0 && c >= 0 && r < size && c < size ? grid[r][c] : '');
-  const steps = [-1, 0, 1].flatMap((dr) => [-1, 0, 1].map((dc) => [dr, dc] as const)).filter(([a, b]) => a || b);
-  return words.map((word) => {
-    for (let r = 0; r < size; r++)
-      for (let c = 0; c < size; c++)
-        for (const [dr, dc] of steps)
-          if ([...word].every((ch, i) => at(r + dr * i, c + dc * i) === ch)) {
-            const n = word.length - 1;
-            return {
-              start: { row: r, col: c },
-              end: { row: r + dr * n, col: c + dc * n },
-              letters: [word[0], word[n]],
-            };
-          }
-    throw new Error(`${word} isn't in the grid`);
-  });
 }
 
 /** The day's answers, from the preview (content editors only). A string says why there are none. */
@@ -76,10 +55,22 @@ async function todaysAnswers(admin: Page): Promise<Answers | string> {
     day,
     word: word.answer,
     groups: groups.groups.map((g) => g.words),
-    search: findWords(search.grid, search.words),
+    search: [...search.words, search.spangram].map((w) => (search.paths[w] ?? []).map(([row, col]) => ({ row, col }))),
     quiz: quiz.questions.map((q) => ({ answer: q.answer, options: q.options.length })),
     nearest: nearest.target,
   };
+}
+
+/** Data Mine: each word traced letter by letter with the keyboard (Enter on a letter taps it), then sent by tapping
+ *  its last letter again. The next word waits for the count of words found. */
+async function traceAll(page: Page, words: Cell[][]) {
+  for (const [i, cells] of words.entries()) {
+    const letter = (c: Cell) => page.locator(`[data-cell="${c.row},${c.col}"]`);
+    for (const c of cells) await letter(c).press('Enter');
+    await letter(cells[cells.length - 1]).press('Enter');
+    if (i < words.length - 1)
+      await expect(page.getByText(`${i + 1} of ${words.length} theme words found`)).toBeVisible();
+  }
 }
 
 /** A Sudoku's solution, by backtracking (the day's grids have one solution each). */
@@ -168,15 +159,8 @@ test('a guest plays every game to a finish', async ({ guest }) => {
   await expect(result(page)).toContainText('All four groups, 0 mistakes');
 
   await open(page, 'search');
-  for (const [i, { start, end, letters }] of a.search.entries()) {
-    const cell = (p: Cell, l: string) =>
-      page.getByRole('button', { name: `${l}, row ${p.row + 1}, column ${p.col + 1}`, exact: true });
-    await cell(start, letters[0]).click();
-    await cell(end, letters[1]).click();
-    // The grid takes no taps while a line is being checked: the next word waits for this one.
-    await expect(page.getByText(`${i + 1} of ${a.search.length} found`)).toBeVisible();
-  }
-  await expect(result(page)).toContainText(`${a.search.length} words, 0 hints`);
+  await traceAll(page, a.search);
+  await expect(result(page)).toContainText(`${a.search.length} theme words, 0 hints`);
 
   await open(page, 'quiz');
   for (const [i, q] of a.quiz.entries()) {
@@ -189,7 +173,7 @@ test('a guest plays every game to a finish', async ({ guest }) => {
 
   // Nearest Neighbour and Sudoku end with "Give up": a guest's answer waits for an account, or for tomorrow.
   await open(page, 'nearest');
-  await page.getByRole('textbox', { name: 'Your guess' }).fill('data');
+  await page.getByRole('textbox', { name: 'Type a word' }).fill('data');
   await page.getByRole('button', { name: 'Guess', exact: true }).click();
   await expect(page.getByRole('list', { name: 'Your guesses, closest first' })).toContainText('data');
   for (const game of ['nearest', 'sudoku']) {
@@ -208,6 +192,11 @@ test('a guest plays every game to a finish', async ({ guest }) => {
     await page.getByRole('dialog', { name: 'Give up?' }).getByRole('button', { name: 'Give up' }).click();
     await expect(result(page)).toContainText('Not this time');
   }
+
+  // A guest's points aren't kept, so the day's finale with its total stays for those signed in.
+  await page.goto('/daily');
+  await expect(page.getByText('6 of 6 done')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'All 6 done today!' })).toHaveCount(0);
 });
 
 test('a guest’s hub counts the puzzles they finished', async ({ guest }) => {
@@ -217,8 +206,12 @@ test('a guest’s hub counts the puzzles they finished', async ({ guest }) => {
   await guest.keyboard.press('Enter');
   await expect(result(guest)).toContainText('Solved in 1 guess');
   await guest.goto('/daily');
-  await expect(guest.getByRole('list', { name: 'Today so far' })).toContainText('1 of 6 done');
-  await expect(guest.locator('a[data-game="word"]')).toContainText('Solved');
+  await expect(guest.getByRole('progressbar', { name: 'Today’s games finished' })).toHaveAttribute(
+    'aria-valuenow',
+    '1',
+  );
+  await expect(guest.getByText('1 of 6 done')).toBeVisible();
+  await expect(guest.locator('a[data-game="word"]')).toContainText('Done');
 });
 
 test('a guest who wins and signs up from the result card keeps the win and its points', async ({ guest, run }) => {
@@ -254,7 +247,7 @@ test('a guest who wins and signs up from the result card keeps the win and its p
   const me = await api<{ stats: { points: number; won: number } }>(page, 'GET', '/api/v1/daily/me');
   expect(me.body.stats).toMatchObject({ points: 100, won: 1 });
   await page.goto('/daily');
-  await expect(page.locator('a[data-game="word"]')).toContainText('Solved · +100');
+  await expect(page.locator('a[data-game="word"]')).toContainText('Done · 100 pts');
 
   // The account goes again (made a minute ago: nothing to confirm).
   await gotoAccount(page);
@@ -301,15 +294,8 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
   await expect(result(page)).toContainText('All four groups');
 
   await open(page, 'search', true);
-  for (const [i, { start, end, letters }] of a.search.entries()) {
-    const cell = (p: Cell, l: string) =>
-      page.getByRole('button', { name: `${l}, row ${p.row + 1}, column ${p.col + 1}`, exact: true });
-    await cell(start, letters[0]).tap();
-    await cell(end, letters[1]).tap();
-    // The grid takes no taps while a line is being checked: the next word waits for this one.
-    await expect(page.getByText(`${i + 1} of ${a.search.length} found`)).toBeVisible();
-  }
-  await expect(result(page)).toContainText('Every word found');
+  await traceAll(page, a.search);
+  await expect(result(page)).toContainText('Mine cleared!');
 
   // The Daily Query: two right and three wrong is a loss that still earns points for the right ones.
   await open(page, 'quiz', true);
@@ -324,7 +310,7 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
   await expect(result(page)).toContainText('+40 points');
 
   await open(page, 'nearest', true);
-  await page.getByRole('textbox', { name: 'Your guess' }).fill(a.nearest);
+  await page.getByRole('textbox', { name: 'Type a word' }).fill(a.nearest);
   await page.getByRole('button', { name: 'Guess', exact: true }).tap();
   await expect(result(page)).toContainText('Found it');
 
@@ -357,9 +343,14 @@ test('Ali plays every game on his phone, his plays count, and he joins the leade
   expect(me.body.done).toBe(6);
   expect(me.body.games.every((g) => g.scored)).toBe(true);
   await page.goto('/daily');
+  await expect(page.getByText('6 of 6 done')).toBeVisible();
+  // The day's finale, as DSBA Daily shows it: every game's points.
+  const report = page.getByRole('region', { name: 'All 6 done today!' });
+  await expect(report).toBeVisible();
+  await expect(report.getByRole('list', { name: 'Points per game' }).getByRole('listitem')).toHaveCount(6);
+  await page.screenshot({ path: test.info().outputPath('daily-report.png') });
   const summary = page.getByRole('list', { name: 'Today so far' });
-  await expect(summary).toContainText('6 of 6 done');
-  await expect(summary).toContainText(`${me.body.points} points`);
+  await expect(summary.getByRole('listitem').filter({ hasText: 'Points today' })).toContainText(`${me.body.points}`);
 
   // His name shows on the leaderboard only once he chooses it.
   await page.getByRole('tab', { name: 'Leaderboard' }).tap();

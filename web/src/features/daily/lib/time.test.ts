@@ -6,16 +6,11 @@ describe('formatTimeLeft', () => {
   const now = Date.UTC(2026, 9, 17, 18, 0, 0);
   const inSeconds = (s: number) => new Date(now + s * 1000).toISOString();
 
-  it('counts down in hours and minutes, rounding up', () => {
-    expect(formatTimeLeft(inSeconds(11 * 3600 + 50 * 60), now)).toBe('11 h 50 min');
-    expect(formatTimeLeft(inSeconds(2 * 3600 + 30 * 60 + 15), now)).toBe('2 h 31 min');
-    expect(formatTimeLeft(inSeconds(3 * 3600), now)).toBe('3 h');
-    expect(formatTimeLeft(inSeconds(50 * 60), now)).toBe('50 min');
-  });
-
-  it('says a minute until the end', () => {
-    expect(formatTimeLeft(inSeconds(20), now)).toBe('1 min');
-    expect(formatTimeLeft(inSeconds(-5), now)).toBe('1 min');
+  it('counts down as a clock, hours, minutes and seconds, as DSBA Daily shows it', () => {
+    expect(formatTimeLeft(inSeconds(11 * 3600 + 50 * 60), now)).toBe('11:50:00');
+    expect(formatTimeLeft(inSeconds(2 * 3600 + 30 * 60 + 15), now)).toBe('02:30:15');
+    expect(formatTimeLeft(inSeconds(59.2), now)).toBe('00:01:00'); // part of a second counts as one
+    expect(formatTimeLeft(inSeconds(-5), now)).toBe('00:00:00');
   });
 });
 

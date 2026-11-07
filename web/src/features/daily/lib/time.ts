@@ -1,12 +1,10 @@
 // Clocks for the Daily: the time to the next set, and how long a play took.
 
-/** Time left until `targetIso` in hours and minutes ('11 h 50 min', '50 min'); at least '1 min' until it passes. */
+/** Time left until `targetIso` as a clock, as DSBA Daily shows it: '11:50:00', '00:00:42'; '00:00:00' once it passes. */
 export function formatTimeLeft(targetIso: string, now: number = Date.now()): string {
-  const minutes = Math.ceil(Math.max(0, new Date(targetIso).getTime() - now) / 60_000);
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  if (!hours) return `${Math.max(rest, 1)} min`;
-  return rest ? `${hours} h ${rest} min` : `${hours} h`;
+  const total = Math.ceil(Math.max(0, new Date(targetIso).getTime() - now) / 1000);
+  const two = (n: number) => String(n).padStart(2, '0');
+  return `${two(Math.floor(total / 3600))}:${two(Math.floor((total % 3600) / 60))}:${two(total % 60)}`;
 }
 
 /** A play's length: '0:42', '12:05', '1:02:03'. */

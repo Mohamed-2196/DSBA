@@ -23,6 +23,7 @@ import {
   Skeleton,
 } from '../../ui';
 import { useDailyMove, useDailyPlay, useDailyToday } from './api';
+import { Confetti } from './components/Confetti';
 import { Flash, type FlashMessage, type FlashTone } from './components/Flash';
 import { GameTile } from './components/GameGlyph';
 import { ResultDialog } from './components/ResultDialog';
@@ -33,7 +34,7 @@ import { dayLabel, nextToPlay } from './lib/days';
 import { HELD, resultOf } from './lib/result';
 import { hasSeenRules, markRulesSeen } from './lib/storage';
 import { isDifficulty, isGameId, isOver, type DailyToday, type GameId, type Move, type PlayOut } from './types';
-import './daily.css';
+import './look';
 import './DailyGamePage.css';
 
 export default function DailyGamePage() {
@@ -146,6 +147,7 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
     backToGame();
   };
 
+  const [confetti, setConfetti] = useState(0); // a win's burst, as DSBA Daily celebrates
   const { mutateAsync } = move;
   const play = useCallback(
     async (m: Move): Promise<MoveResult> => {
@@ -153,6 +155,7 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
       try {
         const next = await mutateAsync(m);
         const delay = m.kind === 'give-up' ? 300 : plugin.resultDelay;
+        if (before && !isOver(before) && next.play.status === 'won') setConfetti((c) => c + 1);
         if (before && !isOver(before) && isOver(next.play.status) && delay !== null) {
           setFinishing(true);
           window.clearTimeout(resultTimer.current);
@@ -235,6 +238,13 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
         </div>
       </header>
 
+      {out && game !== 'sudoku' && game !== 'search' ? (
+        <p className="dg-theme">
+          {/* The week's theme. Sudoku has none, and Data Mine shows its own clue instead. */}
+          <span className="dg-theme__label">Theme:</span> <b>{themeName(out.theme.title)}</b>
+        </p>
+      ) : null}
+
       {out && !over ? (
         <Notice
           out={out}
@@ -280,9 +290,12 @@ function PlayScreen({ game, day, variant, today, isToday, signedIn, onSignIn, on
             paused={paused}
             showResult={() => setResultOpen(true)}
             onVariant={onVariant}
+            askGiveUp={() => setConfirmGiveUp(true)}
           />
         ) : null}
       </section>
+
+      <Confetti fire={confetti} />
 
       {out && over && !finishing ? <DoneStrip out={out} secret={secret} onOpen={() => setResultOpen(true)} /> : null}
 
@@ -427,4 +440,9 @@ function ScreenSkeleton({ game }: { game: GameId }) {
       </section>
     </div>
   );
+}
+
+/** The week's theme as DSBA Daily names it over the board: "Statistics week" is "Statistics". */
+function themeName(title: string): string {
+  return title.replace(/\s+week$/i, '');
 }

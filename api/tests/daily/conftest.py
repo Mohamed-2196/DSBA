@@ -7,12 +7,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import cache
 
 import pytest
 from sqlalchemy.orm import Session
 
 from app.models import DailyGuessWord, DailyItem, DailyNearestWord, DailyTheme, Module
 from app.services.daily import editor
+from app.services.daily.games import search
 
 API = "/api/v1"
 
@@ -71,21 +73,46 @@ GROUPS = {
         ("Breads", 4, ["NAAN", "PITA", "BAGEL", "ROTI"]),
     ],
 }
-SEARCH = {
+# Data Mine: two puzzles a theme, each a spangram and its words, 48 letters in all.
+SEARCH: dict[str, list[tuple[str, str, str, list[str]]]] = {
     "alpha": [
-        "MEDIAN",
-        "VARIANCE",
-        "SAMPLE",
-        "OUTLIER",
-        "SKEW",
-        "QUARTILE",
-        "HISTOGRAM",
-        "SCATTER",
-        "NORMAL",
-        "POISSON",
+        (
+            "Numbers that tell a story",
+            "Statistics",
+            "STATISTICS",
+            ["MEDIAN", "VARIANCE", "SAMPLE", "OUTLIER", "POISSON", "SKEW"],
+        ),
+        ("How values fall", "Distributions", "DISTRIBUTION", ["NORMAL", "QUARTILE", "HISTOGRAM", "SCATTER", "RANDOM"]),
     ],
-    "beta": ["NEURON", "LAYER", "WEIGHT", "EPOCH", "BATCH", "GRADIENT", "DROPOUT", "TOKEN", "PROMPT", "ENCODER"],
+    "beta": [
+        (
+            "Making money work",
+            "Investing",
+            "INVESTMENT",
+            ["DIVIDEND", "BROKER", "STOCKS", "EQUITY", "PROFIT", "RETURN"],
+        ),
+        ("At the bank", "Banking", "MORTGAGES", ["LOANS", "CREDIT", "DEPOSIT", "TELLER", "SAVINGS", "INTEREST"]),
+    ],
 }
+
+
+@cache
+def search_data(spangram: str) -> dict[str, object]:
+    """A Data Mine item's data as a save stores it: the words and their grid (search.layout())."""
+    clue, title, _, words = next(p for puzzles in SEARCH.values() for p in puzzles if p[2] == spangram)
+    made = search.layout(spangram, words)
+    assert made is not None
+    grid, paths = made
+    return {
+        "clue": clue,
+        "title": title,
+        "spangram": spangram,
+        "words": words,
+        "grid": grid,
+        "paths": {w: [list(at) for at in p] for w, p in paths.items()},
+    }
+
+
 VOCABULARY = {
     "mean": (["stats", "average", "measure"], ["median"]),
     "median": (["stats", "average", "measure"], []),
@@ -144,7 +171,10 @@ def make_content(db: Session) -> Content:
             )
             for label, level, words in GROUPS[theme]
         ]
-        items += [DailyItem(game="search", theme_id=theme, data={"word": w}, key=w) for w in SEARCH[theme]]
+        items += [
+            DailyItem(game="search", theme_id=theme, data=search_data(spangram), key=spangram)
+            for _, _, spangram, _ in SEARCH[theme]
+        ]
         for n in range(QUESTIONS):
             data = question(theme, n)
             items.append(DailyItem(game="quiz", theme_id=theme, data=data, key=str(data["question"]).casefold()))

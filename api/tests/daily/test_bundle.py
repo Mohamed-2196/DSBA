@@ -150,19 +150,19 @@ def test_an_upload_is_checked_then_loaded_once_and_audited_with_counts(
     assert dry["applied"] is False
     assert (dry["themes"], dry["vocabulary"]) == ({"added": 2, "kept": 0}, {"added": len(VOCABULARY), "kept": 0})
     added = {g["game"]: g["added"] for g in dry["items"]}
-    assert added == {"groups": 16, "nearest": 4, "quiz": 12, "search": 20, "word": 16}
+    assert added == {"groups": 16, "nearest": 4, "quiz": 12, "search": 4, "word": 16}
     assert (dry["rotation"], dry["problems"]) == (["alpha", "beta"], [])
     assert count(db, DailyItem) == 0  # nothing changed
 
     done = admin.post(UPLOAD, json={"content": text}).json()
     assert done["applied"] is True
     assert done["themes"] == dry["themes"]
-    assert count(db, DailyItem) == 68
+    assert count(db, DailyItem) == 52
     assert content.schedule(db).rotation == ["alpha", "beta"]
 
     again = admin.post(UPLOAD, json={"content": text}).json()  # the same file twice changes nothing
     assert all(g["added"] == 0 for g in again["items"])
-    assert sum(g["kept"] for g in again["items"]) == 68
+    assert sum(g["kept"] for g in again["items"]) == 52
     assert (again["themes"], again["rotation"]) == ({"added": 0, "kept": 2}, [])
     entries = imports(db)
     assert len(entries) == 1
@@ -172,7 +172,7 @@ def test_an_upload_is_checked_then_loaded_once_and_audited_with_counts(
         "themes": 2,
         "guesses": 0,
         "vocabulary": len(VOCABULARY),
-        "items": 68,
+        "items": 52,
         "rotation": ["alpha", "beta"],
     }
 
@@ -206,7 +206,6 @@ def test_a_content_file_takes_the_same_few_statements_however_many_items_it_has(
             "guesses": words,
             "items": [
                 *({"game": "word", "theme": theme, "word": w} for w in words),
-                *({"game": "search", "theme": theme, "word": f"{w}S"} for w in words),
                 *groups,
             ],
         }
@@ -222,7 +221,7 @@ def test_a_content_file_takes_the_same_few_statements_however_many_items_it_has(
             result = load(db, data)
         finally:
             event.remove(engine, "before_cursor_execute", count)
-        assert sum(c["added"] for c in result.items.values()) == 3 * len(data["guesses"]), result.problems
+        assert sum(c["added"] for c in result.items.values()) == 2 * len(data["guesses"]), result.problems
         return len(seen)
 
     with_shipped_list(db)

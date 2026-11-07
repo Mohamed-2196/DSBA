@@ -7758,19 +7758,6 @@ export interface components {
             /** Expiresin */
             expiresIn: number;
         };
-        /**
-         * FindMove
-         * @description A straight line of letters in the word search, from its first letter to its last.
-         */
-        FindMove: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            kind: "find";
-            start: components["schemas"]["Cell"];
-            end: components["schemas"]["Cell"];
-        };
         /** FollowRequest */
         FollowRequest: {
             /**
@@ -8298,7 +8285,7 @@ export interface components {
              */
             variant: string;
             /** History */
-            history: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["FindMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"])[];
+            history: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["TraceMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"])[];
             /**
              * Revision
              * @default 0
@@ -8380,8 +8367,8 @@ export interface components {
         };
         /**
          * HintMove
-         * @description A hint, for a few points: Sudoku fills `cell` (or a cell it picks), the word search shows where a word
-         *     starts, Nearest neighbour reveals a closer word.
+         * @description A hint, for a few points: Sudoku fills `cell` (or a cell it picks), Data Mine outlines a theme word's letters,
+         *     Nearest neighbour reveals a closer word.
          */
         HintMove: {
             /**
@@ -9396,9 +9383,9 @@ export interface components {
              */
             variant: string;
             /** Move */
-            move?: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["FindMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"]) | null;
+            move?: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["TraceMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"]) | null;
             /** History */
-            history?: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["FindMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"])[];
+            history?: (components["schemas"]["GuessMove"] | components["schemas"]["GroupMove"] | components["schemas"]["TraceMove"] | components["schemas"]["AnswerMove"] | components["schemas"]["PlaceMove"] | components["schemas"]["HintMove"] | components["schemas"]["GiveUpMove"])[];
             /**
              * Revision
              * @default 0
@@ -10873,10 +10860,23 @@ export interface components {
              * @enum {string}
              */
             game: "search";
+            /** Clue */
+            clue: string;
+            /** Title */
+            title: string;
+            /** Spangram */
+            spangram: string;
             /** Words */
             words: string[];
             /** Grid */
             grid: string[];
+            /** Paths */
+            paths: {
+                [key: string]: [
+                    number,
+                    number
+                ][];
+            };
         };
         /** PreviewWord */
         PreviewWord: {
@@ -11564,7 +11564,8 @@ export interface components {
         };
         /**
          * SearchData
-         * @description Word search: a word to hide in the grid, 4 to 10 letters.
+         * @description Data Mine: one puzzle. A clue, the theme's name shown at the end, the spangram that names it and runs across the
+         *     grid, and the other theme words: 48 letters in all, 4 to 12 a word, so they fill the 6 by 8 grid exactly.
          */
         SearchData: {
             /**
@@ -11572,15 +11573,32 @@ export interface components {
              * @enum {string}
              */
             game: "search";
-            /** Word */
-            word: string;
+            /** Clue */
+            clue: string;
+            /** Title */
+            title: string;
+            /** Spangram */
+            spangram: string;
+            /** Words */
+            words: string[];
+            /** Grid */
+            grid?: string[] | null;
+            /** Paths */
+            paths?: {
+                [key: string]: [
+                    number,
+                    number
+                ][];
+            } | null;
         };
         /** SearchFound */
         SearchFound: {
             /** Word */
             word: string;
-            start: components["schemas"]["Cell"];
-            end: components["schemas"]["Cell"];
+            /** Cells */
+            cells: components["schemas"]["Cell"][];
+            /** Spangram */
+            spangram: boolean;
             /**
              * Revealed
              * @default false
@@ -11648,16 +11666,28 @@ export interface components {
              * @enum {string}
              */
             kind: "search";
+            /** Clue */
+            clue: string;
+            /** Rows */
+            rows: number;
+            /** Cols */
+            cols: number;
             /** Grid */
             grid: string[];
-            /** Words */
-            words: string[];
+            /** Total */
+            total: number;
             /** Found */
             found: components["schemas"]["SearchFound"][];
-            /** Hints */
-            hints: components["schemas"]["Cell"][];
-            /** Misses */
-            misses: number;
+            /** Others */
+            others: number;
+            /** Hintsleft */
+            hintsLeft: number;
+            /** Hintprogress */
+            hintProgress: number;
+            /** Hintcells */
+            hintCells: components["schemas"]["Cell"][];
+            /** Title */
+            title: string | null;
         };
         /**
          * Senior
@@ -12922,6 +12952,19 @@ export interface components {
             /** Body */
             body: string;
         };
+        /**
+         * TraceMove
+         * @description Data Mine: letters traced through the grid, in order, each touching the one before.
+         */
+        TraceMove: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "trace";
+            /** Cells */
+            cells: components["schemas"]["Cell"][];
+        };
         /** UploadCreate */
         UploadCreate: {
             /**
@@ -13322,7 +13365,6 @@ export type FeatureOut = components['schemas']['FeatureOut'];
 export type FeaturedLogo = components['schemas']['FeaturedLogo'];
 export type FeaturesOut = components['schemas']['FeaturesOut'];
 export type FileLink = components['schemas']['FileLink'];
-export type FindMove = components['schemas']['FindMove'];
 export type FollowRequest = components['schemas']['FollowRequest'];
 export type FollowResult = components['schemas']['FollowResult'];
 export type ForumCategoryOut = components['schemas']['ForumCategoryOut'];
@@ -13621,6 +13663,7 @@ export type TopicCreate = components['schemas']['TopicCreate'];
 export type TopicOut = components['schemas']['TopicOut'];
 export type TopicPage = components['schemas']['TopicPage'];
 export type TourStep = components['schemas']['TourStep'];
+export type TraceMove = components['schemas']['TraceMove'];
 export type UploadCreate = components['schemas']['UploadCreate'];
 export type UploadLimitsIn = components['schemas']['UploadLimitsIn'];
 export type UploadLimitsOut = components['schemas']['UploadLimitsOut'];

@@ -177,6 +177,17 @@ export function markRulesSeen(game: GameId): void {
   if (!list.includes(game)) write(SEEN, [...list, game]);
 }
 
+// ── The day's finale ────────────────────────────────────────────────────────────────────────────
+
+const CHEERED = 'hub.daily.cheered';
+
+/** Whether this device has celebrated finishing every game of `day` already; marks it so the next call says yes. */
+export function cheeredFor(day: string): boolean {
+  if (read(CHEERED) === day) return true;
+  write(CHEERED, day);
+  return false;
+}
+
 // ── Sudoku's pencil marks ───────────────────────────────────────────────────────────────────────
 
 export type Notes = Record<number, number[]>;

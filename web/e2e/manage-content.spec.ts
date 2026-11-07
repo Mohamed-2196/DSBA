@@ -58,7 +58,7 @@ test('a Daily puzzles edit shows in the preview of the day and on the Daily', as
     await expect(admin.getByText(renamed)).toBeVisible();
 
     await guest.goto('/daily');
-    await expect(guest.getByRole('heading', { level: 1 })).toContainText(renamed); // 'Daily #19 · <theme>'
+    await expect(guest.getByText(renamed)).toBeVisible(); // under the title: 'Daily #19 · <theme>'
   } finally {
     const now = (await themes()).find((t) => t.id === theme.id);
     if (now && now.title !== theme.title) {

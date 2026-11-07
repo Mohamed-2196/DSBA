@@ -44,12 +44,11 @@ class Cell(ApiModel):
     col: int = Field(ge=0, le=15)
 
 
-class FindMove(ApiModel):
-    """A straight line of letters in the word search, from its first letter to its last."""
+class TraceMove(ApiModel):
+    """Data Mine: letters traced through the grid, in order, each touching the one before."""
 
-    kind: Literal["find"]
-    start: Cell
-    end: Cell
+    kind: Literal["trace"]
+    cells: list[Cell] = Field(min_length=1, max_length=12)
 
 
 class AnswerMove(ApiModel):
@@ -68,8 +67,8 @@ class PlaceMove(ApiModel):
 
 
 class HintMove(ApiModel):
-    """A hint, for a few points: Sudoku fills `cell` (or a cell it picks), the word search shows where a word
-    starts, Nearest neighbour reveals a closer word."""
+    """A hint, for a few points: Sudoku fills `cell` (or a cell it picks), Data Mine outlines a theme word's letters,
+    Nearest neighbour reveals a closer word."""
 
     kind: Literal["hint"]
     cell: int | None = Field(default=None, ge=0, le=80)
@@ -82,7 +81,7 @@ class GiveUpMove(ApiModel):
 
 
 Move = Annotated[
-    GuessMove | GroupMove | FindMove | AnswerMove | PlaceMove | HintMove | GiveUpMove, Field(discriminator="kind")
+    GuessMove | GroupMove | TraceMove | AnswerMove | PlaceMove | HintMove | GiveUpMove, Field(discriminator="kind")
 ]
 
 
@@ -142,18 +141,24 @@ class GroupsView(ApiModel):
 
 class SearchFound(ApiModel):
     word: str
-    start: Cell
-    end: Cell
+    cells: list[Cell]  # its letters, in spelling order
+    spangram: bool  # the word that names the theme
     revealed: bool = False  # shown at the end of a lost play: the player didn't find it
 
 
 class SearchView(ApiModel):
     kind: Literal["search"]
+    clue: str
+    rows: int
+    cols: int
     grid: list[str]  # rows of letters
-    words: list[str]  # the words to find, alphabetical
-    found: list[SearchFound]  # once the play is over, every word
-    hints: list[Cell]  # first letters shown by hints
-    misses: int
+    total: int  # theme words to find, the spangram among them
+    found: list[SearchFound]  # once the play is over, every theme word
+    others: int  # real words found that aren't the theme's
+    hints_left: int  # hints earned and not used yet
+    hint_progress: int  # other words towards the next hint
+    hint_cells: list[Cell]  # an unfound theme word's letters a hint outlines, in reading order
+    title: str | None  # the theme's name, once the play is over
 
 
 class QuizQuestion(ApiModel):

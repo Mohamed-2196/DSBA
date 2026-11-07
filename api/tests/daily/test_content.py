@@ -39,7 +39,7 @@ def test_a_day_is_made_once_kept_and_the_same_for_everyone(db: Session) -> None:
     assert again == made
     assert db.scalar(select(func.count()).select_from(DailySet).where(DailySet.day == today)) == 8  # 5 games, 3 Sudokus
     took = db.scalar(select(func.count()).select_from(DailySetItem).where(DailySetItem.day == today))
-    assert took == 1 + 4 + 8 + 4 + 1  # an answer, four groups, eight words, four questions, a secret word
+    assert took == 1 + 4 + 1 + 4 + 1  # an answer, four groups, a Data Mine puzzle, four questions, a secret word
     theme = content.theme_of(db, today).id
     answers = {i.data["word"] for i in db.scalars(select(DailyItem).where(DailyItem.game == "word"))}
     assert puzzle(db, "word", today).answer in answers

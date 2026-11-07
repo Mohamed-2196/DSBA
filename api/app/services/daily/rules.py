@@ -1,8 +1,9 @@
 """The rules a Daily puzzle item meets, checked the same way in Manage, in a paste and in a content file (editor.py,
 bundle.py): an answer word is five letters and in the guess list; a group has four to eight different words (another
-group of its theme may share some: a day with both shows neither group those words); a word search word is 4 to 10
-letters; a quiz question has two to six different options and one right answer; a secret word is in the vocabulary;
-and what must be unique (a word, a group's name, a question) is. Each refusal says what to fix, on the field.
+group of its theme may share some: a day with both shows neither group those words); a Data Mine puzzle's words fill
+its grid exactly; a quiz question has two to six different options and one right answer; a secret word is in the
+vocabulary; and what must be unique (a word, a group's name, a question, a spangram) is. Each refusal says what to fix,
+on the field.
 
 A check reads the database through Lookups: a query at a time for one item, or everything once for a batch (Batch),
 so a content file of hundreds of items takes a handful of statements."""
@@ -27,10 +28,16 @@ from app.services.daily.games import word as word_game
 ANSWER = re.compile(r"[A-Z]{5}")
 GROUP_WORD = re.compile(r"[A-Z]{2,12}")
 SEARCH_WORD = re.compile(rf"[A-Z]{{{search_game.MIN_LETTERS},{search_game.MAX_LETTERS}}}")
+SPANGRAM_LETTERS = min(search_game.ROWS, search_game.COLS)  # the fewest that cross the grid
+SPANGRAM = re.compile(rf"[A-Z]{{{SPANGRAM_LETTERS},{search_game.MAX_SPANGRAM}}}")
 VOCABULARY_WORD = re.compile(r"[a-z]{2,24}")
 GROUP_WORDS = (4, 8)
 OPTIONS = (2, 6)
-KEY_FIELD = {"groups": "data.label", "quiz": "data.question"}  # where a clash shows: else on data.word
+KEY_FIELD = {
+    "groups": "data.label",
+    "quiz": "data.question",
+    "search": "data.spangram",
+}  # where a clash shows: else on data.word
 
 
 class Checked(NamedTuple):
@@ -55,19 +62,21 @@ def unknown_theme() -> ApiError:
 
 
 def key_of(data: ItemData) -> str:
-    """What must be unique about an item: its word, its group's name or its question, as stored."""
+    """What must be unique about an item: its word, its group's name, its question or its spangram, as stored."""
     if isinstance(data, GroupData):
         return tidy(data.label).casefold()
     if isinstance(data, QuizData):
         return tidy(data.question).casefold()
     if isinstance(data, NearestData):
         return data.word.strip().lower()
+    if isinstance(data, SearchData):
+        return data.spangram.strip().upper()
     return data.word.strip().upper()
 
 
 def _scope(game: str, theme: str) -> str | None:
     """Where a key must be unique: in the game (an answer word, a question, a secret word), or in the theme (a
-    group's name, a word search word)."""
+    group's name, a Data Mine spangram)."""
     return theme if game in UNIQUE_IN_THEME else None
 
 
@@ -169,14 +178,58 @@ def _check_group(data: GroupData) -> Checked:
 
 
 def _check_search(data: SearchData) -> Checked:
-    word = data.word.strip().upper()
-    if not SEARCH_WORD.fullmatch(word):
-        least, most = search_game.MIN_LETTERS, search_game.MAX_LETTERS
+    name = search_game.SearchGame.title
+    clue, title = tidy(data.clue), tidy(data.title)
+    if not 3 <= len(clue) <= 80:
+        raise invalid("data.clue", "Write a clue in 3 to 80 characters: it hints at the theme without naming it.")
+    if not 2 <= len(title) <= 60:
+        raise invalid("data.title", "Name the theme in 2 to 60 characters. Players see it at the end.")
+    least, most = search_game.MIN_LETTERS, search_game.MAX_LETTERS
+    spangram = data.spangram.strip().upper()
+    if not SPANGRAM.fullmatch(spangram):
         raise invalid(
-            "data.word",
-            f"{search_game.SearchGame.title}'s words are {least} to {most} letters, A to Z, with no spaces.",
+            "data.spangram",
+            f"The spangram is {SPANGRAM_LETTERS} to {search_game.MAX_SPANGRAM} letters, A to Z, so it can cross the "
+            "grid.",
         )
-    return Checked({"word": word}, word)
+    words = [w.strip().upper() for w in data.words if w.strip()]
+    bad = next((w for w in words if not SEARCH_WORD.fullmatch(w)), None)
+    if bad is not None:
+        raise invalid(
+            "data.words", f"{name}'s words are {least} to {most} letters, A to Z, with no spaces: “{bad}” isn't."
+        )
+    fewest, most_words = search_game.WORDS
+    if not fewest <= len(words) <= most_words:
+        raise invalid("data.words", f"Give {fewest} to {most_words} theme words besides the spangram.")
+    if len({*words, spangram}) != len(words) + 1:
+        raise invalid("data.words", "Each word can be in the puzzle once, and not as the spangram too.")
+    letters = len(spangram) + sum(map(len, words))
+    if letters != search_game.LETTERS:
+        raise invalid(
+            "data.words",
+            f"The spangram and the words come to {letters} letters: the grid takes exactly {search_game.LETTERS}.",
+        )
+    if data.grid is not None and data.paths is not None:  # ready-made, from a content file
+        grid = [row.strip().upper() for row in data.grid]
+        paths: dict[str, search_game.Path] = {
+            w.strip().upper(): tuple((at[0], at[1]) for at in p) for w, p in data.paths.items()
+        }
+        if not search_game.laid_out(spangram, words, grid, paths):
+            raise invalid("data.grid", "This grid doesn't fit its words. Leave it out and the hub lays one out.")
+    else:
+        made = search_game.layout(spangram, words)
+        if made is None:
+            raise invalid("data.words", "These words don't lay out in the grid. Try other words, or other lengths.")
+        grid, paths = made
+    fields = {
+        "clue": clue,
+        "title": title,
+        "spangram": spangram,
+        "words": words,
+        "grid": grid,
+        "paths": {w: [list(at) for at in p] for w, p in paths.items()},
+    }
+    return Checked(fields, spangram)
 
 
 def _check_quiz(look: Lookups, data: QuizData) -> Checked:
@@ -223,7 +276,9 @@ def _check_nearest(look: Lookups, data: NearestData) -> Checked:
 _DUPLICATE: dict[str, Callable[[str, str], str]] = {
     "word": lambda key, where: f"“{key}” is already an answer word in {where}.",
     "groups": lambda key, where: f"{where} already has a group called “{key}”.",
-    "search": lambda key, where: f"“{key}” is already a {search_game.SearchGame.title} word in {where}.",
+    "search": lambda key, where: (
+        f"{where} already has a {search_game.SearchGame.title} puzzle with the spangram “{key}”."
+    ),
     "quiz": lambda key, where: f"{where} already has this question.",
     "nearest": lambda key, where: f"“{key}” is already a secret word in {where}.",
 }
@@ -233,7 +288,7 @@ def _check_unique(look: Lookups, game: str, theme: str, checked: Checked, item_i
     other = look.holder(game, theme, checked.key, item_id)
     if other is None:
         return
-    shown = checked.data.get("label") or checked.data.get("word") or checked.key
+    shown = checked.data.get("label") or checked.data.get("word") or checked.data.get("spangram") or checked.key
     message = _DUPLICATE[game](str(shown), known_theme(look, other.theme_id).title)
     if other.retired:
         message += " It's retired: bring it back instead."

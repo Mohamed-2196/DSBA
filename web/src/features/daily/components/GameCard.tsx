@@ -1,55 +1,48 @@
-// A game's tile on the hub: its art on the game's own tint (its picture in public/daily, the glyph drawn in code if
-// that file can't load, or the play's own squares once it's finished), the name, one line about it, and its state
-// in the corner. The whole tile is the link.
+// A game's card on the hub, in DSBA Daily's look: the game's picture on its own tint, its name and one line about it,
+// and a badge for how far you got (Play, In progress, Done with the points). The whole card is the link.
 import { typeset } from '../../../api/errors';
-import { useState, type CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { cx } from '../../../ui';
+import { cx, glyph, Icon } from '../../../ui';
 import { gameLink, statusOf } from '../lib/status';
-import { hasSquares, isOver, type GameDay, type GameId } from '../types';
+import type { GameDay } from '../types';
 import { GameGlyph } from './GameGlyph';
-import { PlayPicture } from './PlayPicture';
 
 export function GameCard({ game }: { game: GameDay }) {
   const status = statusOf(game);
-  const picture = isOver(game.status) && hasSquares(game.picture) ? game.picture : null;
+  const id = game.info.id;
   return (
     <Link
       to={gameLink(game)}
-      className={cx('dh-tile', `is-${status.tone}`)}
-      data-game={game.info.id}
-      style={{ '--g': `var(--dy-${game.info.id})` } as CSSProperties}
+      className={cx('dh-card', `is-${status.tone}`)}
+      data-game={id}
+      style={{ '--g': `var(--dd-${id})`, '--g-soft': `var(--dd-${id}-soft)` } as CSSProperties}
     >
-      <span className={cx('dh-tile__art', picture && 'has-picture')} aria-hidden="true">
-        {picture ? (
-          <PlayPicture picture={picture} square={12} className="dh-tile__picture" />
-        ) : (
-          <GameArt game={game.info.id} />
-        )}
+      <span className="dh-card__art" aria-hidden="true">
+        <GameGlyph game={id} />
       </span>
-      <span className="dh-tile__name">{game.info.title}</span>
-      <span className="dh-tile__state dy-num" data-noora-avoid="">
-        {status.label}
+      <span className="dh-card__body">
+        <span className="dh-card__name">{game.info.title}</span>
+        <span className="dh-card__line">{typeset(game.info.tagline)}</span>
+        <span className="dh-card__foot">
+          <span className={cx('dh-state', `is-${status.tone}`)} data-noora-avoid="">
+            {status.tone === 'won' || (status.tone === 'lost' && game.points > 0) ? (
+              <Icon glyph={glyph.check} className="dh-state__icon" aria-hidden="true" />
+            ) : null}
+            {badgeText(game)}
+          </span>
+        </span>
       </span>
-      <span className="dh-tile__line">{typeset(game.info.tagline)}</span>
+      <Icon glyph={glyph.chevronRight} className="dh-card__chevron" aria-hidden="true" />
     </Link>
   );
 }
 
-/** The game's picture, decorative (its name follows); the glyph drawn in code stands in when the file can't load. */
-function GameArt({ game }: { game: GameId }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) return <GameGlyph game={game} />;
-  return (
-    <img
-      className="dh-tile__img"
-      src={`/daily/${game}.webp`}
-      alt=""
-      width={192}
-      height={192}
-      loading="lazy"
-      decoding="async"
-      onError={() => setFailed(true)}
-    />
-  );
+/** DSBA Daily's words for a game's state: Play, In progress, Done · 80 pts (Not solved when it earned nothing). */
+function badgeText(game: GameDay): string {
+  const tone = statusOf(game).tone;
+  if (tone === 'playing') return 'In progress';
+  if (tone === 'new') return 'Play';
+  if (game.scored && game.points > 0) return `Done · ${game.points} pts`;
+  return tone === 'won' ? 'Done' : 'Not solved';
 }

@@ -102,7 +102,7 @@ def test_todays_puzzles_show_the_items_each_uses_and_who_is_playing(
 ) -> None:
     planned = todays(editor)
     assert [(g["out"], g["revision"], g["fixesLeft"]) for g in planned.values()] == [(False, 0, 5)] * 5
-    assert [len(g["items"]) for g in planned.values()] == [1, 4, 8, 4, 1]
+    assert [len(g["items"]) for g in planned.values()] == [1, 4, 1, 4, 1]
     assert [i["data"]["level"] for i in planned["groups"]["items"]] == [1, 2, 3, 4]
     assert not any(i["inToday"] for g in planned.values() for i in g["items"])
 
@@ -312,23 +312,15 @@ def test_a_quiz_fix_keeps_every_question_in_its_place(client_for: ClientFor, edi
     assert moved["changes"] == [f"Question 2's right answer is “{other}”, not “{right}”."]
 
 
-def test_a_word_search_fix_lays_the_grid_out_again(client_for: ClientFor, editor: TestClient) -> None:
+def test_a_data_mine_fix_lays_the_grid_out_again(client_for: ClientFor, editor: TestClient) -> None:
     put_out(client_for, "search")
-    game = todays(editor)["search"]
-    words = game["puzzle"]["words"]
-    item = game["items"][0]
-    longest = max((w for w in words if w != item["data"]["word"]), key=len)
-    inside = fix(editor, item, {"game": "search", "word": longest[:4]})
-    assert (inside.status_code, list(inside.json()["error"]["fields"])) == (422, ["data.word"])
-    assert f"inside “{longest}”" in inside.json()["error"]["message"]
-    r = fix(editor, item, {"game": "search", "word": "ZYGOTE"})
-    assert r.status_code == 200, r.text
-    out = r.json()
-    assert out["changes"] == [
-        f"ZYGOTE replaces {item['data']['word']} in the word list.",
-        "The grid is laid out again, so the words sit in new places.",
-    ]
-    assert sorted(out["after"]["words"]) == sorted([w for w in words if w != item["data"]["word"]] + ["ZYGOTE"])
+    item = todays(editor)["search"]["items"][0]
+    data = item["data"]
+    short = fix(editor, item, {**data, "words": data["words"][1:], "grid": None, "paths": None})
+    assert (short.status_code, list(short.json()["error"]["fields"])) == (422, ["data.words"])
+    clue = fix(editor, item, {**data, "clue": "A clue, fixed"})
+    assert clue.status_code == 200, clue.text
+    assert clue.json()["changes"] == [f"The clue is “A clue, fixed”, not “{data['clue']}”."]
 
 
 def test_a_nearest_neighbour_fix_changes_the_secret_word(client_for: ClientFor, editor: TestClient) -> None:
@@ -362,7 +354,7 @@ def test_a_fix_made_on_an_old_view_is_refused(client_for: ClientFor, editor: Tes
     refused(fix(editor, other, {"game": "word", "word": data["word"]}), "doesn't use this item")
     quiz = todays(editor)["quiz"]["items"][0]  # nobody has opened today's quiz: a save is enough
     refused(fix(editor, quiz, quiz["data"]), "saving it is enough")
-    wrong_game = fix(editor, item, {"game": "search", "word": "HELLO"})
+    wrong_game = fix(editor, item, {"game": "nearest", "word": "mean"})
     assert list(wrong_game.json()["error"]["fields"]) == ["data.game"]
     missing = fix(editor, {"id": str(uuid.uuid4()), "version": 1}, data)
     assert missing.status_code == 404

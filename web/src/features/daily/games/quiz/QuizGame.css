@@ -8,7 +8,7 @@
   gap: var(--sp-12);
   width: min(100%, 640px);
   margin: 0 auto;
-  padding: var(--sp-8) var(--sp-12) var(--sp-12);
+  padding: var(--sp-8) var(--sp-16) var(--sp-12);
   overflow-y: auto;
 }
 
@@ -116,7 +116,7 @@
   box-shadow: 0 2px 0 var(--line);
   font: inherit;
   font-size: var(--fs-16);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-medium);
   line-height: 1.35;
   text-align: left;
   cursor: pointer;
@@ -270,4 +270,11 @@
   cursor: default;
   min-height: 44px;
   font-size: var(--fs-14);
+}
+
+/* The rules' example: the right answer is picked and lights up. */
+@media (prefers-reduced-motion: no-preference) {
+  .dg-rules .dq-eg .dq-option.is-right {
+    animation: dq-yes 420ms var(--ease) 700ms both;
+  }
 }

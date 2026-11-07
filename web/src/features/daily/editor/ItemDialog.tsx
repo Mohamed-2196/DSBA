@@ -22,9 +22,11 @@ import {
 import { FixCheck } from './FixCheck';
 import {
   LEVELS,
+  MINE_LETTERS,
   blankData,
   fieldError,
   gameInfo,
+  mineLetters,
   otherErrors,
   parseWords,
   titleOf,
@@ -43,6 +45,10 @@ const SHOWN = [
   'data.answer',
   'data.explanation',
   'data.moduleId',
+  'data.clue',
+  'data.title',
+  'data.spangram',
+  'data.grid',
 ];
 const MAX_OPTIONS = 6;
 const MIN_OPTIONS = 2;
@@ -244,18 +250,7 @@ export function ItemDialog({ game, item, themes, defaultTheme, fixToday = false,
         {data.game === 'word' ? (
           <AnswerField word={data.word} error={err('data.word')} onChange={(word) => setData({ game: 'word', word })} />
         ) : data.game === 'search' ? (
-          <TextField
-            label="Word"
-            value={data.word}
-            maxLength={10}
-            autoComplete="off"
-            spellCheck={false}
-            className="dcms-form__word"
-            onChange={(e) => setData({ game: 'search', word: e.target.value.toUpperCase().replace(/\s/g, '') })}
-            error={err('data.word')}
-            hint="4 to 10 letters, A to Z. It hides in the grid across, down, diagonally or backwards."
-            data-autofocus
-          />
+          <MineFields data={data} err={err} onChange={setData} />
         ) : data.game === 'nearest' ? (
           <SecretField
             word={data.word}
@@ -402,6 +397,67 @@ function GroupFields({
         }}
         error={err('data.words')}
         hint={`${n} ${n === 1 ? 'word' : 'words'}. Give 4 to 8, one per line or separated by commas. A day shows four of them, different ones on different days, and never a word that another of its groups has.`}
+      />
+    </>
+  );
+}
+
+/** A Data Mine puzzle: the clue, the theme's name, the spangram and the words, with the letters they come to. A change
+ *  drops the saved grid, so the hub lays a new one out for the words as they are. */
+function MineFields({
+  data,
+  err,
+  onChange,
+}: {
+  data: Extract<ItemData, { game: 'search' }>;
+  err: Err;
+  onChange: (data: ItemData) => void;
+}) {
+  const [text, setText] = useState(data.words.join('\n'));
+  const set = (change: Partial<Extract<ItemData, { game: 'search' }>>) =>
+    onChange({ ...data, ...change, grid: null, paths: null });
+  const letters = mineLetters(data.spangram, data.words);
+  return (
+    <>
+      <TextField
+        label="Clue"
+        value={data.clue}
+        maxLength={80}
+        onChange={(e) => onChange({ ...data, clue: e.target.value })}
+        error={err('data.clue')}
+        hint="Shown over the grid. It hints at the theme without naming it: “Numbers that tell a story”."
+        data-autofocus
+      />
+      <TextField
+        label="Theme"
+        value={data.title}
+        maxLength={60}
+        onChange={(e) => onChange({ ...data, title: e.target.value })}
+        error={err('data.title')}
+        hint="Its name, shown once the grid is cleared: “Statistics”."
+      />
+      <TextField
+        label="Spangram"
+        value={data.spangram}
+        maxLength={16}
+        autoComplete="off"
+        spellCheck={false}
+        className="dcms-form__word"
+        onChange={(e) => set({ spangram: e.target.value.toUpperCase().replace(/[^A-Z]/g, '') })}
+        error={err('data.spangram')}
+        hint="6 to 16 letters. It names the theme and runs from one side of the grid to the other."
+      />
+      <TextArea
+        label="Theme words"
+        value={text}
+        rows={5}
+        spellCheck={false}
+        onChange={(e) => {
+          setText(e.target.value);
+          set({ words: parseWords(e.target.value) });
+        }}
+        error={err('data.words') ?? err('data.grid')}
+        hint={`${letters} of ${MINE_LETTERS} letters with the spangram. 3 to 9 words of 4 to 12 letters, one per line or separated by commas: together they fill the grid exactly.`}
       />
     </>
   );

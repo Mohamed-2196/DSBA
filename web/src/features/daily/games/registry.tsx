@@ -28,6 +28,8 @@ export interface GameProps {
   showResult: () => void;
   /** Sudoku: switch difficulty */
   onVariant: (variant: string) => void;
+  /** asks "Give up?" as the bar's menu does (for a game with its own Give up button) */
+  askGiveUp: () => void;
 }
 
 export interface GamePlugin {

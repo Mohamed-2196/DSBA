@@ -23,6 +23,7 @@
   flex: 0 1 412px;
   min-height: 0;
   width: 100%;
+  padding-inline: var(--sp-12);
   display: grid;
   place-items: center;
   container-type: size;
@@ -30,7 +31,8 @@
 
 .dgr-board {
   --gap: 8px;
-  --row: min(calc((100cqh - (var(--rows, 4) - 1) * var(--gap)) / var(--rows, 4)), 96px);
+  /* DSBA Daily's tiles: wider than tall, at most 72px high. */
+  --row: min(calc((100cqh - (var(--rows, 4) - 1) * var(--gap)) / var(--rows, 4)), 72px);
   /* A tile's width, for sizing each word to fit it. */
   --tile: calc((min(100cqw, 640px) - 3 * var(--gap)) / 4);
   display: grid;
@@ -44,16 +46,17 @@
   display: grid;
   place-items: center;
   min-width: 0;
-  padding: 0 6px;
+  padding: 0 3px;
   border: 0;
   border-radius: var(--r-control);
   background: var(--dy-key);
   color: var(--ink);
   box-shadow: var(--dy-press);
   font: inherit;
-  /* As big as fits the tile on one line (about 0.76em a letter), between 11px and 18px. A word too long even at
-     the smallest size breaks at a soft hyphen (lib/groups.ts breakable). */
-  font-size: clamp(11px, calc((var(--tile) - 12px) / (var(--chars, 6) * 0.76)), var(--fs-18));
+  /* As big as fits the tile on one line (about 0.7em a letter in Rubik), between 9px and 17px, as DSBA Daily sizes
+     its words. A word too long even at the smallest size breaks at a soft hyphen (lib/groups.ts breakable). */
+  font-size: clamp(9px, calc((var(--tile) - 6px) / (var(--chars, 6) * 0.7)), var(--fs-17));
+  letter-spacing: -0.01em;
   font-weight: var(--fw-heavy);
   line-height: 1.12;
   text-transform: uppercase;
@@ -237,4 +240,24 @@
   font-size: var(--fs-12);
   font-weight: var(--fw-bold);
   text-align: center;
+}
+
+/* The rules' example: the found group drops in, then the four levels pop in one by one. */
+@media (prefers-reduced-motion: no-preference) {
+  .dg-rules .dgr-eg .dgr-group {
+    animation: dgr-found 520ms var(--ease) 350ms both;
+  }
+  .dg-rules .dgr-eg-level {
+    animation: dd-pop 320ms var(--ease) both;
+    animation-delay: calc(900ms + var(--n, 0) * 120ms);
+  }
+  .dg-rules .dgr-eg-level:nth-child(2) {
+    --n: 1;
+  }
+  .dg-rules .dgr-eg-level:nth-child(3) {
+    --n: 2;
+  }
+  .dg-rules .dgr-eg-level:nth-child(4) {
+    --n: 3;
+  }
 }

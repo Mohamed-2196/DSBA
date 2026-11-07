@@ -145,13 +145,7 @@ def problem_of(game: str, pool: Sequence[Entry]) -> str:
             return f"{name} needs a group at level {_listed(missing)}."
         return f"{name} needs four groups, one a level, that each keep four words the other three don't have."
     if game == "search":
-        name = search_game.SearchGame.title
-        if len(pool) >= search_game.WORDS:
-            return (
-                f"{name} needs {search_game.WORDS} words that fit together: none inside another, "
-                f"{search_game.MAX_HIDDEN} letters at most."
-            )
-        return f"{name} needs at least {search_game.WORDS} words."
+        return f"{search_game.SearchGame.title} needs at least one puzzle."
     if game == "quiz":
         return f"{quiz_game.QuizGame.title} needs at least {quiz_game.FROM_THEME} questions."
     if game == "nearest":
@@ -231,7 +225,8 @@ def what_changed(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any
 
 def label_of(item: DailyItem) -> str:
     """How the activity log names an item: 'Quick quiz: Which measure of centre…'."""
-    text = item.data.get("label") or item.data.get("question") or item.data.get("word") or ""
+    data = item.data
+    text = data.get("label") or data.get("question") or data.get("word") or data.get("spangram") or ""
     return f"{_title(item.game)}: {text}"
 
 
@@ -892,8 +887,6 @@ def _word_rows(game: ContentGame, text: str) -> list[Parsed]:
             data: ItemData
             if game == "word":
                 data = WordData(game="word", word=word[:40])
-            elif game == "search":
-                data = SearchData(game="search", word=word[:40])
             else:
                 data = NearestData(game="nearest", word=word[:40])
             out.append((line, word, data, None))
@@ -935,6 +928,8 @@ QUIZ_COLUMNS = {
 QUIZ_HEADER = "question, answer, wrong 1, wrong 2, wrong 3, explanation, module"
 GROUP_COLUMNS = {"label": "label", "group": "label", "connection": "label", "level": "level", "words": "words"}
 GROUP_HEADER = "label, level, words"
+SEARCH_COLUMNS = {"clue": "clue", "title": "title", "theme": "title", "spangram": "spangram", "words": "words"}
+SEARCH_HEADER = "clue, title, spangram, words"
 
 
 def _quiz_rows(db: Session, text: str) -> list[Parsed]:
@@ -1009,11 +1004,45 @@ def _group_rows(text: str) -> list[Parsed]:
     return out
 
 
+def _search_rows(text: str) -> list[Parsed]:
+    header, rows = _table(text)
+    columns = [SEARCH_COLUMNS.get(h) or ("words" if h.startswith("word") else None) for h in header]
+    if not {"clue", "title", "spangram", "words"} <= set(columns):
+        raise invalid("text", f"Start with a header row naming the columns: {SEARCH_HEADER}.")
+    out: list[Parsed] = []
+    for line, cells in rows:
+        values: dict[str, str] = {}
+        words: list[str] = []
+        for column, cell in zip(columns, cells, strict=False):
+            if column == "words":
+                words += [w for w in SPLIT.split(cell) if w]
+            elif column is not None and column not in values:
+                values[column] = cell
+        shown = _short(" · ".join(c.strip() for c in cells if c.strip()))
+        try:
+            data = SearchData(
+                game="search",
+                clue=values.get("clue", ""),
+                title=values.get("title", ""),
+                spangram=values.get("spangram", ""),
+                words=words,
+            )
+        except ValidationError:
+            out.append(
+                (line, shown, None, f"Some of this row is too long for a {search_game.SearchGame.title} puzzle.")
+            )
+            continue
+        out.append((line, shown, data, None))
+    return out
+
+
 def _parse(db: Session, game: ContentGame, text: str) -> list[Parsed]:
     if game == "quiz":
         return _quiz_rows(db, text)
     if game == "groups":
         return _group_rows(text)
+    if game == "search":
+        return _search_rows(text)
     return _word_rows(game, text)
 
 
@@ -1082,7 +1111,15 @@ def preview_of(puzzle: Any) -> PreviewPuzzle:
         groups = [PreviewGroup(label=g.label, level=g.level, words=list(g.words)) for g in puzzle.groups]
         return PreviewGroups(game="groups", groups=groups)
     if isinstance(puzzle, search_game.Puzzle):
-        return PreviewSearch(game="search", words=[p.word for p in puzzle.placed], grid=list(puzzle.grid))
+        return PreviewSearch(
+            game="search",
+            clue=puzzle.clue,
+            title=puzzle.title,
+            spangram=puzzle.spangram,
+            words=list(puzzle.words),
+            grid=list(puzzle.grid),
+            paths={w: list(p) for w, p in puzzle.paths.items()},
+        )
     if isinstance(puzzle, nearest_game.Puzzle):
         return PreviewNearest(game="nearest", target=puzzle.target, closest=list(puzzle.by_rank[1 : CLOSEST + 1]))
     questions = cast(tuple[quiz_game.Question, ...], puzzle)

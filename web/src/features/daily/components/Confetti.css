@@ -1,0 +1,32 @@
+/* The win's confetti (Confetti.tsx): from a third of the way down the screen, up, then falling and fading. */
+.dy-confetti {
+  position: fixed;
+  inset: 33% 0 auto;
+  z-index: 80;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.dy-confetti__piece {
+  position: absolute;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dy-confetti__piece {
+    animation: dy-confetti 1.4s cubic-bezier(0.2, 0.7, 0.4, 1) both;
+  }
+}
+@keyframes dy-confetti {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  35% {
+    opacity: 1;
+    transform: translate(calc(var(--x) * 0.7), var(--y)) rotate(calc(var(--r) * 0.35));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), calc(var(--y) + 420px)) rotate(var(--r));
+  }
+}

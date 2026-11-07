@@ -111,8 +111,10 @@ def test_every_win_counts_however_fast(client_for: ClientFor, make_user: MakeUse
 
 def test_the_repository_holds_no_answer_bank() -> None:
     # The puzzles live in the database (Manage, or a content file kept out of the repository); the repository's Daily
-    # data is the themes and a public word list, and no answer bank is left anywhere in the app.
-    assert sorted(p.name for p in DAILY_SEED.iterdir()) == ["guesses.txt", "themes.json"]
+    # data is the themes and two public word lists (The Word's guesses, and Data Mine's English words with their
+    # licence), and no answer bank is left anywhere in the app.
+    files = ["dictionary.LICENSE", "dictionary.txt.gz", "guesses.txt", "themes.json"]
+    assert sorted(p.name for p in DAILY_SEED.iterdir()) == files
     banks = ("quiz.json", "groups.json", "words.json", "search.json", "nearest.json", "nearest_ranks.json")
     assert not [p for name in banks for p in APP.rglob(name)]
 

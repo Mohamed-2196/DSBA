@@ -56,6 +56,18 @@ def quiz(**fields: Any) -> dict[str, Any]:
     }
 
 
+def mine(**fields: Any) -> dict[str, Any]:
+    """A Data Mine puzzle: a spangram and words of 48 letters (alpha's, so its spangram is taken there)."""
+    return {
+        "game": "search",
+        "clue": "Numbers that tell a story",
+        "title": "Statistics",
+        "spangram": "STATISTICS",
+        "words": ["MEDIAN", "VARIANCE", "SAMPLE", "OUTLIER", "POISSON", "SKEW"],
+        **fields,
+    }
+
+
 # ── who may edit ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -77,7 +89,7 @@ def test_the_overview_shows_each_theme_with_what_it_has_and_the_weeks_to_come(c:
     body = overview(c)
     assert [t["id"] for t in body["themes"]] == ["alpha", "beta"]
     alpha = body["themes"][0]
-    assert alpha["counts"] == {"word": 8, "groups": 8, "search": 10, "quiz": 6, "nearest": 2}
+    assert alpha["counts"] == {"word": 8, "groups": 8, "search": 2, "quiz": 6, "nearest": 2}
     assert (alpha["inRotation"], alpha["problems"], alpha["used"]) == (True, [], False)
     weeks = body["weeks"]
     assert len(weeks) == 16
@@ -118,8 +130,13 @@ NINE = ["ACE", "KING", "QUEEN", "JACK", "JOKER"]  # with UNIQUE, nine words: one
         ({"game": "groups", "label": "Odd", "level": 2, "words": [*UNIQUE, *NINE]}, "data.words", "4 to 8 words"),
         ({"game": "groups", "label": "colours", "level": 2, "words": UNIQUE}, "data.label", "group called"),
         ({"game": "groups", "label": "Odd", "level": 5, "words": UNIQUE}, "data.groups.level", ""),
-        ({"game": "search", "word": "ABC"}, "data.word", "4 to 10 letters"),
-        ({"game": "search", "word": "median"}, "data.word", "already a Data Mine word in Alpha week"),
+        (mine(spangram="ODDS"), "data.spangram", "6 to 16 letters"),
+        (mine(words=["MEAN", "ABC", "SKEWS"]), "data.words", "4 to 12 letters"),
+        (mine(words=["MEDIAN", "VARIANCE"]), "data.words", "3 to 9 theme words"),
+        (mine(words=["MEDIAN", "MEDIAN", "SAMPLE"]), "data.words", "once"),
+        (mine(words=["MEDIAN", "VARIANCE", "SAMPLE"]), "data.words", "exactly 48"),
+        (mine(clue="Hi"), "data.clue", "3 to 80"),
+        (mine(spangram="statistics"), "data.spangram", "spangram “STATISTICS”"),
         (quiz(question="Short?"), "data.question", "10 to 200"),
         (quiz(options=["Only one"]), "data.options", "2 to 6"),
         (quiz(options=["Same", "same "]), "data.options", "different"),
@@ -163,7 +180,7 @@ def test_an_item_is_added_and_edited_with_versions_and_the_audit(c: TestClient, 
 def test_the_list_finds_items_by_theme_status_and_any_of_their_words(c: TestClient) -> None:
     assert len(items(c, "word", theme="alpha")) == 8
     assert [i["data"]["label"] for i in items(c, "groups", q="hamst")] == ["Pets"]
-    assert [i["data"]["word"] for i in items(c, "search", q="edia")] == ["MEDIAN"]
+    assert [i["data"]["spangram"] for i in items(c, "search", q="edia")] == ["STATISTICS"]
     assert len(items(c, "quiz", q="wrong 3b")) == 2  # an option, in both themes
     assert items(c, "nearest", theme="alpha")[0]["closest"][:1] in (["median"], ["variance"])
     assert c.get(f"{DAILY}/items", params={"game": "sudoku"}).status_code == 422
@@ -405,7 +422,8 @@ def test_the_preview_shows_a_day_to_come_and_a_day_that_is_out(c: TestClient, db
     by_game = {g["game"]: g["puzzle"] for g in soon["games"]}
     assert len(by_game["word"]["answer"]) == 5
     assert [g["level"] for g in by_game["groups"]["groups"]] == [1, 2, 3, 4]
-    assert (len(by_game["search"]["words"]), len(by_game["search"]["grid"])) == (8, 10)
+    assert by_game["search"]["spangram"] in {"STATISTICS", "DISTRIBUTION", "INVESTMENT", "MORTGAGES"}
+    assert [len(row) for row in by_game["search"]["grid"]] == [6] * 8
     assert len(by_game["quiz"]["questions"]) == 5
     assert by_game["nearest"]["target"] in {"mean", "variance", "model", "neuron"}
     assert db.scalars(select(DailyItem).limit(1)).first() is not None
@@ -426,7 +444,7 @@ def test_a_preview_names_what_a_short_theme_lacks(c: TestClient, db: Session) ->
     db.commit()
     body = c.get(f"{DAILY}/preview", params={"day": (bahrain_today() + dt.timedelta(days=1)).isoformat()}).json()
     search = next(g for g in body["games"] if g["game"] == "search")
-    assert (search["puzzle"], search["problem"]) == (None, "Data Mine needs at least 8 words.")
+    assert (search["puzzle"], search["problem"]) == (None, "Data Mine needs at least one puzzle.")
 
 
 def test_a_new_install_puts_its_first_theme_in_the_rotation(c: TestClient, db: Session) -> None:
