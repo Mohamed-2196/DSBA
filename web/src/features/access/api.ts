@@ -145,7 +145,8 @@ export function useFeatureSwitches() {
   return useQuery({ queryKey: ACCESS_FEATURES_KEY, queryFn: () => call(api.GET('/api/v1/admin/features')) });
 }
 
-/** One feature's switch. The guest list of features and the activity log change with it. */
+/** One feature's switch. The guest list of features, the admin's own (for the few that admins lose while off) and the
+ * activity log change with it. */
 export function useSetSwitch() {
   const qc = useQueryClient();
   return useMutation({
@@ -156,6 +157,7 @@ export function useSetSwitch() {
         list?.map((f) => (f.feature === out.feature ? out : f)),
       );
       void qc.invalidateQueries({ queryKey: FEATURES_KEY });
+      void qc.invalidateQueries({ queryKey: ME_KEY });
       void qc.invalidateQueries({ queryKey: AUDIT_KEY });
     },
   });

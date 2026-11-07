@@ -18,7 +18,7 @@ from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.core.access import Feature
+from app.core.access import ADMINS_FOLLOW_SWITCH, Feature
 from app.core.security import feature_of
 from app.main import create_app
 from app.models import FeatureSwitch, User, UserStatus
@@ -259,7 +259,8 @@ def test_a_switched_off_feature_is_gone_except_for_admins(
     set_feature(feature, "off")
     assert off(client_for().request(method, f"{API}{path}", json=body))
     assert off(client_for(student).request(method, f"{API}{path}", json=body))
-    assert not off(client_for(boss).request(method, f"{API}{path}", json=body))  # admins see every feature
+    admin_sees = Feature(feature) not in ADMINS_FOLLOW_SWITCH  # admins see every feature but these few while off
+    assert off(client_for(boss).request(method, f"{API}{path}", json=body)) != admin_sees
 
 
 def test_some_roles_only_and_never_while_suspended(
@@ -396,7 +397,9 @@ def test_me_and_features_list_what_is_on(
     assert client_for(student).get(f"{API}/me").json()["features"] == without_calendar
     assert client_for(student).get(f"{API}/features").json() == {"features": without_calendar}
     assert client_for().get(f"{API}/features").json() == {"features": without_calendar}
-    assert client_for(boss).get(f"{API}/me").json()["features"] == [f.value for f in Feature]
+    assert client_for(boss).get(f"{API}/me").json()["features"] == [
+        f.value for f in Feature if f not in ADMINS_FOLLOW_SWITCH
+    ]
     db.add(FeatureSwitch(feature="teleport", mode="everyone"))  # a key the code doesn't know
     db.commit()
     access.forget(db)

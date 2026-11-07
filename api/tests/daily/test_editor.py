@@ -70,7 +70,7 @@ def test_only_content_editors_reach_it(
     r = c.get(DAILY)
     assert (r.status_code, r.json()["error"]["code"]) == (404, "feature_off")
     admin = client_for(make_user(roles=("student", "admin")))
-    assert admin.get(DAILY).status_code == 200  # admins see every feature, to fill one before it's on
+    assert admin.get(DAILY).status_code == 404  # unlike most features, Daily is gone for admins too while off
 
 
 def test_the_overview_shows_each_theme_with_what_it_has_and_the_weeks_to_come(c: TestClient) -> None:

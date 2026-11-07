@@ -216,6 +216,32 @@ def test_admins_flip_switches(client_for: ClientFor, make_user: MakeUser, boss: 
     assert c.put(f"{API}/admin/features/teleport", json={"mode": "off"}).status_code == 422
 
 
+def test_admins_lose_noora_and_the_daily_puzzles_while_they_are_off(client_for: ClientFor, boss: User) -> None:
+    """These three follow their switch for admins too, and the Access screen still lists them so they can come back."""
+    c = client_for(boss)
+    calm = ("noora", "noora.ai", "daily")
+    listed = {f["feature"]: f["mode"] for f in c.get(f"{API}/admin/features").json()}
+    assert all(listed[f] == "off" for f in calm)
+    routes = ("/daily", "/mini-noora/script", "/admin/noora")  # the puzzles, Mini Noora, her answers' budget
+
+    def shown() -> list[str]:
+        return [f for f in c.get(f"{API}/features").json()["features"] if f in calm]
+
+    def refused() -> list[str]:
+        return [p for p in routes if c.get(f"{API}{p}").json().get("error", {}).get("code") == "feature_off"]
+
+    assert (shown(), refused()) == ([], list(routes))
+    assert "calendar" in c.get(f"{API}/features").json()["features"]  # other features: admins keep today's rule
+
+    for f in calm:
+        assert c.put(f"{API}/admin/features/{f}", json={"mode": "everyone"}).status_code == 200
+    assert (shown(), refused()) == (list(calm), [])
+
+    for f in calm:
+        assert c.put(f"{API}/admin/features/{f}", json={"mode": "off"}).status_code == 200
+    assert (shown(), refused()) == ([], list(routes))
+
+
 def test_sixty_changes_in_ten_minutes_is_the_limit(client_for: ClientFor, boss: User, db: Session) -> None:
     now = utcnow()
     db.add_all(
@@ -369,9 +395,12 @@ def test_admin_changes_need_a_recent_step_up(
     db: Session,
     older_sessions: Callable[..., None],
     outbox: Outbox,
+    set_feature: Callable[..., None],
 ) -> None:
     """AD-1: a stolen admin session, however old, can't give roles, edit them, flip switches, raise the AI budget
     (SEC-25) or rewrite Mini Noora's instructions without a code."""
+    for f in ("noora", "noora.ai"):  # her tools are gone for admins too while she's off
+        set_feature(f, "everyone")
     sara = make_user(name="Sara Student")
     writes: list[tuple[str, str, dict[str, Any] | None]] = [
         ("POST", "/admin/roles", {"name": "Events team", "boxes": []}),
@@ -411,6 +440,7 @@ def test_suspending_an_admin_needs_a_recent_step_up(
     db: Session,
     older_sessions: Callable[..., None],
     outbox: Outbox,
+    set_feature: Callable[..., None],
 ) -> None:
     """AD-1: suspending or restoring another admin is an admin power; suspending a student isn't."""
     other = make_user(name="Other Admin", roles=ADMIN)

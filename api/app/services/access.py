@@ -148,7 +148,7 @@ def switches(db: Session) -> dict[Feature, SwitchState]:
 
 
 def feature_on(db: Session, user: User | None, feature: Feature) -> bool:
-    return switch_allows(switches(db).get(feature), access_of(user, db), active=is_active(user))
+    return switch_allows(feature, switches(db).get(feature), access_of(user, db), active=is_active(user))
 
 
 def features_on(db: Session, user: User | None) -> list[Feature]:
@@ -179,7 +179,7 @@ def audience(db: Session, feature: Feature) -> ColumnElement[bool] | None:
 
 
 def require_feature(db: Session, user: User | None, feature: Feature) -> None:
-    """404 feature_off unless `feature` is on for the person (admins see every feature)."""
+    """404 feature_off unless `feature` is on for the person (admins see every feature but a few, see feature_on)."""
     if not feature_on(db, user, feature):
         raise feature_off()
 

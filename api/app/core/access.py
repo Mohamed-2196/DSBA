@@ -316,12 +316,17 @@ class SwitchState:
     role_ids: frozenset[uuid.UUID] = frozenset()  # the roles it's on for, when mode is "roles"
 
 
-def feature_on(state: SwitchState | None, access: Access, *, active: bool) -> bool:
+# Switched off, these are gone for admins too. Every other feature stays visible to admins while off.
+ADMINS_FOLLOW_SWITCH = frozenset({Feature.noora, Feature.noora_ai, Feature.daily})
+
+
+def feature_on(feature: Feature, state: SwitchState | None, access: Access, *, active: bool) -> bool:
     """Whether a feature exists for this person.
-    - Active admins see every feature.
+    - Active admins see every feature, except one in ADMINS_FOLLOW_SWITCH while it is off.
     - A feature with no switch stored is off.
     - "Some roles" needs an active account holding one of them: a suspended account reads like a guest."""
-    if active and access.admin:
+    off = state is None or state.mode == "off"
+    if active and access.admin and not (off and feature in ADMINS_FOLLOW_SWITCH):
         return True
     if state is None or state.mode == "off":
         return False

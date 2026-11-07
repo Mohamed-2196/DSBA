@@ -86,16 +86,29 @@ def test_switches() -> None:
     plain = build_access([student], {})
     admin = build_access([role(ADMIN)], {})
     some = SwitchState("roles", frozenset({testers.id}))
-    assert feature_on(SwitchState("everyone"), GUEST, active=False)
-    assert not feature_on(SwitchState("off"), plain, active=True)
-    assert feature_on(some, tester, active=True)
-    assert not feature_on(some, plain, active=True)
-    assert not feature_on(some, GUEST, active=False)
-    assert not feature_on(some, tester, active=False)  # suspended: like a guest (spec note 6)
-    assert feature_on(SwitchState("off"), admin, active=True)  # admins see every feature
-    assert not feature_on(SwitchState("off"), admin, active=False)  # but not while suspended
-    assert not feature_on(None, plain, active=True)  # no switch stored: off (spec note 7)
-    assert feature_on(None, admin, active=True)
+    assert feature_on(Feature.calendar, SwitchState("everyone"), GUEST, active=False)
+    assert not feature_on(Feature.calendar, SwitchState("off"), plain, active=True)
+    assert feature_on(Feature.calendar, some, tester, active=True)
+    assert not feature_on(Feature.calendar, some, plain, active=True)
+    assert not feature_on(Feature.calendar, some, GUEST, active=False)
+    assert not feature_on(Feature.calendar, some, tester, active=False)  # suspended: like a guest (spec note 6)
+    assert feature_on(Feature.calendar, SwitchState("off"), admin, active=True)  # admins see every feature
+    assert not feature_on(Feature.calendar, SwitchState("off"), admin, active=False)  # but not while suspended
+    assert not feature_on(Feature.calendar, None, plain, active=True)  # no switch stored: off (spec note 7)
+    assert feature_on(Feature.calendar, None, admin, active=True)
+
+
+def test_admins_follow_the_switch_for_noora_and_the_daily_puzzles() -> None:
+    """While Mini Noora, her answers or the daily puzzles are off, an active admin loses them like anyone else."""
+    testers = role("testers")
+    admin = build_access([role(ADMIN)], {})
+    for feature in (Feature.noora, Feature.noora_ai, Feature.daily):
+        assert not feature_on(feature, SwitchState("off"), admin, active=True)
+        assert not feature_on(feature, None, admin, active=True)
+        assert feature_on(feature, SwitchState("everyone"), admin, active=True)  # switched back on: back for admins
+        assert feature_on(feature, SwitchState("roles", frozenset({testers.id})), admin, active=True)
+    assert feature_on(Feature.calendar, SwitchState("off"), admin, active=True)  # every other feature: as before
+    assert feature_on(Feature.library_daily_question, SwitchState("off"), admin, active=True)
 
 
 def test_every_box_and_feature_has_its_words() -> None:
