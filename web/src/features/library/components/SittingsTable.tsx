@@ -1,7 +1,7 @@
 // The past papers table: one row per sitting with each zone's paper (the student's zone first and filled), the
-// examiners' report, the solutions and Time me, each file showing its first page. Where the table is under 540 px
-// wide (a phone, a card on the module's Overview) a row is the sitting, then its files on one wrapping line. PaperSittings shows every sitting; the module Overview the
-// latest few.
+// examiners' report with any separate solutions beside it, and Time me, each file showing its first page. Where the
+// table is under 540 px wide (a phone, a card on the module's Overview) a row is the sitting, then its files on one
+// wrapping line. PaperSittings shows every sitting; the module Overview the latest few.
 import { Link } from 'react-router-dom';
 import type { Sitting, SittingZone } from '../../../api/types';
 import { sittingLabel } from '../../../lib/exams';
@@ -21,7 +21,6 @@ function FileLink({
   noun,
   linkState,
   yours = false,
-  worked = false,
   workedNote = false,
 }: {
   link: SittingLink;
@@ -30,18 +29,15 @@ function FileLink({
   noun?: string;
   linkState: LinkState;
   yours?: boolean;
-  /** the report standing in for solutions it doesn't have */
-  worked?: boolean;
-  /** the report works through the questions: said beside it where the row is narrow (the Solutions cell isn't) */
+  /** the report works through the questions, and the sitting has no solutions of its own: said beside it */
   workedNote?: boolean;
 }) {
   return (
     <Link
       to={itemPath(link.item)}
       state={linkState}
-      className={cx('pp-link', yours && 'is-yours', worked && 'pp-link--worked')}
+      className={cx('pp-link', yours && 'is-yours')}
       title={link.item.title}
-      data-hub={worked ? 'worked-answers' : undefined}
     >
       <CoverThumb item={link.item} size="sm" />
       <span>
@@ -50,12 +46,13 @@ function FileLink({
         {noun ? <span className="visually-hidden"> {noun}</span> : null}
         {workedNote ? <span className="pp-link__worked">, worked answers</span> : null}
         {yours ? <span className="visually-hidden">, your zone</span> : null}
+        {/* inside the text, so it follows the last word when the label wraps */}
+        {isNew(link.item) ? (
+          <Badge tone="highlight" size="sm" className="pp-link__new">
+            New
+          </Badge>
+        ) : null}
       </span>
-      {isNew(link.item) ? (
-        <Badge tone="highlight" size="sm" className="pp-link__new">
-          New
-        </Badge>
-      ) : null}
     </Link>
   );
 }
@@ -102,27 +99,23 @@ function SittingRowView({
           )}
         </div>
         <div className="pp-row__cell pp-row__reports">
-          {row.reports.length ? (
-            row.reports.map((l) => (
-              <FileLink
-                key={l.item.id}
-                link={l}
-                when={when}
-                linkState={linkState}
-                workedNote={row.worked?.item.id === l.item.id}
-              />
-            ))
+          {row.reports.length || row.solutions.length ? (
+            <>
+              {row.reports.map((l) => (
+                <FileLink
+                  key={l.item.id}
+                  link={l}
+                  when={when}
+                  linkState={linkState}
+                  workedNote={row.worked?.item.id === l.item.id}
+                />
+              ))}
+              {row.solutions.map((l) => (
+                <FileLink key={l.item.id} link={l} when={when} linkState={linkState} />
+              ))}
+            </>
           ) : (
             <None text="No examiners’ report yet" />
-          )}
-        </div>
-        <div className="pp-row__cell pp-row__solutions">
-          {row.solutions.length ? (
-            row.solutions.map((l) => <FileLink key={l.item.id} link={l} when={when} linkState={linkState} />)
-          ) : row.worked ? (
-            <FileLink link={row.worked} when={when} linkState={linkState} worked />
-          ) : (
-            <None text="No solutions yet" />
           )}
         </div>
         <div className="pp-row__cell pp-row__time">
@@ -163,7 +156,6 @@ export function SittingsTable({
         <span>Sitting</span>
         <span>Paper</span>
         <span>Examiners’ report</span>
-        <span>Solutions</span>
         <span className="pp-table__time">Time me</span>
       </div>
       <ul role="list" className="pp__sittings">

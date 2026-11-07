@@ -5,8 +5,8 @@ Read from a report's stored text (`library_texts.body`, its pages split by form 
 it reads a report (paper_text.read_item), a moderator's edit does it when a file becomes a report, and
 `python -m app.cli report-answers` does every report already read. What it finds is kept on the text's row:
 
-- `worked_answers`: the report walks through the questions, so the sittings table says "Worked answers in the
-  report" instead of "No solutions yet".
+- `worked_answers`: the report walks through the questions, so when the sitting has no solutions file the sittings
+  table says ", worked answers" beside the report and a file's page names it "Worked answers in the report".
 - `question_pages`: one entry per question heading ("Question 3", "Section B" then "Question 1"), with its zone (a
   report for both zones has "Comments on specific questions - Zone A", then Zone B's), its section on a paper that
   numbers each section from 1, and the page it starts on.

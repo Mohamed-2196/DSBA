@@ -1,5 +1,5 @@
-/* Past papers as a table: one row per sitting (the sitting, each zone's paper, the examiners' report, solutions and
-   Time me). From 700 px of table the row is a grid under a header; narrower (a phone, a card on the module's
+/* Past papers as a table: one row per sitting (the sitting, each zone's paper, the examiners' report with any
+   separate solutions, and Time me). From 700 px of table the row is a grid under a header; narrower (a phone, a card on the module's
    Overview) it stacks: the sitting, then its links. */
 .pp__head {
   display: flex;
@@ -44,7 +44,7 @@
 .pp-table__head,
 .pp-row {
   display: grid;
-  grid-template-columns: 7.5rem minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) 3.5rem;
+  grid-template-columns: 7.5rem minmax(0, 1fr) minmax(0, 1.6fr) 3.5rem;
   align-items: center;
   gap: var(--sp-12);
   padding: var(--sp-6) var(--sp-16);
@@ -147,12 +147,8 @@
   font-weight: var(--fw-bold);
 }
 .pp-link__new {
-  margin-left: -2px;
-}
-/* A report that works through the questions, in the Solutions column. */
-.pp-link--worked {
-  color: var(--ink-2);
-  font-weight: var(--fw-medium);
+  margin-left: var(--sp-6);
+  vertical-align: 1px;
 }
 .pp-link > :first-child {
   flex-shrink: 0;
@@ -188,21 +184,14 @@
   }
 }
 
-/* Said only where the row is narrow: the Solutions cell says it otherwise. */
+/* ", worked answers" after a report that stands in for solutions. */
 .pp-link__worked {
-  display: none;
   color: var(--ink-2);
   font-weight: var(--fw-medium);
 }
 
 /* Narrow (a phone, a card on the module's Overview): no header; the sitting, then its files in one wrapping line. */
 @container pp-table (max-width: 539px) {
-  .pp-link--worked {
-    display: none;
-  }
-  .pp-link__worked {
-    display: inline;
-  }
   .pp-table__head {
     display: none;
   }

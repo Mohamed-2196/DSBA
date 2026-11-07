@@ -340,7 +340,7 @@ export interface SittingRow {
   papers: (SittingLink & { zone: SittingZone['zone']; yours: boolean })[];
   reports: SittingLink[];
   solutions: SittingLink[];
-  /** No solutions, but a report that works through the questions: the Solutions cell links it instead. */
+  /** No solutions, but a report that works through the questions: the table says so beside it. */
   worked: SittingLink | null;
   timeMe: LibraryItem | null;
 }
@@ -358,7 +358,7 @@ function labelled(zones: readonly SittingZone[], key: 'reports' | 'solutions', w
   return out;
 }
 
-/** What the Solutions cell says when the sitting's report works through the questions. */
+/** What a file's page calls the sitting's report when it works through the questions and there are no solutions. */
 export const WORKED_LABEL = 'Worked answers in the report';
 
 /** A sitting as one row of the past papers table, the student's zone first. */

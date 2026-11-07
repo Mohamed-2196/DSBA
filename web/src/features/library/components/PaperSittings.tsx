@@ -1,5 +1,5 @@
 // A module's past papers as a table, newest sitting first: one row per sitting with each zone's paper, the examiners'
-// report, the solutions and Time me. On phones a row stacks: the sitting, then its links. Used on the module's Files
+// report (and any separate solutions) and Time me. On phones a row stacks: the sitting, then its links. Used on the module's Files
 // tab (#papers) and as the library's Past papers view for one module. Papers without an exam year follow as "Other
 // papers".
 import type { ReactNode } from 'react';

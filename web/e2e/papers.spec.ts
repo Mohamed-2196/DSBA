@@ -67,6 +67,9 @@ test('a paper sits with its report, Sara times herself, tags a question and find
     // Newest first: on a phone an older sitting may be past the first few.
     const showAll = sittings.getByRole('button', { name: /^Show all \d+ sittings$/ });
     if (await showAll.isVisible()) await showAll.click();
+    // One column for the examiners' report, with any separate solutions in it.
+    await expect(sittings.locator('.pp-table__head')).toContainText('Examiners’ report');
+    await expect(sittings.locator('.pp-table__head')).not.toContainText('Solutions');
     // One row per sitting: each zone's paper, then the sitting's examiners' report, as links named by the sitting.
     const may = sittings.getByRole('listitem', { name: 'May 2024', exact: true });
     await expect(
