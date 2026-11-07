@@ -176,7 +176,7 @@ function ModuleRow({
 }
 
 export default function ModulesPage() {
-  const { year, activeYear, setYear } = useYear();
+  const { year, activeYear, setYear, picks } = useYear();
   const [peek, setPeek] = useQueryParam('year');
   const viewYear = (normalizeYear(peek) ?? activeYear) as CohortYear;
   const peeking = year != null && viewYear !== year;
@@ -186,13 +186,14 @@ export default function ModulesPage() {
   const exams = useExamsByModule();
   useDocumentTitle(`${COHORTS[viewYear].label} modules`);
 
-  // Follow the global year: when it changes in the rail, drop any local peek.
-  const lastYear = useRef(year);
+  // Follow the global year: when it changes, or is chosen again in the rail (your own year while peeking), drop
+  // any local peek.
+  const last = useRef({ year, picks });
   useEffect(() => {
-    if (lastYear.current === year) return;
-    lastYear.current = year;
+    if (last.current.year === year && last.current.picks === picks) return;
+    last.current = { year, picks };
     setPeek(null, { replace: true });
-  }, [year, setPeek]);
+  }, [year, picks, setPeek]);
 
   const rows = useMemo(
     () =>

@@ -19,7 +19,7 @@ export function YearSwitcher({
   className,
   hookId = 'year-switcher',
 }: YearSwitcherProps) {
-  const { year, setYear } = useYear();
+  const { year, activeYear, setYear } = useYear();
   if (compact) {
     return (
       <Menu
@@ -59,7 +59,7 @@ export function YearSwitcher({
         label="Your year"
         className="yr__seg"
         fullWidth
-        value={year}
+        value={activeYear}
         onChange={setYear}
         options={YEARS.map((y) => ({
           value: y,

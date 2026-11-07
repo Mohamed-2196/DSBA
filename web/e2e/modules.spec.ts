@@ -38,6 +38,13 @@ test('Modules has no year control of its own: ?year= shows another year, and a m
 
   await guest.getByRole('button', { name: 'Back to Year 2' }).click();
   await expect(guest.getByRole('list', { name: 'Year 2 modules' })).toBeVisible();
+
+  // Choosing your own year in the one control left also leaves the other year.
+  await guest.goto('/modules?year=3');
+  await expect(guest.getByRole('list', { name: 'Year 3 modules' })).toBeVisible();
+  await guest.getByRole('radiogroup', { name: 'Your year' }).getByRole('radio', { name: 'Year 2' }).click();
+  await expect(guest.getByRole('list', { name: 'Year 2 modules' })).toBeVisible();
+  await expect(guest).toHaveURL(/\/modules$/);
 });
 
 test('the top bar has no upload button, and the footer still does', async ({ guest }) => {

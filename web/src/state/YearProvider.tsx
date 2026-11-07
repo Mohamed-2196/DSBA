@@ -20,6 +20,7 @@ export function YearProvider({ children }: { children?: ReactNode }) {
   const [account, setAccount] = useState<CohortYear | null>(null);
   const [visit, setVisit] = useState<CohortYear | null>(() => readYear(session, VISIT_YEAR_KEY));
   const accountRef = useRef<CohortYear | null>(null);
+  const [picks, setPicks] = useState(0);
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -37,6 +38,7 @@ export function YearProvider({ children }: { children?: ReactNode }) {
   }, [year]);
 
   const setYear = useCallback((next: CohortYear | null) => {
+    setPicks((n) => n + 1);
     const y = normalizeYear(next);
     const own = accountRef.current;
     if (own) {
@@ -67,7 +69,7 @@ export function YearProvider({ children }: { children?: ReactNode }) {
   }, []);
 
   // activeYear: convenience for views that need a concrete year before onboarding (Year 1 until one is chosen).
-  const value = useMemo<YearValue>(() => ({ year, setYear, activeYear: year ?? 1 }), [year, setYear]);
+  const value = useMemo<YearValue>(() => ({ year, setYear, activeYear: year ?? 1, picks }), [year, setYear, picks]);
   return (
     <AccountYearContext.Provider value={syncAccount}>
       <YearContext.Provider value={value}>{children}</YearContext.Provider>

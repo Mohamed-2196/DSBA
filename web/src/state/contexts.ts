@@ -20,6 +20,8 @@ export interface YearValue {
   setYear: (year: CohortYear | null) => void;
   /** year ?? 1, for views that need a concrete year before onboarding. */
   activeYear: CohortYear;
+  /** Counts every setYear call, the same year included: a page previewing another year drops it on each new pick. */
+  picks: number;
 }
 
 export type ToastTone = 'info' | 'success' | 'alert';
