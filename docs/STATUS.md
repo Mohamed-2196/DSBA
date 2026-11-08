@@ -16,6 +16,9 @@ A signed-in student who tracks their progress can tick a chapter as studied ("I'
 of an open chapter in the Lessons tab), however they studied it: the chapter counts as done and its lessons count
 towards the module's progress (their board cards go to Done, and plans skip them), while the lessons' watched marks,
 and so Carry on, stay as they are (`chapters_studied`, `PUT /me/progress/chapters/{id}`).
+Career Navigator was re-checked on 8 November 2026 (sources in `web/src/features/career/SOURCES.md`): migration 0062
+brings a saved document up to the seed, and further study lists courses and scholarships with their dates
+(`furtherStudy.options`), which need re-checking every autumn.
 
 - **Rounds 1 to 4.** The API and the web app for accounts, the forum, the library on S3, the newsletter, the
   calendar, Career Navigator, search, notifications and Manage; roles and feature switches (R-1, R-10), notes,
