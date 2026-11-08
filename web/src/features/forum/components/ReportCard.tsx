@@ -1,6 +1,6 @@
 // One report in the moderators' queue (ReportsQueue.tsx): what was reported, why, by whom (admins only), what the
 // post is now, and Resolve / Dismiss while it is open. A report from the Hub's automatic check (fromHub) names what
-// closing it does instead (lib/hubReports.ts), and a reported picture shows behind a "Show picture" button.
+// closing it does instead (lib/hubReports.ts), and a reported picture shows behind a "Look at the picture" button (for this moderator only).
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { ReportOut } from '../../../api/types';
@@ -75,7 +75,7 @@ function ReportedPicture({ src }: { src: string }) {
         </a>
       ) : (
         <Button size="sm" variant="secondary" leadingIcon={<Icon glyph={glyph.eye} />} onClick={() => setShown(true)}>
-          Show picture
+          Look at the picture
         </Button>
       )}
     </div>

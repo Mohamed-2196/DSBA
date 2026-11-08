@@ -17,7 +17,7 @@ export function hubDecision(report: ReportOut): HubDecision | null {
         label: 'Remove picture',
         hint: 'The picture goes from the post for everyone, its uploader too, and they’re told. The rest of the post stays.',
       },
-      dismiss: { label: 'Show picture', hint: 'Everyone who can read the post sees the picture.' },
+      dismiss: { label: 'Show to everyone', hint: 'Everyone who can read the post sees the picture.' },
     };
   }
   if (report.targetStatus === 'hidden') {

@@ -85,7 +85,7 @@ a.forum-reports__target:hover {
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
-/* A reported picture: covered by its "Show picture" button until the rep chooses to look. */
+/* A reported picture: covered by its "Look at the picture" button until the rep chooses to look. */
 .forum-reports__picture {
   display: flex;
   align-items: center;

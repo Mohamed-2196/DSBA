@@ -28,7 +28,7 @@ describe('reports from the Hub', () => {
 
   it('names what closing it does', () => {
     expect(hubDecision(report({ targetType: 'image' }))?.resolve.label).toBe('Remove picture');
-    expect(hubDecision(report({ targetType: 'image' }))?.dismiss.label).toBe('Show picture');
+    expect(hubDecision(report({ targetType: 'image' }))?.dismiss.label).toBe('Show to everyone');
     expect(hubDecision(report({}))?.resolve.label).toBe('Keep hidden');
     expect(hubDecision(report({ targetStatus: 'visible', reason: 'hub_unchecked' }))?.resolve.label).toBe('Hide it');
     expect(hubDecision(report({ fromHub: false }))).toBeNull();
