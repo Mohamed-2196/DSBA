@@ -52,7 +52,7 @@ export interface SwResponse {
 /**
  * Whether the worker may keep an answer for a built file or a public image: a whole, same-origin, successful one that
  * isn't a page. The server answers a path it has no file for with the app shell (deploy/Caddyfile's try_files, and
- * Vite's dev server), so an HTML answer under /assets/ or /logos/ means the file isn't there yet, and keeping it would
+ * `vite preview`), so an HTML answer under /assets/ or /logos/ means the file isn't there yet, and keeping it would
  * show the shell in place of the file once it ships.
  */
 export function keepable(res: SwResponse): boolean {
@@ -63,7 +63,7 @@ export function keepable(res: SwResponse): boolean {
 
 /** Cache names for one build: the shell is per build, built files and public images are shared between builds. */
 export function cacheNames(version: string) {
-  return { shell: `dsba-shell-${version}`, assets: 'dsba-assets', static: 'dsba-static' } as const;
+  return { shell: `dsba-shell-${version}`, assets: 'dsba-assets-2', static: 'dsba-static-2' } as const;
 }
 
 /** The caches an activating worker deletes: other builds' shells and anything that isn't the hub's. */

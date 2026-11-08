@@ -54,9 +54,13 @@ describe('routeFor', () => {
 
 describe('caches', () => {
   it('drops other builds’ shells and keeps the shared caches and other sites’ caches', () => {
-    const names = ['dsba-shell-old', 'dsba-shell-new', 'dsba-assets', 'dsba-static', 'someone-else'];
+    const names = ['dsba-shell-old', 'dsba-shell-new', 'dsba-assets-2', 'dsba-static-2', 'someone-else'];
     expect(staleCaches(names, 'new')).toEqual(['dsba-shell-old']);
     expect(cacheNames('new').shell).toBe('dsba-shell-new');
+  });
+
+  it('drops shared caches under any other name', () => {
+    expect(staleCaches(['dsba-assets', 'dsba-static'], 'new')).toEqual(['dsba-assets', 'dsba-static']);
   });
 
   it('trims the oldest entries past the limit', () => {
@@ -84,7 +88,7 @@ describe('keepable', () => {
   });
 
   it('never keeps the app shell answered for a file that is not there yet', () => {
-    // Caddy (deploy/Caddyfile, try_files) and Vite answer a missing /logos/... or /assets/... file with index.html.
+    // Caddy (deploy/Caddyfile, try_files) and `vite preview` answer a missing /logos/... or /assets/... file with index.html.
     expect(keepable(answer('text/html; charset=utf-8'))).toBe(false);
     expect(keepable(answer('TEXT/HTML'))).toBe(false);
   });
