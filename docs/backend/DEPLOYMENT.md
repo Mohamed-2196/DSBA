@@ -5,7 +5,7 @@ mail and text workers, and two daily jobs (backup, sweep). Files live in an S3 b
 development uses `compose.yaml` instead.
 
 ```
-browser ──https──▶ web (Caddy: TLS, the built app, /api/* proxied, security headers, 1 MB body cap)
+browser ──https──▶ web (Caddy: TLS, the built app, /api/* and the MCP sign-in's /.well-known/oauth-* proxied, security headers, 1 MB body cap)
    │                  └──▶ api (FastAPI, no published port) ──▶ db (PostgreSQL 17, volume pgdata)
    └──presigned POST/GET──▶ bucket (AWS S3, or MinIO behind HTTPS)
 mail: the email outbox (in db) ──SMTP──▶ your mail relay

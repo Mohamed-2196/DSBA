@@ -95,6 +95,37 @@ After changing the API's request or response shapes, regenerate both contract fi
 After changing the models, add a migration: `cd api && uv run --no-sync alembic revision --autogenerate -m "..."`,
 and read what it generated.
 
+## AI apps (MCP)
+
+An AI app such as Claude can search the Hub and quote its files as a signed-in student, through the Hub's MCP server
+(`api/app/services/ai_apps/`, the official `mcp` Python SDK). The `mcp` switch in Manage, Access turns it on; it is
+stored off, so only admins see it until then.
+
+- **How it fits together.** `AiAppsMiddleware` (`server.py`) sends `/api/mcp` and its OAuth routes past the cookie
+  CSRF check and CORS to the SDK's routes. The OAuth server is the SDK's (dynamic registration, PKCE, refresh,
+  revoke) over the Hub's store (`store.py`: apps, connections, codes and tokens as hashes). `/authorize` sends the
+  student to the web app's `/connect-ai` page, which asks them while they are signed in with the Hub's cookie
+  (`consent.py`, `POST /api/v1/ai-apps/consent`). The five read-only tools (`tools.py`) call the services the site's
+  routers use, so they follow the same visibility rules, and every answer has a `hub_url` back to its page.
+- **The rules.** Without a token `/api/mcp` answers 401 and nothing else. Tokens are scope `hub:read`; access
+  tokens last an hour and refresh tokens 30 days, rotated on use. Removing the app in Your account › AI apps, the
+  switch going off, or a suspended account stops them at once. A student's calls are limited (60 per 10 minutes,
+  500 a day), and only each call's time is kept for that (`ai_app_calls`), never what was asked.
+- **Discovery.** Apps find the sign-in at `/.well-known/oauth-protected-resource/api/mcp` and
+  `/.well-known/oauth-authorization-server/api/mcp`. Vite's dev proxy and the Caddyfile send those two paths to the
+  API as well as `/api`.
+- **Try it locally.** Switch `mcp` on (or sign in as an admin), then run
+  `npx @modelcontextprotocol/inspector` with transport *Streamable HTTP* and the URL `http://localhost:5173/api/mcp`.
+  Its OAuth flow opens `/connect-ai`.
+- **Add it to Claude.** In Settings › Connectors › Add custom connector, paste `https://<the hub>/api/mcp`. Claude
+  signs the student in through `/connect-ai`.
+- **Tests.** `cd api && uv run --no-sync pytest tests/ai_apps -q` drives the whole OAuth flow and every tool
+  in-process; nothing reaches the network.
+- **Known gaps.** The SDK (2.3) has no public handle on the low-level server, so `server.py` reads
+  `MCPServer._lowlevel_server`. Its revocation form requires a `client_secret` field even from a public client, so
+  an app that sends none gets 400 from `/api/mcp/revoke`; removing the app in Your account always works. Apps that
+  register and are never connected are removed after a day, at the next registration.
+
 ## Deploy
 
 Production is one server running Docker Compose (`compose.prod.yaml`: Caddy with TLS in front of the built app and
