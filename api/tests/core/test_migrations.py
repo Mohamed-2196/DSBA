@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import uuid
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from alembic import command
@@ -471,3 +473,85 @@ def test_a_saved_career_document_gets_the_november_recheck_and_keeps_an_editors_
     command.downgrade(cfg, _before(cfg, "0062"))
     with engine.connect() as c:
         assert c.scalar(text("SELECT data->>'checkedOn' FROM content_docs WHERE key = 'career'")) == "8 November 2026"
+
+
+def _career_refresh() -> Callable[[dict[str, Any]], dict[str, Any]]:
+    """0062's refresh(), loaded from its file (migration files aren't a package)."""
+    path = Path(__file__).parents[2] / "migrations" / "versions" / "20261108_0062_career_refresh.py"
+    spec = importlib.util.spec_from_file_location("career_refresh_0062", path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    refresh: Callable[[dict[str, Any]], dict[str, Any]] = module.refresh
+    return refresh
+
+
+def _seed_before_0062() -> dict[str, Any]:
+    """The seed as it was before the re-check: EDB in, the four new employers out, the old notes and further study."""
+    doc: dict[str, Any] = read("career")
+    doc["employers"] = [e for e in doc["employers"] if e["id"] not in {"gulf-air", "iga", "sgb", "bcfc"}]
+    doc["employers"].append(
+        {
+            "id": "bahrain-edb",
+            "name": "Bahrain EDB",
+            "mono": "EDB",
+            "sector": "Public body",
+            "offers": [{"type": "graduate", "name": "Graduate Trainee Programme"}],
+            "tracks": ["business"],
+            "why": "A one-year programme of practical work at the Economic Development Board.",
+            "url": "https://www.bahrainedb.com/about-us/career-opportunities/graduate-trainee-programme",
+            "cta": "programme",
+        }
+    )
+    doc["employersNote"] = (
+        "Every button opens the employer’s own careers or programme page in a new tab. Programmes open and close during the year and each sets its own entry rules, so check the page for current dates. The track tags are our guide to the kind of work, not a list of vacancies. Logos belong to their owners and are shown only to identify each organisation; DSBA Hub is not affiliated with or endorsed by any of them."  # noqa: E501, RUF001
+    )
+    doc["certNote"] = "Fees, exam dates and entry rules change, so check each official page before you plan around one."
+    doc["furtherStudy"] = {
+        "title": "Thinking about an MSc instead?",
+        "body": "Most courses publish a minimum degree class and may ask about your maths and statistics modules. Check the entry rules early, and keep an eye on your projected class.",  # noqa: E501
+        "action": {"to": "/grades", "label": "Open the grade calculator"},
+    }
+    return doc
+
+
+def test_the_november_recheck_keeps_an_edited_document_valid_and_an_editors_own_words() -> None:
+    """0062 on documents an editor changed: a new employer gets only the tracks the document has, EDB stays while the
+    featured card shows its logo, an edited note or further-study text stays, and further study switched off stays
+    off. Each result is a valid document, and running it twice changes nothing."""
+    refresh = _career_refresh()
+    seed = read("career")
+
+    no_quant = _seed_before_0062()
+    no_quant["tracks"] = [t for t in no_quant["tracks"] if t["id"] != "quant"]
+    for e in no_quant["employers"]:
+        e["tracks"] = [t for t in e["tracks"] if t != "quant"]
+    out = refresh(no_quant)
+    CareerDoc.model_validate(out)
+    assert {e["id"]: e["tracks"] for e in out["employers"]}["sgb"] == ["tech"]
+
+    edb_logo = _seed_before_0062()
+    edb_logo["featured"]["logo"] = {"kind": "employer", "id": "bahrain-edb"}
+    out = refresh(edb_logo)
+    CareerDoc.model_validate(out)
+    assert "bahrain-edb" in {e["id"] for e in out["employers"]}
+
+    edited = _seed_before_0062()
+    edited["certNote"] = "An editor's own note."
+    edited["furtherStudy"]["body"] = "An editor's own text."
+    out = refresh(edited)
+    CareerDoc.model_validate(out)
+    assert out["certNote"] == "An editor's own note."
+    assert out["employersNote"] == seed["employersNote"]
+    assert out["furtherStudy"]["body"] == "An editor's own text."
+    assert out["furtherStudy"]["options"] == seed["furtherStudy"]["options"]
+
+    off = _seed_before_0062()
+    off["furtherStudy"] = None
+    assert refresh(off)["furtherStudy"] is None
+
+    plain = refresh(_seed_before_0062())
+    assert plain["furtherStudy"] == seed["furtherStudy"]
+    assert plain["certNote"] == seed["certNote"]
+    assert refresh(plain) == plain

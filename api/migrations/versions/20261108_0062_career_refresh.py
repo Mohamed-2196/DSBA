@@ -36,6 +36,25 @@ depends_on: str | Sequence[str] | None = None
 
 CHECKED_ON = "8 November 2026"
 
+# What the seed had before this re-check: a part still equal to it hasn't been changed by an editor.
+OLD: dict[str, Any] = {
+    "employersNote": (
+        "Every button opens the employer’s own careers or programme page in a new tab. Programmes open and close "
+        "during the year and each sets its own entry rules, so check the page for current dates. The track tags are "
+        "our guide to the kind of work, not a list of vacancies. Logos belong to their owners and are shown only to "
+        "identify each organisation; DSBA Hub is not affiliated with or endorsed by any of them."
+    ),
+    "certNote": "Fees, exam dates and entry rules change, so check each official page before you plan around one.",
+    "furtherStudy": {
+        "title": "Thinking about an MSc instead?",
+        "body": (
+            "Most courses publish a minimum degree class and may ask about your maths and statistics modules. Check "
+            "the entry rules early, and keep an eye on your projected class."
+        ),
+        "action": {"to": "/grades", "label": "Open the grade calculator"},
+    },
+}
+
 EMPLOYERS_NOTE = (
     "Every button opens the employer’s own careers or programme page in a new tab. Programmes open and close during "
     "the year, and many are for Bahraini nationals only, so check each page for dates and entry rules. If you’re "
@@ -220,21 +239,37 @@ FURTHER_STUDY: dict[str, Any] = {
 }
 
 
+def _unless_edited(data: dict[str, Any], key: str, new: Any) -> Any:
+    """The new value, unless an editor changed this part from what the seed had before (then theirs stays)."""
+    return new if key not in data or data[key] == OLD.get(key) else data[key]
+
+
 def refresh(data: dict[str, Any]) -> dict[str, Any]:
-    """The document with the re-check's changes. Safe to run twice: new employers are added only once."""
+    """The document with the re-check's changes. Safe to run twice: new employers are added only once.
+
+    The two notes and the further-study title, text and button change only if an editor hasn't changed them;
+    further study switched off stays off. EDB stays if the featured card uses its logo. A new employer gets only
+    the tracks the document has, so the result stays a valid document.
+    """
     data = dict(data)
     data["checkedOn"] = CHECKED_ON
-    data["employersNote"] = EMPLOYERS_NOTE
-    data["certNote"] = CERT_NOTE
+    data["employersNote"] = _unless_edited(data, "employersNote", EMPLOYERS_NOTE)
+    data["certNote"] = _unless_edited(data, "certNote", CERT_NOTE)
 
-    employers = [dict(e) for e in data.get("employers", []) if e.get("id") not in REMOVED_EMPLOYERS]
+    featured = data.get("featured")
+    logo = featured.get("logo") if isinstance(featured, dict) else None
+    in_use = {logo.get("id")} if isinstance(logo, dict) and logo.get("kind") == "employer" else set()
+    removed = set(REMOVED_EMPLOYERS) - in_use
+    employers = [dict(e) for e in data.get("employers", []) if e.get("id") not in removed]
     for e in employers:
         e.update(EMPLOYER_CHANGES.get(e.get("id", ""), {}))
     have = {e.get("id") for e in employers}
-    employers += [dict(e) for e in NEW_EMPLOYERS if e["id"] not in have]
+    tracks = {t.get("id") for t in data.get("tracks", []) if isinstance(t, dict)}
+    employers += [
+        {**e, "tracks": [t for t in e["tracks"] if t in tracks]} for e in NEW_EMPLOYERS if e["id"] not in have
+    ]
     data["employers"] = employers
 
-    featured = data.get("featured")
     if isinstance(featured, dict) and featured.get("id") == FEATURED_ID:
         data["featured"] = {**featured, **FEATURED_CHANGES}
 
@@ -250,7 +285,11 @@ def refresh(data: dict[str, Any]) -> dict[str, Any]:
         roles.append({**r, "close": close} if texts else r)
     data["roles"] = roles
 
-    data["furtherStudy"] = FURTHER_STUDY
+    study = data.get("furtherStudy", OLD["furtherStudy"])
+    if isinstance(study, dict):
+        before = OLD["furtherStudy"]
+        kept = {k: v for k, v in study.items() if k != "options" and k in before and v != before[k]}
+        data["furtherStudy"] = {**FURTHER_STUDY, **kept}
     return data
 
 
