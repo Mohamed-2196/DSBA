@@ -27,7 +27,6 @@ from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
 
 import anthropic
-from anthropic.types import Message
 from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
@@ -41,7 +40,6 @@ from app.models import (
     ItemStatus,
     LibraryItem,
     LibraryText,
-    NooraUsage,
     PaperTagging,
     TaggingStatus,
     TextStatus,
@@ -168,25 +166,6 @@ def _why_not(db: Session, item: LibraryItem | None, claude: qt.Claude | None) ->
     return None
 
 
-def _charge(db: Session, message: Message, s: Settings) -> int:
-    """What the request cost, counted toward the hub's monthly budget (a row of noora_usage without a person)."""
-    u = message.usage
-    cost = ask.cost_microusd(u, s)
-    db.add(
-        NooraUsage(
-            user_id=None,
-            day=bahrain_today(),
-            questions=0,
-            input_tokens=u.input_tokens,
-            output_tokens=u.output_tokens,
-            cache_read_tokens=u.cache_read_input_tokens or 0,
-            cache_write_tokens=u.cache_creation_input_tokens or 0,
-            cost_microusd=cost,
-        )
-    )
-    return cost
-
-
 def run_one(db: Session, connect: Connect = qt.connect, settings: Settings | None = None) -> bool:
     """Runs the next due job, if any. Whether there was one. Commits as it goes; never raises for one paper's
     trouble."""
@@ -237,7 +216,7 @@ def run_one(db: Session, connect: Connect = qt.connect, settings: Settings | Non
         log.warning("tagging %s (%s): %s", item.title, item.id, job.reason)
         return True
 
-    job.cost_microusd += _charge(db, message, s)
+    job.cost_microusd += ask.record_cost(db, message.usage, s)
     job.model = message.model[:40]
     try:
         tags = qt.tags_from_message(message, paper)

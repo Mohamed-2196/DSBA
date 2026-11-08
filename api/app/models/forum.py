@@ -154,3 +154,46 @@ class ThreadFollow(Base):
     thread_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("forum_threads.id", ondelete="CASCADE"), primary_key=True)
     level: Mapped[str] = mapped_column(String(10))
     created_at: Mapped[datetime] = created_ts()
+
+
+class CheckStatus(enum.StrEnum):
+    queued = "queued"
+    working = "working"
+    done = "done"
+
+
+class CheckVerdict(enum.StrEnum):
+    clear = "clear"  # nothing against the rules: a picture shows
+    flagged = "flagged"  # against a rule (or Claude's safeguards declined to read it): hidden, in Reports
+    unchecked = "unchecked"  # the check failed: a picture stays hidden, a post stays up; either way, in Reports
+
+
+class ContentCheck(Base):
+    """Claude's check of one forum picture, thread or reply (app/services/forum/checks.py), queued when the picture
+    is uploaded or the post is written or edited, and run straight after. One row per target: an edit queues it
+    again. What Claude answered (the category and its short reason) is kept for the moderators; the text and the
+    picture never are."""
+
+    __tablename__ = "content_checks"
+    __table_args__ = (
+        Index("uq_content_checks_target", "target_type", "target_id", unique=True),
+        Index("ix_content_checks_status_queued", "status", "queued_at"),
+        Index("ix_content_checks_finished", "finished_at"),  # today's spend
+        check_in("target_type", ["image", "thread", "reply"]),
+        check_in("status", [s.value for s in CheckStatus]),
+        check_in("verdict", [v.value for v in CheckVerdict]),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    target_type: Mapped[str] = mapped_column(String(10))  # image (an upload), thread or reply
+    target_id: Mapped[uuid.UUID]
+    status: Mapped[str] = mapped_column(String(10), default=CheckStatus.queued.value)
+    verdict: Mapped[str | None] = mapped_column(String(10))
+    category: Mapped[str | None] = mapped_column(String(20))  # checks.CATEGORIES
+    reason: Mapped[str | None] = mapped_column(String(300))  # Claude's short reason, or why it couldn't check
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    model: Mapped[str | None] = mapped_column(String(40))
+    cost_microusd: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    queued_at: Mapped[datetime] = created_ts()
+    started_at: Mapped[datetime | None]
+    finished_at: Mapped[datetime | None]

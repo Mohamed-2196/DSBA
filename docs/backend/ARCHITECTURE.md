@@ -525,3 +525,32 @@ re-chains them at merge.
   confirms an address: staff roles and the admin bootstrap need it, and Google takes over an unconfirmed account
   with its address. A forgotten password: Google, or an admin's one-time reset link (the hub sends no email for it).
 
+- **D20 Claude checks forum pictures and posts** (Mohamed, 2026-11-08; `services/forum/checks.py`, switch
+  `forum.auto-check`, stored off). With the switch on, Claude Haiku 5.5 checks each new forum picture before anyone but
+  its uploader and the moderators sees it, and each thread and reply just after it is posted or edited, so typing
+  never waits. Moderators' own pictures and posts aren't checked. The check runs as a background task in the API
+  right after the request; the mail worker also runs any still due (a run that died is retried, up to 3 times).
+  - **Sent to Anthropic:** the rules (`checks.SYSTEM`), and either the picture (each frame, up to 4 of an animated
+    GIF, shrunk to 1568 pixels a side and re-encoded as JPEG, so its metadata stays behind) or the post's text (a
+    thread's title and body, a reply's body; picture links in it are `/api/v1/media/<upload id>`). Never the
+    author's name, email or account id, the file's name, or the thread's other posts.
+  - **Its answer:** a fixed JSON shape, `{verdict: clear | flag, category, reason}`; categories `sexual`,
+    `violence`, `self_harm`, `harassment`, `personal_data`, `exam_leak`, `other`.
+  - **Stored:** a `content_checks` row per picture, thread or reply: verdict, category, Claude's short reason (300
+    characters at most), the model, the cost and the times. The reason is also the note of the Hub's report. The
+    request's tokens count toward Claude's monthly budget (`noora_usage`, without a person). Neither the picture
+    nor the text is copied anywhere.
+  - **Logged:** the target's type and id, the verdict and the category. Never the text, the picture or the reason.
+  - **Flagged:** a picture stays hidden (`uploads.check_state = 'held'`); a post is hidden (status `hidden`). Either way
+    the author is told in a notification, and a report from the Hub (no reporter, reason `hub_flagged`) goes to
+    Reports. A moderator closing it decides: dismissed shows it again, resolved removes the picture (its uploader
+    is told) or keeps the post hidden. Claude's safeguards declining to read it (stop reason `refusal`) counts as
+    flagged: the decline is itself a sign of what it holds.
+  - **The check fails** (no API key, the daily cap `DSBA_FORUM_CHECK_DAILY_CENTS` or the monthly budget reached, a
+    timeout after `DSBA_FORUM_CHECK_TIMEOUT_SECONDS` and two retries, an API error, an answer cut off or not the
+    JSON, a picture that can't be read): a picture **stays hidden** (fail closed: a picture can't be unseen) and its
+    uploader is told; a post **stays up** (fail open: an outage mustn't hide the forum). Either way the Hub reports
+    it as "couldn't be checked" (`hub_unchecked`), so a moderator looks.
+  - **Privacy notice line:** "Pictures and posts in the forum are checked by an outside service, Anthropic (the
+    maker of Claude), for content against the forum's rules. It sees the picture or the text only, never your name
+    or account."

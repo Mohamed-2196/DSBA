@@ -23,7 +23,8 @@ sign-in: email and password, or Google ──OpenID Connect──▶ accounts.go
 - An SMTP account for notification emails and account notices (any provider's relay).
 - For "Continue with Google": an OAuth client in Google Cloud Console (section 14). Without it students sign in with
   an email address and a password only, and nobody can become an admin through `DSBA_ADMIN_IDENTIFIERS`.
-- An Anthropic API key (`DSBA_ANTHROPIC_API_KEY`) if Mini Noora's AI answers (`noora.ai`) are turned on (section 11).
+- An Anthropic API key (`DSBA_ANTHROPIC_API_KEY`) if Mini Noora's AI answers (`noora.ai`) or the forum's automatic check
+  (`forum.auto-check`) are turned on (section 11). Without it, the check holds every new forum picture for a student rep.
 
 ## 2. Settings
 
@@ -492,6 +493,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_ADMIN_IDENTIFIERS` | none | email addresses that get Admin when they continue with Google while the hub has no active admin |
 | `DSBA_GOOGLE_API_KEY`, `DSBA_GOOGLE_SERVICE_ACCOUNT_FILE` | none | the Drive import only (section 10) |
 | `DSBA_ANTHROPIC_API_KEY`, `DSBA_NOORA_MODEL` | none, `claude-haiku-5-5` | Mini Noora's AI answers (section 11) |
+| `DSBA_FORUM_CHECK_MODEL`, `DSBA_FORUM_CHECK_DAILY_CENTS`, `DSBA_FORUM_CHECK_TIMEOUT_SECONDS` | `claude-haiku-5-5`, 50, 30 | The forum's automatic check (`forum.auto-check`, ARCHITECTURE D20): its model, its daily spending cap in US cents (its cost also counts toward Claude's monthly budget), and how long one request may take |
 | `DSBA_NOORA_EFFORT` | `medium` | how much she thinks before she answers: `low`, `medium` or `high` |
 | `DSBA_NOORA_INPUT_USD_PER_MTOK`, `DSBA_NOORA_OUTPUT_USD_PER_MTOK` | `0.10`, `0.50` | the model's prices, for the estimated cost the monthly budget is checked against |
 | `DSBA_NOORA_LONG_PROMPT_TOKENS`, `DSBA_NOORA_LONG_INPUT_USD_PER_MTOK`, `DSBA_NOORA_LONG_OUTPUT_USD_PER_MTOK` | `100000`, `0.50`, `2.50` | the prices for a prompt over that many tokens |

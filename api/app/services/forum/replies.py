@@ -21,7 +21,7 @@ from app.services.forum.text import media_ids
 from app.services.forum.visibility import REPLY_OPTS, can_see_reply, gone, may_change, moderates, unavailable
 
 
-def _counted(db: Session, r: ForumReply, t: ForumThread, before: PostStatus, after: PostStatus) -> None:
+def recount(db: Session, r: ForumReply, t: ForumThread, before: PostStatus, after: PostStatus) -> None:
     """After a status change: reply_count follows the visible replies, and a reply that stops showing is no longer
     the accepted answer."""
     delta = int(after == PostStatus.visible) - int(before == PostStatus.visible)
@@ -109,7 +109,7 @@ def delete_reply(db: Session, user: User, r: ForumReply, t: ForumThread, ip: str
         done = change(db, r, PostStatus.visible, status=PostStatus.deleted, body="", deleted_at=now)
     if not done:  # already deleted, or another request deleted it first
         return
-    _counted(db, r, t, before, r.status)
+    recount(db, r, t, before, r.status)
     release_images(db, media_ids(old_body))
     notices.forget_reply(db, t, r)
     if not mine:
@@ -129,7 +129,7 @@ def moderate_reply(
         extra: dict[str, Any] = {"deleted_at": r.deleted_at or utcnow()} if before == PostStatus.deleted else {}
         if not change(db, r, before, status=PostStatus.hidden, **extra):
             return
-        _counted(db, r, t, before, PostStatus.hidden)
+        recount(db, r, t, before, PostStatus.hidden)
         audit(db, user, "forum.reply.hide", "reply", r.id, ip, **info, **{"from": before.value}, reason=reason)
         if before == PostStatus.visible:
             notices.forget_reply(db, t, r)
@@ -139,7 +139,7 @@ def moderate_reply(
         extra = {"body": ""} if restored == PostStatus.deleted else {}
         if not change(db, r, PostStatus.hidden, status=restored, **extra):
             return
-        _counted(db, r, t, before, restored)
+        recount(db, r, t, before, restored)
         audit(db, user, "forum.reply.unhide", "reply", r.id, ip, **info, to=restored.value)
     elif status == "visible" and before == PostStatus.deleted:
         raise unavailable(before)

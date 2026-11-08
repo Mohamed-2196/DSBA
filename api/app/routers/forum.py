@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Query, Request, Response, status
+from fastapi import BackgroundTasks, Depends, Query, Request, Response, status
 
 from app.core.access import Box, Feature
 from app.core.errors import invalid, unauthenticated
@@ -37,11 +37,12 @@ from app.schemas.forum import (
     VoteResult,
 )
 from app.services import library, notifications
-from app.services.forum import follows, queries, replies, settings, taxonomy, threads, views, visibility, votes
+from app.services.forum import checks, follows, queries, replies, settings, taxonomy, threads, views, visibility, votes
 
 router = router_for("forum", needs_feature(Feature.forum))
 Poster = Annotated[User, requires(Box.forum_post)]  # start threads, reply, vote
 ForumModerator = Annotated[User, requires(Box.forum_moderate)]
+RunChecks = Annotated[checks.Runner, Depends(checks.runner)]
 
 
 @router.get("/forum/meta", response_model=ForumMeta)
@@ -160,7 +161,9 @@ def hot_threads(
 
 
 @router.post("/forum/threads", response_model=ThreadDetail, status_code=status.HTTP_201_CREATED)
-def create_thread(body: ThreadCreate, request: Request, user: Poster, db: DB) -> ThreadDetail:
+def create_thread(
+    body: ThreadCreate, request: Request, user: Poster, db: DB, background: BackgroundTasks, run_checks: RunChecks
+) -> ThreadDetail:
     """The author upvotes their own thread. Forum images in the body (/api/v1/media/<id>) are attached.
 
     `anonymous` (needs forum.anonymous): students see "A Year N student" in place of the author, everywhere the
@@ -171,6 +174,8 @@ def create_thread(body: ThreadCreate, request: Request, user: Poster, db: DB) ->
     Errors: rate_limited (429) after 10 threads in an hour; feature_off (404) for `anonymous` or `seniorId` while
     their feature is off; invalid_input (422: the senior isn't taking questions)."""
     t = threads.create_thread(db, user, body, client_ip(request))
+    if checks.queue_post(db, "thread", t, user):
+        background.add_task(run_checks)
     db.commit()
     return views.thread_detail(db, t, user)
 
@@ -186,10 +191,21 @@ def get_thread(slug: str, db: DB, user: OptionalUser) -> ThreadDetail:
 
 
 @router.patch("/forum/threads/{thread_id}", response_model=ThreadDetail)
-def update_thread(thread_id: UUID, body: ThreadUpdate, request: Request, user: ActiveUser, db: DB) -> ThreadDetail:
+def update_thread(
+    thread_id: UUID,
+    body: ThreadUpdate,
+    request: Request,
+    user: ActiveUser,
+    db: DB,
+    background: BackgroundTasks,
+    run_checks: RunChecks,
+) -> ThreadDetail:
     """The author (or a moderator) edits the thread; edited_at is set. The slug never changes."""
     t = visibility.thread_for(db, thread_id, user)
+    before = (t.title, t.body)
     threads.update_thread(db, user, t, body, client_ip(request))
+    if (t.title, t.body) != before and checks.queue_post(db, "thread", t, user):
+        background.add_task(run_checks)
     db.commit()
     return views.thread_detail(db, t, user)
 
@@ -270,21 +286,36 @@ def moderate_thread(
 
 
 @router.post("/forum/threads/{thread_id}/replies", response_model=Reply, status_code=status.HTTP_201_CREATED)
-def create_reply(thread_id: UUID, body: ReplyCreate, user: Poster, db: DB) -> Reply:
+def create_reply(
+    thread_id: UUID, body: ReplyCreate, user: Poster, db: DB, background: BackgroundTasks, run_checks: RunChecks
+) -> Reply:
     """Notifies the thread's author (and the parent reply's author), linking to /forum/<slug>#reply-<id>.
 
     Errors: thread_locked (409: locked by a student rep), post_unavailable (409: the thread was deleted or hidden),
     rate_limited (429)."""
     t = visibility.thread_for(db, thread_id, user)
     r = replies.create_reply(db, user, t, body)
+    if checks.queue_post(db, "reply", r, user):
+        background.add_task(run_checks)
     db.commit()
     return views.reply_out(db, r, t, user)
 
 
 @router.patch("/forum/replies/{reply_id}", response_model=Reply)
-def update_reply(reply_id: UUID, body: ReplyUpdate, request: Request, user: ActiveUser, db: DB) -> Reply:
+def update_reply(
+    reply_id: UUID,
+    body: ReplyUpdate,
+    request: Request,
+    user: ActiveUser,
+    db: DB,
+    background: BackgroundTasks,
+    run_checks: RunChecks,
+) -> Reply:
     r, t = visibility.reply_for(db, reply_id, user)
+    before = r.body
     replies.update_reply(db, user, r, t, body.body, client_ip(request))
+    if r.body != before and checks.queue_post(db, "reply", r, user):
+        background.add_task(run_checks)
     db.commit()
     return views.reply_out(db, r, t, user)
 

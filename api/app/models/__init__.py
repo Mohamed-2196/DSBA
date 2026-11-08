@@ -47,6 +47,9 @@ from app.models.daily_content import (
     DailyThemeWeek,
 )
 from app.models.forum import (
+    CheckStatus,
+    CheckVerdict,
+    ContentCheck,
     FollowLevel,
     ForumCategory,
     ForumReply,
@@ -118,6 +121,9 @@ __all__ = [
     "Chapter",
     "ChapterStudied",
     "ChapterTopic",
+    "CheckStatus",
+    "CheckVerdict",
+    "ContentCheck",
     "ContentDoc",
     "DailyGuessWord",
     "DailyItem",

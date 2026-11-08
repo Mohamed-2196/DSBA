@@ -22,6 +22,7 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from app.core.access import Box, Feature
 from app.core.errors import conflict, not_found
+from app.core.links import media_path
 from app.core.time import utcnow
 from app.models import (
     ForumReply,
@@ -34,11 +35,13 @@ from app.models import (
     ReportStatus,
     SharedNote,
     StudentRequest,
+    Upload,
     User,
 )
 from app.schemas.moderation import ReportCreate, ReportOut, ReportPage, ReportResolve
 from app.services import access
 from app.services.accounts import public_user
+from app.services.forum import checks
 from app.services.forum.rules import audit
 from app.services.forum.text import clean_body, excerpt
 from app.services.forum.visibility import REPLY_OPTS, THREAD_OPTS, can_see_reply, can_see_thread, get_thread
@@ -74,6 +77,7 @@ class _Target:
     author_id: uuid.UUID | None
     public: bool  # a guest can see it right now
     named_to_admins_only: bool = False  # shared without a name: only admins see who wrote it
+    image: str | None = None  # a picture's /api/v1/media/<id>
 
 
 def _targets(db: Session, keys: Iterable[tuple[str, uuid.UUID]]) -> dict[tuple[str, uuid.UUID], _Target]:
@@ -103,6 +107,9 @@ def _targets(db: Session, keys: Iterable[tuple[str, uuid.UUID]]) -> dict[tuple[s
             out["reply", r.id] = _Target(
                 t.title, f"/forum/{t.slug}#reply-{r.id}", excerpt(r.body) or None, r.status.value, r.author_id, public
             )
+    if ids.get("image"):
+        for up in db.scalars(select(Upload).where(Upload.id.in_(ids["image"]))):
+            out["image", up.id] = _image_target(db, up)
     if ids.get("library_item"):
         items = db.scalars(
             select(LibraryItem).where(LibraryItem.id.in_(ids["library_item"])).options(defer(LibraryItem.search_vector))
@@ -148,6 +155,28 @@ def _targets(db: Session, keys: Iterable[tuple[str, uuid.UUID]]) -> dict[tuple[s
                 named_to_admins_only=not sn.credited,
             )
     return out
+
+
+_IMAGE_STATUS = {None: "visible", "checking": "hidden", "held": "hidden", "removed": "removed"}
+
+
+def _image_target(db: Session, up: Upload) -> _Target:
+    """A forum picture the Hub reported: the post that shows it (none until it is posted), and its state."""
+    r = db.get(ForumReply, up.reply_id, options=REPLY_OPTS) if up.reply_id else None
+    thread_id = r.thread_id if r is not None else up.thread_id
+    t = db.get(ForumThread, thread_id, options=THREAD_OPTS) if thread_id else None
+    url = None
+    if t is not None:
+        url = f"/forum/{t.slug}#reply-{r.id}" if r is not None else f"/forum/{t.slug}"
+    return _Target(
+        t.title if t is not None else None,
+        url,
+        None,
+        _IMAGE_STATUS.get(up.check_state, "hidden"),
+        up.user_id,
+        up.check_state is None and t is not None and can_see_thread(t, None),
+        image=media_path(up.id),
+    )
 
 
 def _reportable(db: Session, kind: str, target_id: uuid.UUID, user: User) -> bool:
@@ -221,7 +250,7 @@ def _queue(db: Session, user: User) -> list[str]:
     library.manage, requests with requests.manage, each while its feature is on for them."""
     types: list[str] = []
     if access.can(user, Box.forum_moderate) and access.feature_on(db, user, Feature.forum):
-        types += ["thread", "reply"]
+        types += ["thread", "reply", "image"]
     if access.can(user, Box.library_manage) and access.feature_on(db, user, Feature.library):
         types.append("library_item")
     if access.can(user, Box.library_manage) and access.feature_on(db, user, Feature.notes_share):
@@ -262,6 +291,8 @@ def _report_outs(db: Session, reports: Sequence[Report], viewer: User) -> list[R
                     "target_author": public_user(people.get(target.author_id))
                     if target and target.author_id and (show_reporter or not target.named_to_admins_only)
                     else None,
+                    "target_image": target.image if target else None,
+                    "from_hub": checks.from_hub(r),
                     "reason": r.reason,
                     "note": r.note,
                     "status": r.status.value,
@@ -309,6 +340,7 @@ _TARGET_WORDS = {
     "library_item": "the library file",
     "request": "the request",
     "shared_note": "the shared note",
+    "image": "a picture in",
 }
 
 
@@ -337,6 +369,8 @@ def resolve_report(db: Session, user: User, report_id: uuid.UUID, data: ReportRe
         raise conflict("report_closed", "This report was already closed.")
     for key, value in values.items():
         set_committed_value(report, key, value)
+    if checks.from_hub(report):  # closing the Hub's report decides: dismissed shows it, resolved removes it
+        checks.decide(db, user, report, report.status == ReportStatus.dismissed, ip)
     target = _targets(db, [(report.target_type, report.target_id)]).get((report.target_type, report.target_id))
     if report.reporter_id is not None:
         what = _TARGET_WORDS.get(report.target_type, "the post")

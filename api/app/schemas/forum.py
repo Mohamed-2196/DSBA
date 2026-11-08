@@ -142,6 +142,18 @@ class Reply(ApiModel):
     accepted: bool
     is_mine: bool
     can_edit: bool
+    held_by_check: bool  # hidden by the automatic check until a student rep looks (status 'hidden')
+
+
+class HeldImage(ApiModel):
+    """A picture in the thread or its replies that the automatic check holds. Only its uploader and moderators
+    can open it: everyone else sees "Picture being checked" in its place, or that it was removed."""
+
+    id: UUID  # the upload's: /api/v1/media/<id>
+    # checking: Claude hasn't answered yet; held: flagged, or it couldn't be checked, so a student rep will look;
+    # removed: a student rep removed it. Others than its uploader and moderators see 'checking' for both of the first.
+    state: Literal["checking", "held", "removed"]
+    mine: bool  # the viewer uploaded it
 
 
 class ThreadDetail(ThreadSummary):
@@ -153,6 +165,8 @@ class ThreadDetail(ThreadSummary):
     can_accept: bool
     can_moderate: bool
     following: FollowLevel  # the signed-in person's follow ('off' for guests and when following is switched off)
+    held_by_check: bool  # hidden by the automatic check until a student rep looks (status 'hidden')
+    held_images: list[HeldImage]  # pictures in the thread and the replies listed that the automatic check holds
 
 
 class ThreadCreate(ApiModel):

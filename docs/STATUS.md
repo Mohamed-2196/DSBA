@@ -19,6 +19,10 @@ and so Carry on, stay as they are (`chapters_studied`, `PUT /me/progress/chapter
 Career Navigator was re-checked on 8 November 2026 (sources in `web/src/features/career/SOURCES.md`): migration 0062
 brings a saved document up to the seed, and further study lists courses and scholarships with their dates
 (`furtherStudy.options`), which need re-checking every autumn.
+The forum's automatic check (`forum.auto-check`, ARCHITECTURE D20) is built and switched off: with it on, Claude
+checks each new forum picture before others see it ("Picture being checked") and each thread and reply just after it
+is posted; what it flags is hidden and goes to Reports as a report from the Hub, where closing it shows or removes it.
+It needs the Anthropic key, which dev doesn't have, so it stays off there until Mohamed adds one.
 
 A student's first board starts from templates drawn as paper (index-card piles for Study, a stapled checklist, a sticky
 note, a folded blank sheet, a ring-bound weekly planner) with each template's real columns written on it, in the
@@ -397,7 +401,8 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
 ## Waiting on Mohamed
 
 - **Anthropic key:** intentionally absent on Railway dev (Mohamed, 2026-10-24); Noora stays in script mode until
-  he asks to enable AI again.
+  he asks to enable AI again, and the forum's automatic check stays off (without a key it would hold every new
+  forum picture for a rep).
 - **Google sign-in:** an OAuth client in Google Cloud Console and `DSBA_GOOGLE_CLIENT_ID`/`_SECRET` on Railway dev
   (DEPLOYMENT.md section 14). Until then dev signs in with email and password.
 - **Chapters for the outline gaps** listed in round 17, and ST2195 2022 PrelimExam comm (a commentary filed as a

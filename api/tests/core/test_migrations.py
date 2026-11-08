@@ -103,6 +103,7 @@ def test_the_baseline_seeds_what_the_api_needs(scratch: tuple[Config, Engine]) -
             "requests.done": "off",
             "daily": "off",
             "mcp": "off",
+            "forum.auto-check": "off",
         }
         limits = c.execute(text("SELECT id, daily_questions, monthly_budget_cents FROM noora_limits")).tuples()
         assert limits.all() == [(1, 30, 2500)]

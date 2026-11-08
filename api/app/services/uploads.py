@@ -464,7 +464,10 @@ def can_view_image(db: Session, up: Upload, viewer: User | None) -> bool:
     """Whether `viewer` may see the picture: its uploader always, and then by purpose (a bug screenshot: admins; a
     newsletter picture: people who manage the newsletter, and everyone once a published issue shows it; a module's
     art: people who edit modules, and everyone while a module students see shows it; a forum image: see
-    _can_view_forum_image)."""
+    _can_view_forum_image). A forum picture the automatic check holds (`check_state`) is for its uploader and moderators
+    only, and once a moderator removed it, for moderators only."""
+    if up.purpose == UploadPurpose.forum_image and up.check_state is not None and not moderates(viewer):
+        return up.check_state != "removed" and viewer is not None and up.user_id == viewer.id
     if viewer is not None and up.user_id == viewer.id:
         return True
     if up.purpose == UploadPurpose.module_art:

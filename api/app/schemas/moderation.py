@@ -9,8 +9,13 @@ from pydantic import StringConstraints
 from app.schemas.access import RoleSummary
 from app.schemas.common import ApiModel, Page, UserPublic, UserStatus, Year
 
-ReportTarget = Literal["thread", "reply", "library_item", "request", "shared_note"]
-ReportReason = Literal["spam", "harassment", "inappropriate", "copyright", "other"]
+# What a student can report. The Hub's automatic check (app/services/forum/checks.py) also reports forum pictures
+# ('image', its target id the upload's), with a reason of its own.
+StudentTarget = Literal["thread", "reply", "library_item", "request", "shared_note"]
+ReportTarget = Literal[StudentTarget, "image"]
+StudentReason = Literal["spam", "harassment", "inappropriate", "copyright", "other"]
+HubReason = Literal["hub_flagged", "hub_unchecked"]  # flagged by the check, or the check couldn't run
+ReportReason = Literal[StudentReason, HubReason]
 # What the reported thing is now: a forum post's status, a library item's, or a request's.
 TargetStatus = Literal[
     "visible", "hidden", "deleted", "pending", "published", "rejected", "removed", "open", "planned", "done", "declined"
@@ -19,9 +24,9 @@ Note = Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)]
 
 
 class ReportCreate(ApiModel):
-    target_type: ReportTarget
+    target_type: StudentTarget
     target_id: UUID
-    reason: ReportReason
+    reason: StudentReason
     note: Note | None = None
 
 
@@ -36,10 +41,12 @@ class ReportOut(ApiModel):
     target_excerpt: str | None = None  # the reported text as plain text (about 200 characters)
     target_status: TargetStatus | None = None  # None when the target no longer exists
     target_author: UserPublic | None = None  # who wrote or uploaded it
+    target_image: str | None = None  # a reported picture's /api/v1/media/<id> (moderators always see it)
     reason: ReportReason
     note: str | None
     status: Literal["open", "resolved", "dismissed"]
     reporter: UserPublic | None
+    from_hub: bool = False  # sent by the Hub's automatic check, not by a person
     created_at: datetime
     resolved_by: UserPublic | None
     resolved_at: datetime | None

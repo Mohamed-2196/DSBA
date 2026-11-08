@@ -14,13 +14,24 @@ from sqlalchemy import ColumnElement, Row, and_, exists, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.links import MEDIA_PATH
-from app.models import ForumReply, ForumThread, Notification, PostStatus, ReplyVote, ThreadVote, Upload, User
+from app.models import (
+    ForumReply,
+    ForumThread,
+    Notification,
+    PostStatus,
+    ReplyVote,
+    Report,
+    ReportStatus,
+    ThreadVote,
+    Upload,
+    User,
+)
 from app.schemas.forum import Reply, ThreadDetail, ThreadSummary
 from app.services import access
 from app.services.accounts import public_user
 from app.services.forum import follows
 from app.services.forum.taxonomy import thread_year
-from app.services.forum.text import excerpt, pictures
+from app.services.forum.text import excerpt, media_ids, pictures
 from app.services.forum.visibility import REPLY_OPTS, can_read_reply, gone, moderates
 from app.services.uploads import shows_image
 
@@ -127,7 +138,9 @@ def summaries(db: Session, rows: Sequence[Row[Any]], viewer: User | None) -> lis
     ]
 
 
-def reply_dict(r: ForumReply, author: User | None, t: ForumThread, viewer: User | None, voted: bool) -> dict[str, Any]:
+def reply_dict(
+    r: ForumReply, author: User | None, t: ForumThread, viewer: User | None, voted: bool, held: bool = False
+) -> dict[str, Any]:
     mine = viewer is not None and r.author_id == viewer.id
     asker = t.anonymous and r.author_id is not None and r.author_id == t.author_id
     return {
@@ -146,6 +159,7 @@ def reply_dict(r: ForumReply, author: User | None, t: ForumThread, viewer: User 
         "accepted": t.accepted_reply_id == r.id,
         "is_mine": mine,
         "can_edit": _editable(r, mine, moderates(viewer)),
+        "held_by_check": held,
     }
 
 
@@ -154,7 +168,41 @@ def reply_out(db: Session, r: ForumReply, t: ForumThread, viewer: User | None) -
     voted = viewer is not None and bool(
         db.scalar(select(exists().where(ReplyVote.reply_id == r.id, ReplyVote.user_id == viewer.id)))
     )
-    return Reply.model_validate(reply_dict(r, author, t, viewer, voted))
+    held = r.status == PostStatus.hidden and r.id in held_by_check(db, [r.id])
+    return Reply.model_validate(reply_dict(r, author, t, viewer, voted, held))
+
+
+def held_by_check(db: Session, ids: Sequence[uuid.UUID]) -> set[uuid.UUID]:
+    """The threads and replies among these that the automatic check hid: an open report from the Hub flags them."""
+    if not ids:
+        return set()
+    return set(
+        db.scalars(
+            select(Report.target_id).where(
+                Report.target_id.in_(ids),
+                Report.target_type.in_(("thread", "reply")),
+                Report.reporter_id.is_(None),
+                Report.reason == "hub_flagged",
+                Report.status == ReportStatus.open,
+            )
+        )
+    )
+
+
+def held_images(db: Session, bodies: Sequence[str], viewer: User | None) -> list[dict[str, Any]]:
+    """The pictures these bodies show that the automatic check holds, as the viewer may know them: its uploader and
+    moderators see why (checking, held, removed); everyone else sees only that it is being checked, or removed."""
+    ids = {i for body in bodies for i in media_ids(body)}
+    if not ids:
+        return []
+    held = db.scalars(select(Upload).where(Upload.id.in_(ids), Upload.check_state.is_not(None)).order_by(Upload.id))
+    mod = moderates(viewer)
+    out: list[dict[str, Any]] = []
+    for up in held:
+        mine = viewer is not None and up.user_id == viewer.id
+        state = up.check_state if mine or mod or up.check_state == "removed" else "checking"
+        out.append({"id": up.id, "state": state, "mine": mine})
+    return out
 
 
 def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDetail:
@@ -200,6 +248,10 @@ def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDet
                 .where(ReplyVote.user_id == viewer.id, ForumReply.thread_id == t.id)
             )
         )
+    hidden = [r.id for r, _ in rows if r.status == PostStatus.hidden]
+    if t.status == PostStatus.hidden:
+        hidden.append(t.id)
+    held = held_by_check(db, hidden)
     image = first_pictures(db, [t], viewer)[t.id]
     unread = t.id in unread_threads(db, viewer, [t.id])
     data = summary_dict(t, author, thread_year(db, t), voted, viewer, image, unread)
@@ -207,10 +259,12 @@ def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDet
         body=_text(t),
         edited_at=t.edited_at,
         accepted_reply_id=t.accepted_reply_id,
-        replies=[reply_dict(r, a, t, viewer, r.id in my_votes) for r, a in rows],
+        replies=[reply_dict(r, a, t, viewer, r.id in my_votes, r.id in held) for r, a in rows],
         can_edit=_editable(t, mine, mod),
         can_accept=(mine or mod) and t.status == PostStatus.visible,
         can_moderate=mod,
         following=follows.level_of(db, t, viewer),
+        held_by_check=t.id in held,
+        held_images=held_images(db, [_text(t), *(r.body for r, _ in rows)], viewer),
     )
     return ThreadDetail.model_validate(data)

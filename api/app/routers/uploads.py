@@ -5,15 +5,16 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Request, status
+from fastapi import BackgroundTasks, Depends, Request, status
 from fastapi.responses import RedirectResponse
 
 from app.core.security import DB, ActiveUser, OptionalUser, client_ip, requires_admin
-from app.models import UploadPurpose, User
+from app.models import Upload, UploadPurpose, UploadStatus, User
 from app.routers._base import router_for
 from app.schemas.uploads import PresignedUpload, UploadCreate, UploadLimitsIn, UploadLimitsOut, UploadOut
 from app.services import upload_budget
 from app.services import uploads as svc
+from app.services.forum import checks
 
 router = router_for("uploads")
 Admin = Annotated[User, requires_admin()]
@@ -49,14 +50,28 @@ def create_upload(body: UploadCreate, user: ActiveUser, db: DB) -> PresignedUplo
 
 
 @router.post("/uploads/{upload_id}/complete", response_model=UploadOut)
-def complete_upload(upload_id: UUID, user: ActiveUser, db: DB) -> UploadOut:
+def complete_upload(
+    upload_id: UUID,
+    user: ActiveUser,
+    db: DB,
+    background: BackgroundTasks,
+    run_checks: Annotated[checks.Runner, Depends(checks.runner)],
+) -> UploadOut:
     """Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and
-    first bytes match the file's name.
+    first bytes match the file's name. With forum.auto-check on, a forum picture is then held for Claude's check
+    ('checking': only its uploader and moderators see it), which runs straight after this response.
 
     Errors: not_uploaded (409), mismatch (422; the object is deleted), feature_off (404: the upload's feature was
     switched off since it started)."""
+    before = db.get(Upload, upload_id)
+    pending = before is not None and before.status == UploadStatus.pending
     out = svc.complete_upload(db, user, upload_id)
+    up = db.get(Upload, upload_id)
+    # only the call that completed it: a second call returns the stored result and queues nothing
+    queued = pending and up is not None and up.status == UploadStatus.uploaded and checks.queue_image(db, up, user)
     db.commit()
+    if queued:
+        background.add_task(run_checks)
     return out
 
 

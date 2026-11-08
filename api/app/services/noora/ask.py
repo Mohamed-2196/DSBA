@@ -207,6 +207,26 @@ def cost_microusd(u: Usage, s: Settings) -> int:
     return math.ceil(total)
 
 
+def record_cost(db: Session, u: Usage, s: Settings) -> int:
+    """Counts a request made for the hub rather than a student (tagging a paper, checking a forum post) toward the
+    monthly budget: a row of noora_usage without a person or questions, which Noora's numbers leave out. Returns its
+    cost in micro-dollars. The caller commits."""
+    cost = cost_microusd(u, s)
+    db.add(
+        NooraUsage(
+            user_id=None,
+            day=bahrain_today(),
+            questions=0,
+            input_tokens=u.input_tokens,
+            output_tokens=u.output_tokens,
+            cache_read_tokens=u.cache_read_input_tokens or 0,
+            cache_write_tokens=u.cache_creation_input_tokens or 0,
+            cost_microusd=cost,
+        )
+    )
+    return cost
+
+
 def estimate_microusd(system: list[TextBlockParam], messages: list[MessageParam], max_tokens: int, s: Settings) -> int:
     """The most an answer can cost: the prompt at the full input price (no cache discount), and a whole answer (its
     thinking included). The prompt's tokens are counted cautiously (_tokens()). A count can still fall short of the

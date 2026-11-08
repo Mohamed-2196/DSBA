@@ -181,6 +181,13 @@ class Settings(BaseSettings):
     noora_max_answer_tokens: int = Field(default=8000, ge=1000, le=32000)
     noora_answers_at_once: int = Field(default=8, ge=1, le=100)  # answers streaming hub-wide (one per student)
 
+    # The forum's automatic check (the forum.auto-check switch, app/services/forum/checks.py): Claude reads each new
+    # forum picture before others see it, and each thread and reply after it is posted. Its cost counts toward the
+    # monthly budget above, and the check also stops for the day at forum_check_daily_cents (US cents, Bahrain day).
+    forum_check_model: str = "claude-haiku-5-5"
+    forum_check_daily_cents: int = Field(default=50, ge=0)
+    forum_check_timeout_seconds: float = Field(default=30.0, gt=0, le=300)
+
     # The commit this API runs (`commit`), which /health reports so a deploy can be checked against the push that made
     # it: DSBA_COMMIT_SHA, else the RAILWAY_GIT_COMMIT_SHA Railway sets for a deploy from GitHub. Anything but a
     # commit hash reads as unknown.

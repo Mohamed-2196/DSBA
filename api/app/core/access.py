@@ -56,6 +56,7 @@ class Feature(enum.StrEnum):
     forum_help_below = "forum.help-below"  # Home's unanswered questions from the years below: nothing in the API
     forum_anonymous = "forum.anonymous"  # posting a thread without your name
     forum_follow = "forum.follow"  # following a thread
+    forum_auto_check = "forum.auto-check"  # Claude checks new forum pictures and posts (services/forum/checks.py)
     library = "library"
     library_uploads = "library.uploads"  # uploads only: the library stays readable
     library_questions = "library.questions"  # past papers' questions tagged with chapters
@@ -176,6 +177,12 @@ FEATURES: dict[Feature, FeatureInfo] = {
         "Posting without a name", "The option to start a thread without your name. Threads posted so far stay unnamed."
     ),
     Feature.forum_follow: FeatureInfo("Following threads", "Following threads, and the notifications it sends."),
+    Feature.forum_auto_check: FeatureInfo(
+        "Check forum posts with Claude",
+        "Claude checks each new forum picture before others see it, and each thread and reply just after it is posted. "
+        "What it flags is hidden and goes to Reports. Needs DSBA_ANTHROPIC_API_KEY: without it, every new picture "
+        "waits in Reports. On for any role counts as on.",
+    ),
     Feature.library: FeatureInfo("Library", "Every file and link in the library, and uploads to it."),
     Feature.library_uploads: FeatureInfo("Library uploads", "Uploading to the library. It stays readable."),
     Feature.library_questions: FeatureInfo(

@@ -384,6 +384,10 @@ class Upload(Base):
     )
     bug_report_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("bug_reports.id", ondelete="SET NULL"))
     card_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("board_cards.id", ondelete="SET NULL"))
+    # A forum picture held by the automatic check (app/services/forum/checks.py): 'checking' until Claude answers,
+    # 'held' when it was flagged or couldn't be checked (a moderator decides in Reports), 'removed' when a moderator
+    # removed it. None: shown as usual. Held, only its uploader and moderators see it; removed, only moderators.
+    check_state: Mapped[str | None] = mapped_column(String(10))
 
 
 DEFAULT_HUB_MB_PER_DAY = 20 * 1024  # 20 GB

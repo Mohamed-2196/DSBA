@@ -34,6 +34,7 @@ FeatureKey = Literal[
     "forum.help-below",
     "forum.anonymous",
     "forum.follow",
+    "forum.auto-check",
     "library",
     "library.uploads",
     "library.questions",

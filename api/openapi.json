@@ -4027,6 +4027,7 @@
                 "forum.help-below",
                 "forum.anonymous",
                 "forum.follow",
+                "forum.auto-check",
                 "library",
                 "library.uploads",
                 "library.questions",
@@ -8222,7 +8223,7 @@
           "uploads"
         ],
         "summary": "Complete Upload",
-        "description": "Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and\nfirst bytes match the file's name.\n\nErrors: not_uploaded (409), mismatch (422; the object is deleted), feature_off (404: the upload's feature was\nswitched off since it started).",
+        "description": "Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and\nfirst bytes match the file's name. With forum.auto-check on, a forum picture is then held for Claude's check\n('checking': only its uploader and moderators see it), which runs straight after this response.\n\nErrors: not_uploaded (409), mismatch (422; the object is deleted), feature_off (404: the upload's feature was\nswitched off since it started).",
         "operationId": "complete_upload_api_v1_uploads__upload_id__complete_post",
         "parameters": [
           {
@@ -38935,7 +38936,8 @@
               "reply",
               "library_item",
               "request",
-              "shared_note"
+              "shared_note",
+              "image"
             ],
             "title": "Targettype"
           },
@@ -38951,7 +38953,9 @@
               "harassment",
               "inappropriate",
               "copyright",
-              "other"
+              "other",
+              "hub_flagged",
+              "hub_unchecked"
             ],
             "title": "Reason"
           },
@@ -39551,6 +39555,7 @@
               "forum.help-below",
               "forum.anonymous",
               "forum.follow",
+              "forum.auto-check",
               "library",
               "library.uploads",
               "library.questions",
@@ -39651,6 +39656,7 @@
                 "forum.help-below",
                 "forum.anonymous",
                 "forum.follow",
+                "forum.auto-check",
                 "library",
                 "library.uploads",
                 "library.questions",
@@ -41485,6 +41491,36 @@
           "commit"
         ],
         "title": "Health"
+      },
+      "HeldImage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "checking",
+              "held",
+              "removed"
+            ],
+            "title": "State"
+          },
+          "mine": {
+            "type": "boolean",
+            "title": "Mine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "state",
+          "mine"
+        ],
+        "title": "HeldImage",
+        "description": "A picture in the thread or its replies that the automatic check holds. Only its uploader and moderators\ncan open it: everyone else sees \"Picture being checked\" in its place, or that it was removed."
       },
       "HideRequest": {
         "properties": {
@@ -44039,6 +44075,7 @@
                 "forum.help-below",
                 "forum.anonymous",
                 "forum.follow",
+                "forum.auto-check",
                 "library",
                 "library.uploads",
                 "library.questions",
@@ -47157,6 +47194,7 @@
                   "forum.help-below",
                   "forum.anonymous",
                   "forum.follow",
+                  "forum.auto-check",
                   "library",
                   "library.uploads",
                   "library.questions",
@@ -49803,6 +49841,10 @@
           "canEdit": {
             "type": "boolean",
             "title": "Canedit"
+          },
+          "heldByCheck": {
+            "type": "boolean",
+            "title": "Heldbycheck"
           }
         },
         "type": "object",
@@ -49821,7 +49863,8 @@
           "status",
           "accepted",
           "isMine",
-          "canEdit"
+          "canEdit",
+          "heldByCheck"
         ],
         "title": "Reply"
       },
@@ -49960,7 +50003,8 @@
               "reply",
               "library_item",
               "request",
-              "shared_note"
+              "shared_note",
+              "image"
             ],
             "title": "Targettype"
           },
@@ -50036,6 +50080,17 @@
               }
             ]
           },
+          "targetImage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Targetimage"
+          },
           "reason": {
             "type": "string",
             "enum": [
@@ -50043,7 +50098,9 @@
               "harassment",
               "inappropriate",
               "copyright",
-              "other"
+              "other",
+              "hub_flagged",
+              "hub_unchecked"
             ],
             "title": "Reason"
           },
@@ -50076,6 +50133,11 @@
                 "type": "null"
               }
             ]
+          },
+          "fromHub": {
+            "type": "boolean",
+            "title": "Fromhub",
+            "default": false
           },
           "createdAt": {
             "type": "string",
@@ -53767,6 +53829,17 @@
               "off"
             ],
             "title": "Following"
+          },
+          "heldByCheck": {
+            "type": "boolean",
+            "title": "Heldbycheck"
+          },
+          "heldImages": {
+            "items": {
+              "$ref": "#/components/schemas/HeldImage"
+            },
+            "type": "array",
+            "title": "Heldimages"
           }
         },
         "type": "object",
@@ -53801,7 +53874,9 @@
           "canEdit",
           "canAccept",
           "canModerate",
-          "following"
+          "following",
+          "heldByCheck",
+          "heldImages"
         ],
         "title": "ThreadDetail"
       },

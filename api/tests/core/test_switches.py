@@ -128,6 +128,7 @@ OFF_AT_FIRST = (
     "modules.time-stamps",
     "library.autotag",
     "mcp",
+    "forum.auto-check",
 )
 
 # Features that live inside another one, whose routes need it on too.
