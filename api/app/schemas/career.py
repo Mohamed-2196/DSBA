@@ -230,10 +230,20 @@ class FurtherStudyAction(ApiModel):
     label: Short
 
 
+class FurtherStudyOption(ApiModel):
+    """A course or scholarship worth applying to after DSBA, with its date. Dates change every year: re-check them."""
+
+    name: Name
+    note: Text  # who it's for and what it pays
+    when: Short | None = None  # its deadline or window ('Closes 3 Jan 2027'); None when none is published
+    url: HttpsUrl  # its official page
+
+
 class FurtherStudy(ApiModel):
     title: Name
     body: Text
     action: FurtherStudyAction
+    options: list[FurtherStudyOption] = Field(default=[], max_length=12)
 
 
 def _unique(items: Iterable[str], what: str) -> None:

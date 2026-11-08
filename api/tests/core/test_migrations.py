@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 from collections.abc import Iterator
 from pathlib import Path
@@ -14,6 +15,8 @@ from sqlalchemy import Connection, Engine, create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError
 
+from app.schemas.career import CareerDoc
+from app.seed.loader import read
 from tests.conftest import ADMIN_URL
 
 API_ROOT = Path(__file__).resolve().parents[2]
@@ -411,3 +414,60 @@ def test_boards_made_from_the_revision_template_become_study_boards_and_keep_the
     command.downgrade(cfg, before)
     with engine.begin() as c:
         c.execute(text("UPDATE boards SET template = 'revision' WHERE id = :board"), ids)
+
+
+def test_a_saved_career_document_gets_the_november_recheck_and_keeps_an_editors_own_changes(
+    scratch: tuple[Config, Engine],
+) -> None:
+    """0062 removes Bahrain EDB, adds the four new employers once, fixes the changed entries and the CFA card, and
+    lists further study, on a document saved before it; an editor's change to an entry it doesn't touch stays, and the
+    version goes up. The result is a valid document."""
+    cfg, engine = scratch
+    command.upgrade(cfg, _before(cfg, "0062"))
+    old = read("career")
+    old["checkedOn"] = "2 October 2026"
+    old["employers"] = [e for e in old["employers"] if e["id"] not in {"gulf-air", "iga", "sgb", "bcfc"}]
+    old["employers"].insert(
+        14,
+        {
+            "id": "bahrain-edb",
+            "name": "Bahrain EDB",
+            "mono": "EDB",
+            "sector": "Public body",
+            "offers": [{"type": "graduate", "name": "Graduate Trainee Programme"}],
+            "tracks": ["business"],
+            "why": "A one-year programme of practical work at the Economic Development Board.",
+            "url": "https://www.bahrainedb.com/about-us/career-opportunities/graduate-trainee-programme",
+            "cta": "programme",
+        },
+    )
+    old["employers"][0]["why"] = "An editor's own words."
+    del old["furtherStudy"]["options"]
+    with engine.begin() as c:
+        c.execute(
+            text("INSERT INTO content_docs (key, data, version) VALUES ('career', CAST(:data AS jsonb), 3)"),
+            {"data": json.dumps(old)},
+        )
+    command.upgrade(cfg, "0062")
+    with engine.connect() as c:
+        data, version = c.execute(text("SELECT data, version FROM content_docs WHERE key = 'career'")).one()
+    doc = CareerDoc.model_validate(data)
+    ids = [e.id for e in doc.employers]
+    assert "bahrain-edb" not in ids
+    assert ids[-4:] == ["gulf-air", "iga", "sgb", "bcfc"]
+    assert len(ids) == len(set(ids))
+    assert doc.checked_on == "8 November 2026"
+    assert doc.employers[0].why == "An editor's own words."
+    by_id = {e.id: e for e in doc.employers}
+    assert str(by_id["sico"].url) == "https://sicobank.com/internship"
+    assert "BIBF" not in by_id["cbb"].why
+    assert doc.featured is not None
+    assert "taking participants" not in doc.featured.badge
+    google = next(x for x in doc.certs if x.id == "google-da")
+    assert str(google.url).startswith("https://www.coursera.org/")
+    assert doc.further_study is not None
+    assert len(doc.further_study.options) == 6
+    assert version == 4
+    command.downgrade(cfg, _before(cfg, "0062"))
+    with engine.connect() as c:
+        assert c.scalar(text("SELECT data->>'checkedOn' FROM content_docs WHERE key = 'career'")) == "8 November 2026"

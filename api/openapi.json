@@ -39817,6 +39817,15 @@
           },
           "action": {
             "$ref": "#/components/schemas/FurtherStudyAction"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/FurtherStudyOption"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Options",
+            "default": []
           }
         },
         "type": "object",
@@ -39848,6 +39857,49 @@
           "label"
         ],
         "title": "FurtherStudyAction"
+      },
+      "FurtherStudyOption": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Note"
+          },
+          "when": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "When"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "note",
+          "url"
+        ],
+        "title": "FurtherStudyOption",
+        "description": "A course or scholarship worth applying to after DSBA, with its date. Dates change every year: re-check them."
       },
       "GameCounts": {
         "properties": {

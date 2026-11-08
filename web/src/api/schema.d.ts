@@ -8021,6 +8021,11 @@ export interface components {
             /** Body */
             body: string;
             action: components["schemas"]["FurtherStudyAction"];
+            /**
+             * Options
+             * @default []
+             */
+            options: components["schemas"]["FurtherStudyOption"][];
         };
         /** FurtherStudyAction */
         FurtherStudyAction: {
@@ -8028,6 +8033,20 @@ export interface components {
             to: string;
             /** Label */
             label: string;
+        };
+        /**
+         * FurtherStudyOption
+         * @description A course or scholarship worth applying to after DSBA, with its date. Dates change every year: re-check them.
+         */
+        FurtherStudyOption: {
+            /** Name */
+            name: string;
+            /** Note */
+            note: string;
+            /** When */
+            when?: string | null;
+            /** Url */
+            url: string;
         };
         /**
          * GameCounts
@@ -13390,6 +13409,7 @@ export type FoundGroup = components['schemas']['FoundGroup'];
 export type FoundItem = components['schemas']['FoundItem'];
 export type FurtherStudy = components['schemas']['FurtherStudy'];
 export type FurtherStudyAction = components['schemas']['FurtherStudyAction'];
+export type FurtherStudyOption = components['schemas']['FurtherStudyOption'];
 export type GameCounts = components['schemas']['GameCounts'];
 export type GameDay = components['schemas']['GameDay'];
 export type GameInfo = components['schemas']['GameInfo'];

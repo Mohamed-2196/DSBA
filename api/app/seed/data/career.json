@@ -1,7 +1,7 @@
 {
   "intro": "Graduate programmes, internships and careers pages at employers in Bahrain.",
-  "employersNote": "Every button opens the employer’s own careers or programme page in a new tab. Programmes open and close during the year and each sets its own entry rules, so check the page for current dates. The track tags are our guide to the kind of work, not a list of vacancies. Logos belong to their owners and are shown only to identify each organisation; DSBA Hub is not affiliated with or endorsed by any of them.",
-  "checkedOn": "2 October 2026",
+  "employersNote": "Every button opens the employer’s own careers or programme page in a new tab. Programmes open and close during the year, and many are for Bahraini nationals only, so check each page for dates and entry rules. If you’re Bahraini, Tamkeen’s National Employment Program can pay part of a new graduate’s salary for up to five years; the employer applies for it. The track tags are our guide to the kind of work, not a list of vacancies. Logos belong to their owners and are shown only to identify each organisation; DSBA Hub is not affiliated with or endorsed by any of them.",
+  "checkedOn": "8 November 2026",
   "initialCount": 12,
   "tracks": [
     {
@@ -167,7 +167,7 @@
         "quant",
         "markets"
       ],
-      "why": "Six months of work across the central bank’s directorates, with training sessions delivered by BIBF.",
+      "why": "Six months of work across the central bank’s directorates, with projects, workshops and field visits.",
       "url": "https://www.cbb.gov.bh/careers/",
       "cta": "roles"
     },
@@ -207,7 +207,7 @@
       ],
       "why": "A one-year programme with job rotations across core services, fintech, technology and support functions.",
       "url": "https://careers.stc.com.bh/jeelICT",
-      "cta": "apply"
+      "cta": "programme"
     },
     {
       "id": "mumtalakat",
@@ -236,13 +236,17 @@
         {
           "type": "graduate",
           "name": "Information and Digital Technology Graduate Trainee Program"
+        },
+        {
+          "type": "internship",
+          "name": "Empower Internship Program"
         }
       ],
       "tracks": [
         "tech",
         "data"
       ],
-      "why": "A one-year programme built on on-the-job learning in the energy group’s information and digital technology teams.",
+      "why": "A one-year programme built on on-the-job learning in the energy group’s information and digital technology teams. Empower is an eight-week summer internship matched to your major.",
       "url": "https://www.bapcoenergies.com/information-technology-digital-graduate-trainee-program",
       "cta": "apply"
     },
@@ -266,8 +270,8 @@
         "quant"
       ],
       "why": "Summer interns see asset management, brokerage, treasury and research. New graduates get six months of training.",
-      "url": "https://www.sicobank.com/en/internships",
-      "cta": "apply"
+      "url": "https://sicobank.com/internship",
+      "cta": "programme"
     },
     {
       "id": "kpmg",
@@ -309,7 +313,7 @@
       ],
       "why": "Six months of hands-on experience across the stock exchange and Bahrain Clear. Emerging Talents is its two-month graduate training.",
       "url": "https://bahrainbourse.com/en/Investors/InvestorAwareness/capital-market",
-      "cta": "apply"
+      "cta": "programme"
     },
     {
       "id": "benefit",
@@ -337,16 +341,15 @@
       "sector": "Bank",
       "offers": [
         {
-          "type": "internship",
-          "name": "Internship Program, GIB Bahrain"
+          "type": "careers"
         }
       ],
       "tracks": [
         "markets",
         "quant"
       ],
-      "why": "GIB posts its Bahrain internship on its own careers site, next to its open roles.",
-      "url": "https://www.gib.com/en/careers-home-page",
+      "why": "GIB has run a Bahrain internship for new graduates in past years (2022, 2024 and 2025). Check its job search for the next one.",
+      "url": "https://www.gib.com/en/careers-home-page.html",
       "cta": "roles"
     },
     {
@@ -367,24 +370,6 @@
       "why": "Tadarab is its internship for undergraduates and graduates, with client work and training. Deloitte has an office in Bahrain Bay.",
       "url": "https://www.deloitte.com/middle-east/en/careers/explore-your-fit/students/internship-program.html",
       "cta": "apply"
-    },
-    {
-      "id": "bahrain-edb",
-      "name": "Bahrain EDB",
-      "mono": "EDB",
-      "sector": "Public body",
-      "offers": [
-        {
-          "type": "graduate",
-          "name": "Graduate Trainee Programme"
-        }
-      ],
-      "tracks": [
-        "business"
-      ],
-      "why": "A one-year programme of practical work at the Economic Development Board, Bahrain’s investment promotion agency.",
-      "url": "https://www.bahrainedb.com/about-us/career-opportunities/graduate-trainee-programme",
-      "cta": "programme"
     },
     {
       "id": "batelco",
@@ -412,14 +397,15 @@
       "sector": "Audit & consulting",
       "offers": [
         {
-          "type": "careers"
+          "type": "graduate",
+          "name": "Consulting Graduate Program"
         }
       ],
       "tracks": [
         "consulting",
         "data"
       ],
-      "why": "Student programmes and entry-level roles go through EY’s early careers board. This link opens its Bahrain careers page.",
+      "why": "EY’s early careers board lists a Consulting Graduate Program and an audit graduate opening in Manama, both for recent graduates who are nationals.",
       "url": "https://www.ey.com/en_bh/careers",
       "cta": "roles"
     },
@@ -494,7 +480,7 @@
         "business"
       ],
       "why": "A long-running summer programme: an induction week, then on-the-job placements across the bank’s departments.",
-      "url": "https://www.alsalambank.com/en/careers/",
+      "url": "https://www.alsalambank.com/about/careers/",
       "cta": "apply"
     },
     {
@@ -588,6 +574,81 @@
       "why": "On-the-job training places university students in operational and support functions at Bahrain’s aluminium smelter.",
       "url": "https://www.albasmelter.com/en/category/careers",
       "cta": "roles"
+    },
+    {
+      "id": "gulf-air",
+      "name": "Gulf Air",
+      "mono": "GF",
+      "sector": "Airline",
+      "offers": [
+        {
+          "type": "internship"
+        }
+      ],
+      "tracks": [
+        "business",
+        "tech"
+      ],
+      "why": "A two-month summer internship for university students, run with Bahrain Airport Company and counted towards graduation. 135 students took part in 2026.",
+      "url": "https://www.gulfair.com/careers",
+      "cta": "roles"
+    },
+    {
+      "id": "iga",
+      "name": "Information & eGovernment Authority",
+      "mono": "iGA",
+      "sector": "Public body",
+      "offers": [
+        {
+          "type": "graduate",
+          "name": "Technical Development Program"
+        }
+      ],
+      "tracks": [
+        "tech",
+        "data"
+      ],
+      "why": "A paid year of on-the-job training in the government’s digital teams for Bahraini graduates in IT, computer science or a related field.",
+      "url": "https://www.iga.gov.bh/en/category/the-technical-development-program",
+      "cta": "programme"
+    },
+    {
+      "id": "sgb",
+      "name": "Singapore Gulf Bank",
+      "mono": "SGB",
+      "sector": "Bank",
+      "offers": [
+        {
+          "type": "graduate",
+          "name": "Graduate Internship Programme"
+        }
+      ],
+      "tracks": [
+        "quant",
+        "tech"
+      ],
+      "why": "Three months for Bahraini graduates across banking and finance, digital finance, operations, business development and risk at a digital bank in Bahrain.",
+      "url": "https://www.sgb.com/insights/2026-internship-programme",
+      "cta": "programme"
+    },
+    {
+      "id": "bcfc",
+      "name": "Bahrain Commercial Facilities Company",
+      "mono": "BCFC",
+      "sector": "Finance",
+      "offers": [
+        {
+          "type": "internship",
+          "name": "Bidaya"
+        }
+      ],
+      "tracks": [
+        "quant",
+        "business"
+      ],
+      "why": "Bidaya is a two-month summer programme for university students and recent graduates, rotating across the departments of a consumer finance company.",
+      "url": "https://www.bcfc.bh/en/about-bcfc/careers/",
+      "cta": "roles"
     }
   ],
   "featured": {
@@ -600,9 +661,9 @@
       "kind": "cert",
       "id": "cfa"
     },
-    "badge": "BIBF is taking participants",
+    "badge": "This season’s teams are set",
     "blurb": "Teams of students research a listed company, write an equity research report and present it to judges.",
-    "note": "Ask the programme office how to join.",
+    "note": "Teams for the 2026–27 season formed in October. Ask the programme office about joining next season.",
     "url": "https://www.cfainstitute.org/insights/events/research-challenge"
   },
   "effortLabel": {
@@ -610,7 +671,7 @@
     "2": "Medium",
     "3": "Heavy"
   },
-  "certNote": "Fees, exam dates and entry rules change, so check each official page before you plan around one.",
+  "certNote": "Fees, exam dates and entry rules change, so check each official page before you plan around one. Bahraini job seekers can get some of these paid for by Tamkeen’s Tamakkan programme: CFA, FRM and AWS Cloud Practitioner are on its approved list.",
   "certs": [
     {
       "id": "cfa",
@@ -698,7 +759,7 @@
       "short": "Google Data Analytics",
       "issuer": "Google",
       "mono": "GDA",
-      "url": "https://grow.google/certificates/data-analytics/",
+      "url": "https://www.coursera.org/professional-certificates/google-data-analytics",
       "goodFor": "A guided first step into data analysis, made for beginners. It covers spreadsheets, SQL, Python and Tableau.",
       "effort": 2,
       "effortNote": "A few months part-time, at your own pace.",
@@ -929,7 +990,7 @@
       "close": {
         "presenting": {
           "kind": "opps",
-          "text": "Join the CFA Institute Research Challenge and present to a panel."
+          "text": "Enter the CFA Institute Research Challenge next season and present to a panel."
         }
       }
     },
@@ -1462,11 +1523,49 @@
   ],
   "furtherStudy": {
     "title": "Thinking about an MSc instead?",
-    "body": "Most courses publish a minimum degree class and may ask about your maths and statistics modules. Check the entry rules early, and keep an eye on your projected class.",
+    "body": "Most courses publish a minimum degree class and may ask about your maths and statistics modules. Check the entry rules early, and keep an eye on your projected class. These courses and scholarships take applications for 2027. Chevening scholarships aren’t open to Bahraini citizens.",
     "action": {
       "to": "/grades",
       "label": "Open the grade calculator"
-    }
+    },
+    "options": [
+      {
+        "name": "Gates Cambridge Scholarship",
+        "note": "The full cost of a Cambridge master’s or PhD, for applicants from outside the UK.",
+        "when": "8 Dec 2026 or 6 Jan 2027, by course",
+        "url": "https://www.gatescambridge.org/apply/timeline/"
+      },
+      {
+        "name": "MBZUAI master’s, Abu Dhabi",
+        "note": "AI master’s degrees, including Statistics and Data Science. Funding may be offered, not promised.",
+        "when": "Closes 15 Dec 2026",
+        "url": "https://mbzuai.ac.ae/study/graduate-admission-process/"
+      },
+      {
+        "name": "KAUST MS, Saudi Arabia",
+        "note": "Most admitted students get the KAUST Fellowship: tuition, a stipend and housing.",
+        "when": "Closes 3 Jan 2027 (tentative)",
+        "url": "https://admissions.kaust.edu.sa/how-to-apply/admission-timelines"
+      },
+      {
+        "name": "Erasmus Mundus: CoDaS",
+        "note": "A two-year master’s in communications engineering and data science across two European countries, with EU scholarships for top applicants. Other Erasmus Mundus courses set their own dates.",
+        "when": "1 Dec 2026 to 5 Jan 2027",
+        "url": "https://codas.dice.aalto.fi/admission.html"
+      },
+      {
+        "name": "HBKU MSc Data Science and Engineering, Qatar",
+        "note": "For graduates in computer science, engineering, maths or a related field, with a GPA of 3.0 or more.",
+        "when": "Closes 1 Feb 2027 for international applicants",
+        "url": "https://www.hbku.edu.qa/en/graduate-admissions"
+      },
+      {
+        "name": "AlMabarrah AlKhalifia Foundation postgraduate scholarship",
+        "note": "For outstanding Bahrainis aged 23 and over, towards a master’s or PhD at a leading international university.",
+        "when": null,
+        "url": "https://mkfbh.org/"
+      }
+    ]
   },
   "yearHints": {
     "1": "Counting Year 1 modules only. Programming starts in Year 2, so a head start on SQL and Git pays off.",

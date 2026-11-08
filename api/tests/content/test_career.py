@@ -345,6 +345,9 @@ def test_career_links_must_be_safe(client_for: Clients, admin: User, modules: di
     d["furtherStudy"]["action"]["to"] = "//evil.example/signin"
     assert fields(c.put(CAREER, json=save(d, 0))) == {"data.furtherStudy.action.to": LINK_RULE}
     d = doc()
+    d["furtherStudy"]["options"][0]["url"] = "http://example.com/apply"
+    assert fields(c.put(CAREER, json=save(d, 0))) == {"data.furtherStudy.options.0.url": HTTPS_RULE}
+    d = doc()
     d["checklist"][0]["link"] = {"kind": "forum", "to": "javascript:alert(1)", "label": "Ask"}
     assert fields(c.put(CAREER, json=save(d, 0))) == {"data.checklist.0.link.forum.to": LINK_RULE}
     assert c.put(CAREER, json=save(doc(), 0)).status_code == 200  # the real document passes
@@ -362,3 +365,25 @@ def test_the_document_has_a_size_limit(client_for: Clients, admin: User, modules
 def test_the_seeded_document_uses_every_part(key: str) -> None:
     """The schema is made from what the page shows: the seed file fills every list the page reads."""
     assert read("career")[key]
+
+
+def test_further_study_lists_courses_with_their_dates(
+    client_for: Clients, admin: User, modules: dict[str, Module]
+) -> None:
+    """Each course or scholarship has a name, a line, an official https:// page and, if it has one, its date; a
+    document without the list reads back with an empty one."""
+    c = client_for(admin)
+    seeded = read("career")["furtherStudy"]["options"]
+    assert seeded
+    assert all(o["url"].startswith("https://") for o in seeded)
+    assert any(o["when"] is None for o in seeded)  # a scholarship with no date yet still goes on the list
+    d = doc()
+    del d["furtherStudy"]["options"]
+    assert c.put(CAREER, json=save(d, 0)).status_code == 200
+    assert client_for().get(CAREER).json()["data"]["furtherStudy"]["options"] == []
+    d = doc()
+    d["furtherStudy"]["options"][0]["when"] = "x" * 61
+    assert set(fields(c.put(CAREER, json=save(d, 1)))) == {"data.furtherStudy.options.0.when"}
+    d = doc()
+    d["furtherStudy"]["options"] = [copy.deepcopy(seeded[0]) for _ in range(13)]
+    assert set(fields(c.put(CAREER, json=save(d, 1)))) == {"data.furtherStudy.options"}
