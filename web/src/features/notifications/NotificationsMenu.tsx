@@ -1,8 +1,10 @@
 // Bell + dropdown in the top bar: the signed-in person's notifications from the API (hidden for guests).
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
 import type { NotificationOut } from '../../api/types';
 import { useAuth } from '../../auth';
+import { setAppBadge } from '../../lib/push';
 import { useToast } from '../../state';
 import {
   Button,
@@ -114,12 +116,18 @@ export function NotificationsMenu() {
   const markRead = useMarkRead();
   const markAll = useMarkAllRead();
   const { push } = useToast();
+  const pages = query.data?.pages ?? [];
+  const unread = pages[0]?.unreadCount ?? 0;
+  const loaded = query.data !== undefined;
+
+  // The app icon's badge follows the unread count while the app is open (where the browser has badges).
+  useEffect(() => {
+    if (signedIn && loaded) setAppBadge(unread);
+  }, [signedIn, loaded, unread]);
 
   if (!signedIn) return null;
 
-  const pages = query.data?.pages ?? [];
   const items = pages.flatMap((p) => p.items);
-  const unread = pages[0]?.unreadCount ?? 0;
 
   const read = (n: NotificationOut) => {
     if (!n.readAt) markRead.mutate(n.id);

@@ -7,8 +7,9 @@
 //   applyUpdate()         hands over to the waiting build; the page reloads when it takes charge
 //   useInstall()          { canPrompt, installed, prompt }: "Install the app" where the browser offers it (Chrome,
 //                         Edge, Android); iPhone and iPad have no prompt, so pages explain Share, Add to Home Screen.
-//   installWay()          how this device installs the app: the browser's prompt, or the steps for an iPhone or
-//                         Android; null where it is installed or can't be (shell/InstallApp.tsx offers it)
+//   installWay()          how this device installs the app: the browser's prompt, or the steps for an iPhone,
+//                         Android or Safari on a Mac; null where it is installed or can't be
+//                         (shell/useInstallOffer.ts offers it)
 import { useSyncExternalStore } from 'react';
 
 /** The event Chrome and Edge fire when the app can be installed (not in TypeScript's DOM types). */
@@ -146,12 +147,20 @@ export function useInstall(): InstallState {
   return { canPrompt, installed, prompt: promptInstall };
 }
 
-export type InstallWay = 'prompt' | 'iphone' | 'android';
+export type InstallWay = 'prompt' | 'iphone' | 'android' | 'mac';
+
+/** Safari's version on a Mac (not Chrome, Edge, Opera or Firefox, which say "Safari" too or nothing), else null. */
+function macSafariVersion(userAgent: string): number | null {
+  if (!/Macintosh/.test(userAgent) || /Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS/.test(userAgent)) return null;
+  const m = /Version\/(\d+)(?:\.\d+)*.*Safari\//.exec(userAgent);
+  return m ? Number(m[1]) : null;
+}
 
 /**
  * How this device installs the app: the browser's own prompt when it offers one, else the steps for an iPhone or
- * iPad (Safari has no prompt) or for Android; null when it is installed already or the browser can't install it
- * (desktop Firefox and Safari).
+ * iPad (Safari has no prompt), for Android, or for Safari 17 or later on a Mac (File, Add to Dock, from macOS
+ * Sonoma 14; the user agent doesn't say which macOS, so the steps name it); null when it is installed already or the
+ * browser can't install it (desktop Firefox, older Safari).
  */
 export function installWay({
   canPrompt,
@@ -169,5 +178,6 @@ export function installWay({
   // iPadOS reports itself as a Mac; its touch screen gives it away.
   if (/iPhone|iPad|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && touchPoints > 1)) return 'iphone';
   if (/Android/.test(userAgent)) return 'android';
+  if ((macSafariVersion(userAgent) ?? 0) >= 17) return 'mac';
   return null;
 }

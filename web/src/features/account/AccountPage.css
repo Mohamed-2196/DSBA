@@ -127,6 +127,33 @@
   gap: var(--sp-16);
 }
 
+/* Notifications on this device */
+.acct-push__steps {
+  display: grid;
+  gap: var(--sp-8);
+}
+.acct-push__lead {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--fs-15);
+  font-weight: var(--fw-medium);
+}
+.acct-push__list {
+  display: grid;
+  gap: var(--sp-8);
+  margin: 0;
+  padding-left: 1.4em;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  line-height: var(--lh-sans);
+}
+.acct-push__blocked {
+  margin-top: 0;
+}
+.acct-push__heading {
+  margin-top: var(--sp-8);
+}
+
 /* Data */
 .acct-data {
   display: grid;

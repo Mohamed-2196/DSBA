@@ -1,4 +1,5 @@
-// /account: profile, sign-in methods, emails, signed-in devices, AI apps, data export and account deletion.
+// /account: profile, sign-in methods, emails, notifications on this device, signed-in devices, AI apps, data
+// export and account deletion.
 import { useEffect, useState, type FormEvent } from 'react';
 import { ApiError, errorMessage, placeFieldErrors, unplacedMessage } from '../../api/errors';
 import type { Me, SessionInfo } from '../../api/types';
@@ -31,6 +32,7 @@ import { downloadAccountData, useRevokeSessions, useSessions, useUpdateMe } from
 import { ConnectedApps } from '../aiapps/public';
 import { SeniorListing } from '../career/public';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
+import { DevicePush } from './DevicePush';
 import { describeDevice } from './device';
 import { PasswordDialog } from './PasswordDialog';
 import { useTracking } from '../modules/public';
@@ -589,6 +591,17 @@ export default function AccountPage() {
         />
         <EmailPreferences me={me} />
       </PageSection>
+
+      {featureOn('push') ? (
+        <PageSection aria-labelledby="acct-push">
+          <SectionHeader
+            id="acct-push"
+            title="Notifications on your devices"
+            description="On your phone or computer, even when the Hub is closed. Off until you turn it on here."
+          />
+          <DevicePush me={me} />
+        </PageSection>
+      ) : null}
 
       <PageSection aria-labelledby="acct-devices">
         <Sessions />

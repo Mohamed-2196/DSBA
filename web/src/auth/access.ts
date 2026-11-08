@@ -57,6 +57,7 @@ export const FEATURE_KEYS = [
   'modules.time-stamps',
   'daily',
   'mcp',
+  'push',
 ] as const satisfies readonly Feature[];
 
 /** The boxes that open a manager's tool, in the order Manage shows them. */

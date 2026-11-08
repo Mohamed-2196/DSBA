@@ -13,6 +13,13 @@ const prefs: Me['preferences'] = {
   emailNewIssues: true,
   emailDateChanges: true,
   emailWeeklySummary: false,
+  pushReplies: true,
+  pushFollowed: false,
+  pushAnswerAccepted: false,
+  pushUploadReviews: false,
+  pushNewIssues: false,
+  pushDateChanges: false,
+  pushReminders: false,
   trackProgress: false,
   homeBlocks: ['todo'],
 };

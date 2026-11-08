@@ -5,6 +5,11 @@
 //
 // A new build installs beside the running one and waits; the page offers "Reload" (shell/UpdatePrompt.tsx), which
 // sends SKIP_WAITING, and the page reloads once the new worker is in charge.
+//
+// Push (notifications on this device; the API sends them, app/services/push.py): a push shows its notification and
+// sets the app icon's badge to the unread count where the browser has one; a tap opens its page, in a Hub window
+// already open when there is one.
+import { parsePush, pickWindow } from './push';
 import { CACHE_LIMITS, cacheNames, keepable, overflow, parseManifest, routeFor, staleCaches } from './routes';
 
 interface ExtendableEvent extends Event {
@@ -17,12 +22,31 @@ interface FetchEvent extends ExtendableEvent {
 interface ExtendableMessageEvent extends ExtendableEvent {
   readonly data: unknown;
 }
+interface PushEvent extends ExtendableEvent {
+  readonly data: { text(): string } | null;
+}
+interface NotificationEvent extends ExtendableEvent {
+  readonly notification: Notification;
+}
+interface WindowClient {
+  readonly url: string;
+  focus(): Promise<WindowClient>;
+  navigate(url: string): Promise<WindowClient | null>;
+}
 interface WorkerScope {
   readonly location: Location;
+  readonly registration: ServiceWorkerRegistration;
+  readonly navigator: Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
+  readonly clients: {
+    matchAll(options: { type: 'window'; includeUncontrolled: boolean }): Promise<readonly WindowClient[]>;
+    openWindow(url: string): Promise<WindowClient | null>;
+  };
   skipWaiting(): Promise<void>;
   addEventListener(type: 'install' | 'activate', listener: (event: ExtendableEvent) => void): void;
   addEventListener(type: 'fetch', listener: (event: FetchEvent) => void): void;
   addEventListener(type: 'message', listener: (event: ExtendableMessageEvent) => void): void;
+  addEventListener(type: 'push', listener: (event: PushEvent) => void): void;
+  addEventListener(type: 'notificationclick', listener: (event: NotificationEvent) => void): void;
 }
 declare const self: WorkerScope;
 
@@ -115,4 +139,64 @@ self.addEventListener('fetch', (event) => {
   else if (route === 'asset') event.respondWith(asset(request));
   else if (route === 'static') event.respondWith(staticFile(request, event));
   // 'network': no respondWith, so the browser handles the request exactly as it would without a worker.
+});
+
+/** The app icon's badge: the unread count, or none; nothing where the browser has no badges. */
+async function setBadge(count: number | null): Promise<void> {
+  const nav = self.navigator;
+  if (count === null) return;
+  try {
+    if (count > 0) await nav.setAppBadge?.(count);
+    else await nav.clearAppBadge?.();
+  } catch {
+    // badges are a nicety: a browser that refuses them still shows the notification
+  }
+}
+
+async function showPush(data: string | null): Promise<void> {
+  const message = parsePush(data);
+  // Safari ends the subscription of a site that gets a push and shows nothing, so something always shows.
+  const shown = message ?? {
+    title: 'DSBA Hub',
+    body: 'You have a new notification.',
+    url: '/',
+    tag: 'hub',
+    badge: null,
+  };
+  await Promise.all([
+    self.registration.showNotification(shown.title, {
+      body: shown.body ?? undefined,
+      tag: shown.tag,
+      icon: '/icons/icon-192.png',
+      data: { url: shown.url },
+    }),
+    setBadge(shown.badge),
+  ]);
+}
+
+async function openPage(path: string): Promise<void> {
+  const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  const pick = pickWindow(windows, path, self.location.origin);
+  if (!pick) {
+    await self.clients.openWindow(path);
+    return;
+  }
+  const focused = await pick.window.focus();
+  if (pick.navigate) await focused.navigate(new URL(path, self.location.origin).href).catch(() => undefined);
+}
+
+self.addEventListener('push', (event) => {
+  let data: string | null = null;
+  try {
+    data = event.data?.text() ?? null;
+  } catch {
+    data = null;
+  }
+  event.waitUntil(showPush(data));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data as { url?: unknown } | null)?.url;
+  event.waitUntil(openPage(typeof url === 'string' ? url : '/'));
 });

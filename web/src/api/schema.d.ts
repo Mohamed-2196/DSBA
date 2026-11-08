@@ -553,6 +553,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/push/key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Key
+         * @description The key a browser subscribes with. 404 feature_off when the hub has no VAPID key.
+         */
+        get: operations["key_api_v1_push_key_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/push/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Subscribe
+         * @description This browser gets the signed-in person's pushes until they turn it off or this session ends. Sending it again
+         *     is harmless (the web app does on every start, so the session it is tied to stays the current one).
+         */
+        post: operations["subscribe_api_v1_push_subscriptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/push/subscriptions/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unsubscribe
+         * @description This browser gets no more pushes. 204 whether or not it had any (in the body, not the path: an endpoint is a
+         *     browser's address and stays out of logs).
+         */
+        post: operations["unsubscribe_api_v1_push_subscriptions_remove_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/stats": {
         parameters: {
             query?: never;
@@ -7869,7 +7931,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp";
+            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push";
             /** Label */
             label: string;
             /** Hides */
@@ -7895,7 +7957,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push")[];
         };
         /** FileLink */
         FileLink: {
@@ -9293,7 +9355,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push")[];
             /**
              * Status
              * @enum {string}
@@ -10426,7 +10488,7 @@ export interface components {
             /** Label */
             label: string;
             /** Feature */
-            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp") | null;
+            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push") | null;
         };
         /** Page[ItemOut] */
         Page_ItemOut_: {
@@ -10925,6 +10987,41 @@ export interface components {
             /** Emailweeklysummary */
             emailWeeklySummary: boolean;
             /**
+             * Pushreplies
+             * @default true
+             */
+            pushReplies: boolean;
+            /**
+             * Pushfollowed
+             * @default false
+             */
+            pushFollowed: boolean;
+            /**
+             * Pushansweraccepted
+             * @default false
+             */
+            pushAnswerAccepted: boolean;
+            /**
+             * Pushuploadreviews
+             * @default false
+             */
+            pushUploadReviews: boolean;
+            /**
+             * Pushnewissues
+             * @default false
+             */
+            pushNewIssues: boolean;
+            /**
+             * Pushdatechanges
+             * @default false
+             */
+            pushDateChanges: boolean;
+            /**
+             * Pushreminders
+             * @default false
+             */
+            pushReminders: boolean;
+            /**
              * Trackprogress
              * @default false
              */
@@ -10955,6 +11052,20 @@ export interface components {
             emailDateChanges?: boolean | null;
             /** Emailweeklysummary */
             emailWeeklySummary?: boolean | null;
+            /** Pushreplies */
+            pushReplies?: boolean | null;
+            /** Pushfollowed */
+            pushFollowed?: boolean | null;
+            /** Pushansweraccepted */
+            pushAnswerAccepted?: boolean | null;
+            /** Pushuploadreviews */
+            pushUploadReviews?: boolean | null;
+            /** Pushnewissues */
+            pushNewIssues?: boolean | null;
+            /** Pushdatechanges */
+            pushDateChanges?: boolean | null;
+            /** Pushreminders */
+            pushReminders?: boolean | null;
             /** Trackprogress */
             trackProgress?: boolean | null;
             /** Homeblocks */
@@ -11151,6 +11262,32 @@ export interface components {
             };
             /** Emailed */
             emailed: boolean;
+        };
+        /** PushEndpointIn */
+        PushEndpointIn: {
+            /** Endpoint */
+            endpoint: string;
+        };
+        /** PushKeyOut */
+        PushKeyOut: {
+            /** Publickey */
+            publicKey: string;
+        };
+        /** PushKeys */
+        PushKeys: {
+            /** P256Dh */
+            p256dh: string;
+            /** Auth */
+            auth: string;
+        };
+        /**
+         * PushSubscriptionIn
+         * @description A browser's PushSubscription, as its toJSON() gives it (expirationTime is ignored).
+         */
+        PushSubscriptionIn: {
+            /** Endpoint */
+            endpoint: string;
+            keys: components["schemas"]["PushKeys"];
         };
         /** QuestionMark */
         QuestionMark: {
@@ -13735,6 +13872,10 @@ export type PreviewWord = components['schemas']['PreviewWord'];
 export type Progress = components['schemas']['Progress'];
 export type ProgressImport = components['schemas']['ProgressImport'];
 export type PublishedIssue = components['schemas']['PublishedIssue'];
+export type PushEndpointIn = components['schemas']['PushEndpointIn'];
+export type PushKeyOut = components['schemas']['PushKeyOut'];
+export type PushKeys = components['schemas']['PushKeys'];
+export type PushSubscriptionIn = components['schemas']['PushSubscriptionIn'];
 export type QuestionMark = components['schemas']['QuestionMark'];
 export type QuestionMarkSave = components['schemas']['QuestionMarkSave'];
 export type QuestionThreads = components['schemas']['QuestionThreads'];
@@ -16181,6 +16322,259 @@ export interface operations {
             };
         };
     };
+    key_api_v1_push_key_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushKeyOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    subscribe_api_v1_push_subscriptions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushSubscriptionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    unsubscribe_api_v1_push_subscriptions_remove_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushEndpointIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     stats_api_v1_admin_stats_get: {
         parameters: {
             query?: never;
@@ -17218,7 +17612,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp";
+                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push";
             };
             cookie?: never;
         };
