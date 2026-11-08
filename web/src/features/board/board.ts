@@ -53,14 +53,6 @@ export const TEMPLATES: readonly TemplateInfo[] = [
     color: 'coral',
   },
   {
-    id: 'weekly',
-    name: 'Weekly planner',
-    blurb: 'A column for each day of the week.',
-    columns: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Done'],
-    suggested: 'This week',
-    color: 'teal',
-  },
-  {
     id: 'personal',
     name: 'Personal',
     blurb: 'Errands and everything outside study.',
@@ -76,7 +68,36 @@ export const TEMPLATES: readonly TemplateInfo[] = [
     suggested: 'My board',
     color: 'slate',
   },
+  {
+    id: 'weekly',
+    name: 'Weekly planner',
+    blurb: 'A column for each day of the week.',
+    columns: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Done'],
+    suggested: 'This week',
+    color: 'teal',
+  },
 ];
+
+/** One column as the start screen draws it on the template's paper. */
+export interface PaperColumn {
+  name: string;
+  /** what's written on the paper: the weekly planner has room for one letter a day */
+  label: string;
+  /** the last column, drawn with the done tick */
+  done: boolean;
+  /** a weekly planner day drawn with a small block of work, only to show a day can hold some */
+  marked: boolean;
+}
+
+const MARKED_DAYS = new Set(['Monday', 'Wednesday', 'Thursday', 'Sunday']);
+
+export function paperColumns(t: TemplateInfo): PaperColumn[] {
+  return t.columns.map((name, i) => {
+    const done = i === t.columns.length - 1;
+    const day = t.id === 'weekly' && !done;
+    return { name, label: day ? name.charAt(0) : name, done, marked: day && MARKED_DAYS.has(name) };
+  });
+}
 
 /** The template's own name, or "Study 2", "Study 3"… when a board already has it (case aside). */
 export function startName(suggested: string, taken: readonly string[]): string {

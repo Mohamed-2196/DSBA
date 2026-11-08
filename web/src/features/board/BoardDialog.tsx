@@ -97,12 +97,15 @@ export function BoardDialog({ board, taken, onClose, onCreated }: BoardDialogPro
                     onChange={() => pick(t.id)}
                     data-autofocus={template === t.id ? true : undefined}
                   />
-                  <span className="board-dialog__template-name">
-                    {t.name}
-                    {template === t.id ? <Icon glyph={glyph.success} /> : null}
-                  </span>
-                  <span className="board-dialog__template-cols">
-                    {t.id === 'weekly' ? 'Monday to Sunday, Done' : t.columns.join(', ')}
+                  <span className="board-dialog__paper" data-t={t.id} aria-hidden="true" />
+                  <span className="board-dialog__template-text">
+                    <span className="board-dialog__template-name">
+                      {t.name}
+                      {template === t.id ? <Icon glyph={glyph.success} /> : null}
+                    </span>
+                    <span className="board-dialog__template-cols">
+                      {t.id === 'weekly' ? 'Monday to Sunday, Done' : t.columns.join(', ')}
+                    </span>
                   </span>
                 </label>
               ))}

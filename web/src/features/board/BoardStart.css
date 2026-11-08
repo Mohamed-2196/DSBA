@@ -16,71 +16,52 @@
   color: var(--ink-2);
   font-size: var(--fs-15);
 }
+/* Each template is drawn as the paper you'd use for that job, its name and sentence under it, no card box: a desk.
+   Five across once they fit, 3 + 2 on laptops and tablets, one per row on phones (the paper beside its words). */
 .board-start__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--sp-12);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--sp-16);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-/* 3 and 2 on laptops and tablets, all 5 in a row once they fit */
-@media (min-width: 520px) {
-  .board-start__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.board-start__item {
+  display: flex;
+  grid-column: span 2;
 }
-@media (min-width: 700px) {
-  .board-start__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.board-start__item[data-t='blank'],
+.board-start__item[data-t='weekly'] {
+  grid-column: span 3;
 }
-@media (min-width: 1360px) {
+@media (min-width: 1361px) {
   .board-start__grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-}
-.board-start__grid > li {
-  display: flex;
+  .board-start__item,
+  .board-start__item[data-t='blank'],
+  .board-start__item[data-t='weekly'] {
+    grid-column: auto;
+  }
 }
 .board-start__option {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--sp-10);
+  gap: var(--sp-12);
   width: 100%;
-  padding: var(--sp-16) var(--sp-16) var(--sp-16) var(--sp-20);
-  position: relative;
-  overflow: hidden;
-  border: 1.5px solid var(--line);
-  border-radius: var(--r-card);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-card); /* for the focus ring */
+  background: none;
   color: var(--ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition:
-    border-color var(--dur-fast) var(--ease),
-    box-shadow var(--dur-fast) var(--ease),
-    transform var(--dur-fast) var(--ease);
 }
 .board-start__option:focus-visible {
   outline: var(--focus-width) solid var(--focus-color);
   outline-offset: var(--focus-offset);
-}
-/* the template's colour runs down the card's edge, like a tab on an index card */
-.board-start__option::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 5px;
-  background: var(--tpl, var(--accent));
-}
-.board-start__option:hover:not(:disabled) {
-  border-color: var(--line-strong);
-  box-shadow: var(--shadow-float);
-  transform: translateY(-1px);
 }
 .board-start__option:disabled {
   cursor: progress;
@@ -89,58 +70,306 @@
 .board-start__option.is-starting {
   opacity: 1;
 }
-.board-start__head {
+/* suspended: nothing is starting, nothing can */
+.board-start__grid[data-read-only] .board-start__option {
+  cursor: not-allowed;
+}
+
+/* every paper's foot sits on the same line, so the row reads as one desk */
+.board-start__stage {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 160px;
+  padding-inline: var(--sp-4);
+}
+.board-start__paper {
+  position: relative;
+  display: block;
+  border-radius: 3px;
+  background: var(--raised);
+  box-shadow:
+    0 0 0 1px var(--line-strong),
+    var(--shadow-card);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  transition: translate var(--dur-fast) var(--ease);
+}
+.board-start__tick {
+  flex: none;
+  --icon-tint: var(--sec-modules-tint);
+}
+
+/* Study: three piles of index cards, the column written on the top one */
+.board-start__paper--study {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-4);
+  width: 100%;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.board-start__pile {
+  position: relative;
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 92px;
+}
+.board-start__pile > i,
+.board-start__pile-name {
+  position: absolute;
+  inset: auto 0 0;
+  height: 84px;
+}
+.board-start__pile > i {
+  border-radius: 4px;
+  background: var(--raised);
+  box-shadow:
+    0 0 0 1px var(--line-strong),
+    var(--shadow-card);
+}
+.board-start__pile > i:nth-child(1),
+.board-start__pile[data-n='1'] .board-start__pile-name {
+  transform: rotate(-2deg);
+}
+.board-start__pile > i:nth-child(2),
+.board-start__pile[data-n='2'] .board-start__pile-name {
+  transform: rotate(3deg) translateY(-4px);
+}
+.board-start__pile > i:nth-child(3),
+.board-start__pile[data-n='3'] .board-start__pile-name {
+  transform: rotate(-1deg) translateY(-8px);
+}
+.board-start__pile-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
+  gap: 2px;
+  padding: var(--sp-8) var(--sp-6);
+  line-height: 1.25;
+}
+.board-start__pile.is-done .board-start__pile-name {
+  color: var(--success);
+}
+
+/* Assignment: a stapled sheet, its stages as a checklist */
+.board-start__paper--assignment {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  width: 112px;
+  height: 146px;
+  padding: var(--sp-20) var(--sp-10) var(--sp-10);
+  transform: rotate(-1.5deg);
+}
+.board-start__staple {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  width: 15px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ink-3);
+  transform: rotate(-38deg);
+}
+.board-start__line {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  white-space: nowrap;
+}
+.board-start__box {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1.5px var(--control-border);
+}
+.board-start__paper--assignment .board-start__line.is-done {
+  margin-left: -1px;
+  color: var(--success);
+}
+
+/* Personal: a sticky note; all its text is ink, since green on the note fails contrast */
+.board-start__paper--personal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  width: 126px;
+  height: 134px;
+  padding: var(--sp-20) var(--sp-12) var(--sp-10);
+  border-radius: 0 0 14px;
+  background: var(--sec-home-tint);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  transform: rotate(1.5deg);
+}
+.board-start__paper--personal .board-start__line {
+  gap: var(--sp-4);
+}
+.board-start__tape {
+  position: absolute;
+  top: -6px;
+  left: calc(50% - 20px);
+  width: 40px;
+  height: 14px;
+  background: color-mix(in srgb, var(--raised) 75%, transparent);
+}
+
+/* Blank: a clean sheet folded down the middle */
+.board-start__paper--blank {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 122px;
+  height: 146px;
+}
+.board-start__half {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--sp-10) var(--sp-6);
+  white-space: nowrap;
+}
+.board-start__half + .board-start__half {
+  border-left: 1.5px dashed var(--line-strong);
+}
+.board-start__half.is-done {
+  color: var(--success);
+}
+
+/* Weekly planner: a ring-bound desk planner, a letter a day (the full names are in the hidden columns text) */
+.board-start__paper--weekly {
+  width: 100%;
+  max-width: 190px;
+  height: 118px;
+  padding: var(--sp-14) var(--sp-6) var(--sp-6);
+  border-radius: 6px;
+}
+.board-start__rings {
+  position: absolute;
+  top: -5px;
+  right: 10px;
+  left: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+.board-start__rings > i {
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--ink-3);
+}
+.board-start__days {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  height: 100%;
+}
+.board-start__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-6);
+  padding-top: var(--sp-4);
+  font-weight: var(--fw-bold);
+}
+.board-start__day + .board-start__day {
+  box-shadow: inset 1px 0 0 var(--line);
+}
+.board-start__day > i {
+  display: block;
+  width: 15px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--sec-home-tint);
+}
+
+.board-start__cap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.board-start__name {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-8);
-}
-.board-start__name {
   font-family: var(--font-display);
   font-size: var(--fs-18);
   font-weight: var(--fw-display);
   letter-spacing: var(--tracking-head);
-}
-.board-start__go {
-  flex: none;
-  color: var(--ink-2);
-  transition:
-    color var(--dur-fast) var(--ease),
-    transform var(--dur-fast) var(--ease);
-}
-.board-start__option:hover:not(:disabled) .board-start__go {
-  color: var(--accent);
-  transform: translateX(2px);
+  color: var(--ink);
+  transition: color var(--dur-fast) var(--ease);
 }
 .board-start__blurb {
   color: var(--ink-2);
   font-size: var(--fs-14);
-  line-height: 1.45;
+  line-height: 1.4;
 }
-.board-start__columns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: auto;
+
+/* hover only where there is a pointer that hovers, so the lift doesn't stick after a tap */
+@media (hover: hover) {
+  .board-start__option:hover:not(:disabled) .board-start__name {
+    color: var(--accent-text);
+  }
+  .board-start__option:hover:not(:disabled) .board-start__paper {
+    translate: 0 -3px;
+  }
 }
-.board-start__column {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 9px;
-  border-radius: var(--r-pill);
-  background: var(--surface-2);
-  color: var(--ink-2);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
-  white-space: nowrap;
+@media (prefers-reduced-motion: reduce) {
+  .board-start__paper {
+    transition: none;
+  }
+  .board-start__option:hover:not(:disabled) .board-start__paper {
+    translate: none;
+  }
 }
-.board-start__column.is-done {
-  padding-left: 4px;
-  background: var(--success-soft);
-  color: var(--success);
-  --icon-tint: var(--sec-modules-tint);
+
+/* phones: one per row, the paper on the left at a smaller size, its words on the right */
+@media (max-width: 560px) {
+  .board-start__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-10);
+  }
+  .board-start__item,
+  .board-start__item[data-t='blank'],
+  .board-start__item[data-t='weekly'] {
+    grid-column: auto;
+  }
+  .board-start__option {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--sp-14);
+  }
+  .board-start__stage {
+    flex: none;
+    align-items: center;
+    width: 172px;
+    height: 136px;
+  }
+  .board-start__cap {
+    min-width: 0;
+  }
+  .board-start__pile-name {
+    padding: var(--sp-6) 3px;
+    font-size: var(--fs-11);
+  }
+  .board-start__paper--assignment,
+  .board-start__paper--personal,
+  .board-start__paper--blank,
+  .board-start__paper--weekly {
+    scale: 0.82;
+  }
+  .board-start__paper--weekly {
+    flex: none;
+    width: 190px;
+    scale: 0.86;
+  }
 }
+
 .board-start__aside {
   display: flex;
   flex-wrap: wrap;
@@ -156,11 +385,4 @@
 }
 .board-start__aside strong {
   color: var(--ink);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .board-start__option:hover:not(:disabled),
-  .board-start__option:hover:not(:disabled) .board-start__go {
-    transform: none;
-  }
 }

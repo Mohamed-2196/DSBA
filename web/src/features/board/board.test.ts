@@ -28,6 +28,7 @@ import {
   planPace,
   sittingsDone,
   splitDone,
+  paperColumns,
   startName,
   storageText,
   TEMPLATES,
@@ -313,10 +314,24 @@ describe('past papers', () => {
 
 describe('templates and colours', () => {
   it('offers the templates with the columns the API makes, the last one done', () => {
-    expect(TEMPLATES.map((t) => t.id)).toEqual(['study', 'assignment', 'weekly', 'personal', 'blank']);
+    expect(TEMPLATES.map((t) => t.id)).toEqual(['study', 'assignment', 'personal', 'blank', 'weekly']);
     expect(TEMPLATES.find((t) => t.id === 'study')?.columns).toEqual(['To do', 'In progress', 'Done']);
     expect(TEMPLATES.find((t) => t.id === 'assignment')?.columns).toEqual(['Research', 'Draft', 'Review', 'Submitted']);
     expect(TEMPLATES.find((t) => t.id === 'weekly')?.columns).toHaveLength(8);
+  });
+  it('writes a template’s own columns on its paper, the last one done', () => {
+    const blank = TEMPLATES.find((t) => t.id === 'blank');
+    expect(blank && paperColumns(blank)).toEqual([
+      { name: 'To do', label: 'To do', done: false, marked: false },
+      { name: 'Done', label: 'Done', done: true, marked: false },
+    ]);
+  });
+  it('gives the weekly planner a letter a day and four marked days, Done last', () => {
+    const weekly = TEMPLATES.find((t) => t.id === 'weekly');
+    const cols = weekly ? paperColumns(weekly) : [];
+    expect(cols.map((c) => c.label)).toEqual(['M', 'T', 'W', 'T', 'F', 'S', 'S', 'Done']);
+    expect(cols.filter((c) => c.marked).map((c) => c.name)).toEqual(['Monday', 'Wednesday', 'Thursday', 'Sunday']);
+    expect(cols.map((c) => c.done)).toEqual([false, false, false, false, false, false, false, true]);
   });
   it('names a new board after its template, numbered when the name is taken', () => {
     expect(startName('Study', [])).toBe('Study');
