@@ -4,16 +4,18 @@ The Career Navigator page (`#/career`) has a slot for every employer and certifi
 official logo files go. Nothing in the code draws or imitates a logo: until a file is here, the slot shows a
 neutral tile with the organisation's initials.
 
-**33 slots: 26 employers and 7 certificates.** The same list is in `wanted.json` for scripts.
+**36 slots: 29 employers and 7 certificates.** The same list is in `wanted.json` for scripts. Four employers have
+no file yet and show their initials: Gulf Air, Information & eGovernment Authority, Singapore Gulf Bank and Bahrain
+Commercial Facilities Company.
 
 ## Where the current files came from
 
-All 33 were fetched on 2 October 2026 at the student rep's request, through the browser on his Mac, and are used
+The 32 files here were fetched on 2 October 2026 at the student rep's request, through the browser on his Mac, and are used
 unmodified (only trimmed and resized) to identify each organisation next to the link to its own page. Every logo
 belongs to its owner. Replace any file with one from the organisation's brand kit when you have it.
 
 - **From the organisation's own website:** SICO (sicobank.com), BENEFIT (benefit.bh), Al Salam Bank
-  (alsalambank.com), Bahrain Islamic Bank (bisb.com), Bahrain EDB (bahrainedb.com).
+  (alsalambank.com), Bahrain Islamic Bank (bisb.com).
 - **From Wikipedia / Wikimedia Commons** (the logo shown in each organisation's article): National Bank of Bahrain,
   Citi, Investcorp, Central Bank of Bahrain, PwC, stc, Mumtalakat, Bapco Energies, KPMG, Bahrain Bourse, Gulf
   International Bank, Deloitte, Batelco, EY, McKinsey & Company, Amazon Web Services, Zain, Kuwait Finance House,
@@ -56,7 +58,6 @@ belongs to its owner. Replace any file with one from the organisation's brand ki
 | `employers/benefit.png` | BENEFIT |
 | `employers/gib.png` | Gulf International Bank |
 | `employers/deloitte.png` | Deloitte Middle East |
-| `employers/bahrain-edb.png` | Bahrain EDB |
 | `employers/batelco.png` | Batelco |
 | `employers/ey.png` | EY |
 | `employers/mckinsey.png` | McKinsey & Company |
@@ -68,6 +69,10 @@ belongs to its owner. Replace any file with one from the organisation's brand ki
 | `employers/bank-abc.png` | Bank ABC |
 | `employers/bbk.png` | BBK |
 | `employers/alba.png` | Alba |
+| `employers/gulf-air.png` | Gulf Air (no file yet) |
+| `employers/iga.png` | Information & eGovernment Authority (no file yet) |
+| `employers/sgb.png` | Singapore Gulf Bank (no file yet) |
+| `employers/bcfc.png` | Bahrain Commercial Facilities Company (no file yet) |
 
 ## Certificates and courses (`public/logos/certs/`)
 

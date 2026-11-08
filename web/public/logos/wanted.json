@@ -85,12 +85,6 @@
   },
   {
     "kind": "employer",
-    "id": "bahrain-edb",
-    "name": "Bahrain EDB",
-    "file": "employers/bahrain-edb.png"
-  },
-  {
-    "kind": "employer",
     "id": "batelco",
     "name": "Batelco",
     "file": "employers/batelco.png"
@@ -154,6 +148,30 @@
     "id": "alba",
     "name": "Alba",
     "file": "employers/alba.png"
+  },
+  {
+    "kind": "employer",
+    "id": "gulf-air",
+    "name": "Gulf Air",
+    "file": "employers/gulf-air.png"
+  },
+  {
+    "kind": "employer",
+    "id": "iga",
+    "name": "Information & eGovernment Authority",
+    "file": "employers/iga.png"
+  },
+  {
+    "kind": "employer",
+    "id": "sgb",
+    "name": "Singapore Gulf Bank",
+    "file": "employers/sgb.png"
+  },
+  {
+    "kind": "employer",
+    "id": "bcfc",
+    "name": "Bahrain Commercial Facilities Company",
+    "file": "employers/bcfc.png"
   },
   {
     "kind": "cert",
