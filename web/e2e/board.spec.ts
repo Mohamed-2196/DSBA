@@ -22,6 +22,30 @@ test('the board is off for students until an admin switches it on', async ({ sar
   await setSwitch(admin, 'board', 'everyone');
 });
 
+test('a first board’s templates are named and described for screen readers, their pictures left out', async ({
+  ali,
+}) => {
+  // Ali makes no boards in the suite, so he gets the start screen (its buttons are only disabled while he's suspended).
+  await ali.goto('/board');
+  const start = ali.locator('[data-hub="board-start"]');
+  await expect(start).toBeVisible();
+  const expected: [string, string][] = [
+    ['Start a Study board', 'Columns: To do, In progress, Done.'],
+    ['Start an Assignment board', 'Columns: Research, Draft, Review, Submitted.'],
+    ['Start a Personal board', 'Columns: Today, This week, Later, Done.'],
+    ['Start a Blank board', 'Columns: To do, Done.'],
+    ['Start a Weekly planner board', 'Columns: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, Done.'],
+  ];
+  const buttons = start.getByRole('button', { name: /^Start an? / });
+  await expect(buttons).toHaveCount(expected.length);
+  for (const [i, [name, columns]] of expected.entries()) {
+    await expect(buttons.nth(i)).toHaveAccessibleName(name);
+    await expect(buttons.nth(i)).toHaveAccessibleDescription(new RegExp(`${columns.replace(/[.]/g, '\\.')}$`));
+  }
+  // the paper drawn on each is decoration, kept out of the accessibility tree
+  await expect(start.locator('[data-hub^="board-template-"] > [aria-hidden="true"]')).toHaveCount(expected.length);
+});
+
 test('a student adds a card, moves it, and adds an exam from the calendar', async ({ sara }) => {
   const title = `E2E card ${Date.now()}`;
   await sara.goto('/board');

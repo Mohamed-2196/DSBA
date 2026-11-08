@@ -80,6 +80,10 @@
   background: var(--raised);
   box-shadow: 0 0 0 1px var(--line-strong);
 }
+/* the narrower papers sit centred in the weekly planner's width, so every template's name starts on one line */
+.board-dialog__paper:not([data-t='weekly']) {
+  margin-inline: 6px;
+}
 .board-dialog__paper[data-t='study'] {
   box-shadow:
     0 0 0 1px var(--line-strong),
@@ -245,4 +249,10 @@
 }
 .board-form__chiprow > * {
   max-width: 100%;
+}
+
+@media (forced-colors: active) {
+  .board-dialog__paper {
+    outline: 1px solid CanvasText;
+  }
 }

@@ -20,6 +20,11 @@ Career Navigator was re-checked on 8 November 2026 (sources in `web/src/features
 brings a saved document up to the seed, and further study lists courses and scholarships with their dates
 (`furtherStudy.options`), which need re-checking every autumn.
 
+A student's first board starts from templates drawn as paper (index-card piles for Study, a stapled checklist, a sticky
+note, a folded blank sheet, a ring-bound weekly planner) with each template's real columns written on it, in the
+order Study, Assignment, Personal, Blank, Weekly planner; the New board dialog shows the same papers small
+(`BoardStart.tsx`, `paperColumns` in `board.ts`).
+
 - **Rounds 1 to 4.** The API and the web app for accounts, the forum, the library on S3, the newsletter, the
   calendar, Career Navigator, search, notifications and Manage; roles and feature switches (R-1, R-10), notes,
   the study board, requests, editing modules in Manage, and Mini Noora on Claude. Decisions D1-D10 are at the end

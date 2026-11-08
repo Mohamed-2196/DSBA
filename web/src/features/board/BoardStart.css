@@ -359,8 +359,7 @@
   }
   .board-start__paper--assignment,
   .board-start__paper--personal,
-  .board-start__paper--blank,
-  .board-start__paper--weekly {
+  .board-start__paper--blank {
     scale: 0.82;
   }
   .board-start__paper--weekly {
@@ -385,4 +384,12 @@
 }
 .board-start__aside strong {
   color: var(--ink);
+}
+
+/* forced colours drop box-shadows, the papers' only edges: draw them with an outline instead */
+@media (forced-colors: active) {
+  .board-start__paper:not(.board-start__paper--study),
+  .board-start__pile > i {
+    outline: 1px solid CanvasText;
+  }
 }
