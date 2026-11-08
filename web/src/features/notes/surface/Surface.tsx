@@ -8,6 +8,8 @@
 // Input, the way notebook apps on tablets work:
 //   - A stylus always writes, even while typing (it picks the pen). Once one is seen, fingers scroll and zoom
 //     instead of drawing (palm rejection); without one, a finger draws with the ink tools and two fingers scroll.
+//   - A pen's eraser end, or its eraser button held, erases whatever tool is picked; the tool is unchanged on lift.
+//   - A pen hovering above the page shows a dot of the tool's size and colour where it will land (pen.ts).
 //   - Two fingers pinch to zoom and move the page; Ctrl or ⌘ with the wheel or trackpad zooms too.
 //   - The line being drawn, the lasso and the laser are drawn straight into an overlay (no React work while the pen
 //     moves); finished strokes go to the sheet's SVG (lib/ink).
@@ -56,6 +58,7 @@ import {
   type SheetSpec,
 } from './layout';
 import { PdfPage } from './PdfPage';
+import { erasesByButton, hoverAfter, hoverDot } from './pen';
 import type { PenSettings, Tool } from './tools';
 
 /** A zoom, and where it is anchored: the point of the page (`unit`, in column units) that goes under `client` (a point
@@ -154,6 +157,7 @@ export function Surface({
   const lassoLine = useRef<SVGPolylineElement>(null);
   const laserGroup = useRef<SVGGElement>(null);
   const eraserRing = useRef<SVGCircleElement>(null);
+  const hoverRing = useRef<SVGCircleElement>(null);
   const textBox = useRef<HTMLDivElement>(null);
   const gesture = useRef<Gesture | null>(null);
   const dragOffset = useRef<{ dx: number; dy: number } | null>(null);
@@ -269,6 +273,51 @@ export function Surface({
     eraserRing.current?.setAttribute('r', '0');
   };
 
+  // ── the hover dot: drawn straight into the overlay, like the line being drawn ──
+  const hideHover = () => hoverRing.current?.setAttribute('r', '0');
+  const showHoverAt = (ev: PointerEvent) => {
+    const el = hoverRing.current;
+    if (!el) return;
+    const { tool: t, pens: p, readOnly: ro } = live.current;
+    const dot = hoverDot(t, p, erasesByButton(ev, true), ro);
+    const at = dot ? locate(ev.clientX, ev.clientY) : null;
+    if (!dot || !at) {
+      hideHover();
+      return;
+    }
+    el.setAttribute('cx', String(at.ux));
+    el.setAttribute('cy', String(at.uy));
+    el.setAttribute('r', String(dot.r));
+    el.setAttribute(
+      'class',
+      dot.kind === 'eraser'
+        ? 'nb-overlay__eraser'
+        : cx('nb-overlay__hover', dot.kind === 'highlighter' && 'ink-highlighter'),
+    );
+    el.style.fill = dot.kind === 'eraser' ? '' : dot.color;
+  };
+  const onHover = (ev: PointerEvent) => {
+    const next = hoverAfter(ev);
+    if (next === 'show' && !gesture.current) showHoverAt(ev);
+    else if (next === 'hide') hideHover();
+  };
+
+  const startErase = (pointerId: number, at: { sheet: Placed; x: number; y: number; ux: number; uy: number }) => {
+    const g: Gesture = { kind: 'erase', pointerId, touched: new Map() };
+    gesture.current = g;
+    eraserRing.current?.setAttribute('cx', String(at.ux));
+    eraserRing.current?.setAttribute('cy', String(at.uy));
+    eraserRing.current?.setAttribute('r', String(live.current.pens.eraser.size / 2));
+    eraseAt(g, at.sheet, at.x, at.y);
+  };
+
+  /** A finished line goes onto its sheet (a tap too short to be a line is dropped). */
+  const commitDraw = (g: Extract<Gesture, { kind: 'draw' }>) => {
+    if (g.stroke.points.length < 3) return;
+    const before = live.current.strokesOf(g.sheet.index);
+    live.current.onInk(inkStep(g.sheet.index, before, [...before, { ...g.stroke, points: g.stroke.points.slice() }]));
+  };
+
   const eraseAt = (g: Extract<Gesture, { kind: 'erase' }>, sheet: Placed, x: number, y: number) => {
     const { pens: p } = live.current;
     const r = p.eraser.size / 2;
@@ -301,11 +350,14 @@ export function Surface({
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     const ev = e.nativeEvent;
     const { tool: t, readOnly: ro, fingerDraws: fingers, pens: p, selection: sel } = live.current;
+    onHover(ev);
     if (ev.pointerType === 'pen') live.current.onStylus();
     if (gesture.current || pinching.current) return;
     if (ev.pointerType === 'mouse' && ev.button !== 0) return;
     let active = t;
-    if (t === 'type') {
+    if (erasesByButton(ev)) {
+      active = 'eraser'; // the eraser end or button: the picked tool stays, so it is back on lift
+    } else if (t === 'type') {
       if (ev.pointerType !== 'pen' || ro) return; // fingers and the mouse type; a stylus writes
       active = 'pen';
       live.current.onTool('pen');
@@ -329,12 +381,7 @@ export function Surface({
       gesture.current = g;
       showLive(g);
     } else if (active === 'eraser') {
-      const g: Gesture = { kind: 'erase', pointerId: ev.pointerId, touched: new Map() };
-      gesture.current = g;
-      eraserRing.current?.setAttribute('cx', String(at.ux));
-      eraserRing.current?.setAttribute('cy', String(at.uy));
-      eraserRing.current?.setAttribute('r', String(p.eraser.size / 2));
-      eraseAt(g, at.sheet, at.x, at.y);
+      startErase(ev.pointerId, at);
     } else if (active === 'lasso') {
       if (sel && sel.sheet === at.sheet.index) {
         const box = unionBounds(live.current.strokesOf(sel.sheet).filter((s) => sel.ids.has(s.id)));
@@ -361,7 +408,8 @@ export function Surface({
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const ev = e.nativeEvent;
-    const g = gesture.current;
+    onHover(ev);
+    let g = gesture.current;
     // The laser follows a hovering mouse or stylus too: pointing at something without touching.
     if (!g) {
       if (live.current.tool === 'laser' && ev.pointerType !== 'touch') {
@@ -371,6 +419,19 @@ export function Surface({
       return;
     }
     if (ev.pointerId !== g.pointerId) return;
+    // The eraser button pressed mid-line: the line so far stays, and the pen erases from here until it lifts.
+    if (g.kind === 'draw' && erasesByButton(ev, true)) {
+      commitDraw(g);
+      livePath.current?.setAttribute('d', '');
+      const at = locate(ev.clientX, ev.clientY);
+      if (!at) {
+        gesture.current = null;
+        return;
+      }
+      startErase(ev.pointerId, at);
+      g = gesture.current;
+      if (!g) return;
+    }
     const events = typeof ev.getCoalescedEvents === 'function' ? ev.getCoalescedEvents() : [];
     const all = events.length ? events : [ev];
     if (g.kind === 'draw') {
@@ -411,12 +472,8 @@ export function Surface({
     if (!g || e.nativeEvent.pointerId !== g.pointerId) return;
     gesture.current = null;
     const { strokesOf: of, onInk: commit } = live.current;
-    if (g.kind === 'draw') {
-      if (g.stroke.points.length >= 3) {
-        const before = of(g.sheet.index);
-        commit(inkStep(g.sheet.index, before, [...before, { ...g.stroke, points: g.stroke.points.slice() }]));
-      }
-    } else if (g.kind === 'erase') {
+    if (g.kind === 'draw') commitDraw(g);
+    else if (g.kind === 'erase') {
       const changes: SheetChange[] = [...g.touched].map(([sheet, entry]) => ({
         sheet,
         before: entry.before,
@@ -609,8 +666,12 @@ export function Surface({
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onPointerCancel={() => cancel()}
+          onPointerCancel={(e) => {
+            onHover(e.nativeEvent);
+            cancel();
+          }}
           onPointerLeave={(e) => {
+            onHover(e.nativeEvent);
             if (!gesture.current && e.nativeEvent.pointerType === 'mouse')
               trail.current = liveTrail(trail.current, performance.now());
           }}
@@ -678,6 +739,7 @@ export function Surface({
             </g>
             <polyline ref={lassoLine} className="nb-overlay__lasso" vectorEffect="non-scaling-stroke" />
             <circle ref={eraserRing} className="nb-overlay__eraser" r={0} vectorEffect="non-scaling-stroke" />
+            <circle ref={hoverRing} r={0} vectorEffect="non-scaling-stroke" data-hub="pen-hover" />
             <g ref={laserGroup} className="nb-overlay__laser" />
           </svg>
         </div>

@@ -1676,6 +1676,11 @@ button.nb-where__module:hover {
   stroke: #e03131;
   stroke-width: 1.5px;
 }
+/* the dot under a hovering pen: where it will land, the tool's size and colour (set from the pen settings) */
+.nb-overlay__hover {
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 1px;
+}
 .nb-overlay__laser {
   filter: drop-shadow(0 0 4px rgba(255, 45, 85, 0.85));
 }
