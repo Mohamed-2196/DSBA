@@ -7,8 +7,8 @@ import { logoOf } from './lib/logos';
 import { LogoSlot } from './LogoSlot';
 
 /**
- * The one competition on the board, featured under the page's band. BIBF is taking participants, so the way in
- * is the programme office (no deadline is shown, and none is invented).
+ * The one competition on the board, featured under the page's band. The way in is the programme office (no deadline
+ * is shown, and none is invented).
  */
 export function FeaturedCompetition() {
   const doc = useCareerData();

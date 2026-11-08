@@ -1,13 +1,14 @@
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import type { CareerChecklistItem } from '../../api/types';
+import type { CareerChecklistItem, FurtherStudyOption } from '../../api/types';
 import { useAuth } from '../../auth';
 import { useLocalStorage } from '../../state';
 import { Badge, Button, glyph, Icon, PageSection, Panel, SectionHeader, cx } from '../../ui';
 import { useModuleDetail } from './api';
 import { useCareerData } from './context';
 import { jumpTo } from './lib/jump';
-import { appPath, lessonPath } from './lib/links';
+import { hostOf } from '../../lib/share';
+import { appPath, lessonPath, webUrl } from './lib/links';
 import { useListedSeniors } from './api';
 import { ProjectedClass } from '../grades/public';
 import { Seniors } from './Seniors';
@@ -129,7 +130,34 @@ function Checklist() {
   );
 }
 
-/** What to have ready, who to ask, and one line for those heading to further study instead. */
+/** Courses and scholarships worth applying to after DSBA, each with its date and a link to its own page. */
+function StudyOptions({ options }: { options: FurtherStudyOption[] }) {
+  if (!options.length) return null;
+  return (
+    <ul className="career-study__list" aria-label="Courses and scholarships">
+      {options.map((o) => {
+        const url = webUrl(o.url);
+        return (
+          <li key={o.name} className="career-study__option">
+            {url ? (
+              <a href={url} target="_blank" rel="noopener noreferrer" className="career-study__name">
+                {o.name}
+                <Icon glyph={glyph.external} size={14} className="career-study__go" />
+                <span className="visually-hidden">{`, opens ${hostOf(url)} in a new tab`}</span>
+              </a>
+            ) : (
+              <span className="career-study__name">{o.name}</span>
+            )}
+            {o.when ? <span className="career-study__when">{o.when}</span> : null}
+            <span className="career-study__note">{o.note}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** What to have ready, who to ask, and a line for those heading to further study instead, with dated options. */
 export function AfterDsba() {
   const { checklist, furtherStudy: study } = useCareerData();
   const seniors = useListedSeniors();
@@ -158,6 +186,7 @@ export function AfterDsba() {
                 {study.action.label}
               </Button>
             ) : null}
+            <StudyOptions options={study.options} />
             {featureOn('grades') ? (
               <ProjectedClass className="career-study__projected" calculatorLink={studyTo !== '/grades'} />
             ) : null}

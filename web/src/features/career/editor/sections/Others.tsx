@@ -2,7 +2,7 @@
 // words (labels, notes, the date links were checked).
 import { useMemo } from 'react';
 import type { CareerCert, CareerChecklistItem, CareerDoc, CareerFeatured } from '../../../../api/types';
-import { Button, Select, Switch, TextArea, TextField } from '../../../../ui';
+import { Button, glyph, Icon, IconButton, Select, Switch, TextArea, TextField } from '../../../../ui';
 import { CertCard } from '../../Certificates';
 import { CareerContext } from '../../context';
 import { LogoSlot } from '../../LogoSlot';
@@ -454,12 +454,12 @@ export function FurtherStudySection() {
           update((d) => ({
             ...d,
             furtherStudy: on
-              ? { title: '', body: '', action: { to: '/grades', label: 'Open the grade calculator' } }
+              ? { title: '', body: '', action: { to: '/grades', label: 'Open the grade calculator' }, options: [] }
               : null,
           }))
         }
         label="Show the further-study line"
-        description="One line at the end of the page for students heading to an MSc instead, with a button."
+        description="A line at the end of the page for students heading to an MSc instead, with a button, and courses or scholarships with their dates."
       />
       {s ? (
         <>
@@ -499,9 +499,108 @@ export function FurtherStudySection() {
               required
             />
           </div>
+          <StudyOptionsField
+            options={s.options}
+            onChange={(options) => set({ options })}
+            err={(path) => err(`furtherStudy.options.${path}`)}
+          />
         </>
       ) : null}
     </div>
+  );
+}
+
+type StudyOption = NonNullable<CareerDoc['furtherStudy']>['options'][number];
+const MAX_STUDY_OPTIONS = 12;
+
+/** The courses and scholarships under the further-study line: each with its name, date, page and one line. */
+function StudyOptionsField({
+  options,
+  onChange,
+  err,
+}: {
+  options: StudyOption[];
+  onChange: (next: StudyOption[]) => void;
+  err: (path: string) => string | undefined;
+}) {
+  const setAt = (n: number, patch: Partial<StudyOption>) =>
+    onChange(options.map((o, k) => (k === n ? { ...o, ...patch } : o)));
+  return (
+    <fieldset className="cedit-group">
+      <legend className="cedit-group__legend">Courses and scholarships</legend>
+      <p className="cedit__note">Dates change every year: check each official page before the next intake.</p>
+      <ol role="list" className="cedit-rows">
+        {options.map((o, n) => (
+          <li key={n} className="cedit-study">
+            <div className="cedit-grid">
+              <TextField
+                label="Name"
+                value={o.name}
+                onChange={(v) => setAt(n, { name: v.target.value })}
+                error={err(`${n}.name`)}
+                maxLength={160}
+                required
+              />
+              <TextField
+                label="Date"
+                hint="Its deadline or window, e.g. Closes 3 Jan 2027. Leave empty if none is published."
+                value={o.when ?? ''}
+                onChange={(v) => setAt(n, { when: v.target.value || null })}
+                error={err(`${n}.when`)}
+                maxLength={60}
+              />
+            </div>
+            <TextField
+              label="Official page"
+              value={o.url}
+              onChange={(v) => setAt(n, { url: v.target.value })}
+              error={err(`${n}.url`)}
+              maxLength={500}
+              required
+            />
+            <TextArea
+              label="One line"
+              hint="Who it’s for and what it pays."
+              rows={2}
+              value={o.note}
+              onChange={(v) => setAt(n, { note: v.target.value })}
+              error={err(`${n}.note`)}
+              maxLength={600}
+              required
+            />
+            <div className="cedit-study__tools">
+              <IconButton
+                icon={<Icon glyph={glyph.arrowUp} />}
+                label={`Move ${o.name || `course ${n + 1}`} up`}
+                onClick={() => onChange(moveItem(options, n, -1))}
+                disabled={n === 0}
+              />
+              <IconButton
+                icon={<Icon glyph={glyph.arrowDown} />}
+                label={`Move ${o.name || `course ${n + 1}`} down`}
+                onClick={() => onChange(moveItem(options, n, 1))}
+                disabled={n === options.length - 1}
+              />
+              <IconButton
+                icon={<Icon glyph={glyph.trash} />}
+                label={`Remove ${o.name || `course ${n + 1}`}`}
+                onClick={() => onChange(options.filter((_, k) => k !== n))}
+              />
+            </div>
+          </li>
+        ))}
+      </ol>
+      {options.length < MAX_STUDY_OPTIONS ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          leadingIcon={<Icon glyph={glyph.plus} />}
+          onClick={() => onChange([...options, { name: '', note: '', when: null, url: 'https://' }])}
+        >
+          Add a course or scholarship
+        </Button>
+      ) : null}
+    </fieldset>
   );
 }
 

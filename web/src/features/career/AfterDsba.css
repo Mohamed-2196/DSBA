@@ -186,6 +186,54 @@
   color: var(--ink);
   font-weight: var(--fw-bold);
 }
+/* Courses and scholarships: name (a link to its own page), its date, one line. Two or three columns when wide. */
+.career-study__list {
+  flex: 1 1 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--sp-16) var(--sp-24);
+  padding-top: var(--sp-12);
+  border-top: 1.5px solid var(--line);
+  list-style: none;
+}
+.career-study__option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.career-study__name {
+  align-self: flex-start;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+a.career-study__name:hover {
+  color: var(--accent-text);
+}
+/* inline after the last word, so a name that wraps keeps its icon beside it */
+.career-study__go {
+  margin-left: 4px;
+  vertical-align: -2px;
+  color: var(--ink-2);
+}
+a.career-study__name:hover .career-study__go {
+  color: var(--accent-text);
+}
+.career-study__when {
+  color: var(--accent-text);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+}
+.career-study__note {
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  line-height: 1.45;
+}
+
 .career-study__projected {
   flex: 1 1 100%;
   padding-top: var(--sp-12);

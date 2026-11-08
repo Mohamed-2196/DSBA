@@ -216,6 +216,23 @@
   margin-bottom: 2px;
 }
 
+/* a course or scholarship under further study: its fields, then its move and remove buttons */
+.cedit-study {
+  display: grid;
+  gap: var(--sp-8);
+  padding-top: var(--sp-12);
+  border-top: 1.5px solid var(--line);
+}
+.cedit-study:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.cedit-study__tools {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-4);
+}
+
 /* ids or words picked into a list */
 .cedit-pick {
   display: grid;

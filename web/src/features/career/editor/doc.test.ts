@@ -185,6 +185,7 @@ function mockDoc(): CareerDoc {
       title: 'Heading for an MSc?',
       body: 'Good grades are needed.',
       action: { to: '/grades', label: 'Check grades' },
+      options: [],
     },
   };
 }

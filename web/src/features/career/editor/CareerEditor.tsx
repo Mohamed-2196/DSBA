@@ -60,7 +60,7 @@ const ABOUT: Record<EditorSection, string> = {
   certs: 'Certificates worth taking, how heavy they are and the roles they help with.',
   featured: 'One competition beside the page title.',
   checklist: '“Ready to apply?”: what to have before sending an application.',
-  furtherStudy: 'The line at the end of the page for students heading to an MSc.',
+  furtherStudy: 'The line at the end of the page for students heading to an MSc, with courses and their dates.',
   text: 'The page’s own words: labels, the line for each year, and the day links were checked.',
 };
 
