@@ -42,6 +42,25 @@ export function routeFor(req: SwRequest, origin: string): SwRoute {
   return 'network';
 }
 
+export interface SwResponse {
+  ok: boolean;
+  status: number;
+  type: string;
+  headers: { get(name: string): string | null };
+}
+
+/**
+ * Whether the worker may keep an answer for a built file or a public image: a whole, same-origin, successful one that
+ * isn't a page. The server answers a path it has no file for with the app shell (deploy/Caddyfile's try_files, and
+ * Vite's dev server), so an HTML answer under /assets/ or /logos/ means the file isn't there yet, and keeping it would
+ * show the shell in place of the file once it ships.
+ */
+export function keepable(res: SwResponse): boolean {
+  if (!res.ok || res.type !== 'basic' || res.status !== 200) return false;
+  const type = res.headers.get('content-type')?.trim().toLowerCase() ?? '';
+  return !type.startsWith('text/html');
+}
+
 /** Cache names for one build: the shell is per build, built files and public images are shared between builds. */
 export function cacheNames(version: string) {
   return { shell: `dsba-shell-${version}`, assets: 'dsba-assets', static: 'dsba-static' } as const;

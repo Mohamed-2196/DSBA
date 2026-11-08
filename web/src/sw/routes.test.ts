@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cacheNames, overflow, parseManifest, routeFor, staleCaches } from './routes';
+import { cacheNames, keepable, overflow, parseManifest, routeFor, staleCaches } from './routes';
 
 const ORIGIN = 'https://hub.example.com';
 const get = (path: string, mode = 'cors') => ({
@@ -62,6 +62,37 @@ describe('caches', () => {
   it('trims the oldest entries past the limit', () => {
     expect(overflow([1, 2, 3, 4], 2)).toEqual([1, 2]);
     expect(overflow([1, 2], 5)).toEqual([]);
+  });
+});
+
+describe('keepable', () => {
+  const answer = (contentType: string | null, init: { status?: number; type?: string } = {}) => {
+    const status = init.status ?? 200;
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      type: init.type ?? 'basic',
+      headers: new Headers(contentType ? { 'Content-Type': contentType } : {}),
+    };
+  };
+
+  it('keeps a whole, same-origin image, script or style', () => {
+    expect(keepable(answer('image/png'))).toBe(true);
+    expect(keepable(answer('image/svg+xml'))).toBe(true);
+    expect(keepable(answer('text/javascript; charset=utf-8'))).toBe(true);
+    expect(keepable(answer('text/css'))).toBe(true);
+  });
+
+  it('never keeps the app shell answered for a file that is not there yet', () => {
+    // Caddy (deploy/Caddyfile, try_files) and Vite answer a missing /logos/... or /assets/... file with index.html.
+    expect(keepable(answer('text/html; charset=utf-8'))).toBe(false);
+    expect(keepable(answer('TEXT/HTML'))).toBe(false);
+  });
+
+  it('never keeps a failed, partial or other-site answer', () => {
+    expect(keepable(answer('image/png', { status: 404 }))).toBe(false);
+    expect(keepable(answer('image/png', { status: 206 }))).toBe(false);
+    expect(keepable(answer('image/png', { type: 'opaque' }))).toBe(false);
   });
 });
 

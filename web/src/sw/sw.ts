@@ -5,7 +5,7 @@
 //
 // A new build installs beside the running one and waits; the page offers "Reload" (shell/UpdatePrompt.tsx), which
 // sends SKIP_WAITING, and the page reloads once the new worker is in charge.
-import { CACHE_LIMITS, cacheNames, overflow, parseManifest, routeFor, staleCaches } from './routes';
+import { CACHE_LIMITS, cacheNames, keepable, overflow, parseManifest, routeFor, staleCaches } from './routes';
 
 interface ExtendableEvent extends Event {
   waitUntil(promise: Promise<unknown>): void;
@@ -31,9 +31,6 @@ const manifest = parseManifest('__DSBA_SW_MANIFEST__');
 const version = manifest?.version ?? 'dev';
 const CACHES = cacheNames(version);
 const SHELL = '/';
-
-/** Keep a response only when it is a whole, same-origin, successful one. */
-const keepable = (res: Response): boolean => res.ok && res.type === 'basic' && res.status === 200;
 
 async function precache(): Promise<void> {
   if (!manifest) return;
