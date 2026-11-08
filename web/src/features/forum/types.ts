@@ -8,6 +8,9 @@ export type ReplyOrder = 'top' | 'oldest';
 
 export type ReportTargetType = ReportCreate['targetType'];
 export type ReportReason = ReportCreate['reason'];
+/** What the moderators' queue holds: what students report, and the pictures and posts the Hub's check reports. */
+export type QueueTargetType = ReportOut['targetType'];
+export type QueueReason = ReportOut['reason'];
 export type ReportStatus = ReportOut['status'];
 
 /** The list filters, as they live in the URL (?cohort=year-2&tag=r&sort=new&q=mgf&status=no-replies&module=…). */

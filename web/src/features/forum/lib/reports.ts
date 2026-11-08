@@ -1,5 +1,5 @@
 // Reports: the reasons a person can give, and what the reported thing is called.
-import type { ReportReason, ReportTargetType } from '../types';
+import type { QueueReason, ReportReason, ReportTargetType } from '../types';
 
 export const REPORT_NOUN: Record<ReportTargetType, string> = {
   thread: 'thread',
@@ -21,6 +21,12 @@ export const REPORT_REASONS: { value: ReportReason; label: string; hint: string 
   { value: 'other', label: 'Something else', hint: 'Tell us in the note' },
 ];
 
-export function reasonLabel(reason: ReportReason): string {
+const HUB_REASONS: Record<Exclude<QueueReason, ReportReason>, string> = {
+  hub_flagged: 'Flagged by the Hub',
+  hub_unchecked: 'Couldn’t be checked',
+};
+
+export function reasonLabel(reason: QueueReason): string {
+  if (reason === 'hub_flagged' || reason === 'hub_unchecked') return HUB_REASONS[reason];
   return REPORT_REASONS.find((r) => r.value === reason)?.label ?? reason;
 }

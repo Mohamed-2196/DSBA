@@ -13,6 +13,7 @@ import { scrollBehavior } from './lib/motion';
 import { shownReplyIds } from './lib/replies';
 import { useReplyTarget } from './lib/useReplyTarget';
 import { useThreadModeration } from './lib/useThreadModeration';
+import { HeldPicturesProvider } from './components/HeldPictures';
 import { OriginalPost } from './components/OriginalPost';
 import { ReplyList, type ReplyingTo } from './components/ReplyList';
 import { ThreadCrumbs, ThreadHeader } from './components/ThreadHeader';
@@ -194,47 +195,49 @@ function ThreadView({ thread, reload, unavailable }: ThreadViewProps) {
   const copyLink = () => copy(appUrl(`/forum/${thread.slug}`), 'Paste it anywhere to share this thread.');
 
   return (
-    <Page className="forum-page forum-thread">
-      <ThreadHeader thread={thread} unavailable={unavailable} />
-      <CompactBar thread={thread} />
+    <HeldPicturesProvider images={thread.heldImages} moderator={thread.canModerate}>
+      <Page className="forum-page forum-thread">
+        <ThreadHeader thread={thread} unavailable={unavailable} />
+        <CompactBar thread={thread} />
 
-      <div className="forum-thread__layout">
-        <div className="forum-thread__main" ref={mainRef}>
-          {unavailable ? (
-            <UnavailableBanner />
-          ) : (
-            <HiddenBanner thread={thread} onUnhide={moderation.unhide} unhiding={moderation.pending} />
-          )}
-          {target.missing ? <MissingReplyNote /> : null}
-          <OriginalPost
-            thread={thread}
-            moderation={moderation}
-            onReply={focusComposer}
-            onCopyLink={() => void copyLink()}
-            unavailable={unavailable}
-          />
-          <ReplyList
-            thread={thread}
-            targetId={target.id}
-            replyingTo={replyingTo}
-            onReplyTo={startReply}
-            onCancelReply={() => setReplyingTo(null)}
-            onPosted={(reply) => {
-              setReplyingTo(null);
-              scrollToReply(reply);
-            }}
-            unavailable={unavailable}
-          />
-          <ThreadCompose
-            thread={thread}
-            textareaRef={composerInput}
-            onPosted={scrollToReply}
-            unavailable={unavailable}
-          />
+        <div className="forum-thread__layout">
+          <div className="forum-thread__main" ref={mainRef}>
+            {unavailable ? (
+              <UnavailableBanner />
+            ) : (
+              <HiddenBanner thread={thread} onUnhide={moderation.unhide} unhiding={moderation.pending} />
+            )}
+            {target.missing ? <MissingReplyNote /> : null}
+            <OriginalPost
+              thread={thread}
+              moderation={moderation}
+              onReply={focusComposer}
+              onCopyLink={() => void copyLink()}
+              unavailable={unavailable}
+            />
+            <ReplyList
+              thread={thread}
+              targetId={target.id}
+              replyingTo={replyingTo}
+              onReplyTo={startReply}
+              onCancelReply={() => setReplyingTo(null)}
+              onPosted={(reply) => {
+                setReplyingTo(null);
+                scrollToReply(reply);
+              }}
+              unavailable={unavailable}
+            />
+            <ThreadCompose
+              thread={thread}
+              textareaRef={composerInput}
+              onPosted={scrollToReply}
+              unavailable={unavailable}
+            />
+          </div>
+
+          <ThreadSidebar thread={thread} unavailable={unavailable} />
         </div>
-
-        <ThreadSidebar thread={thread} unavailable={unavailable} />
-      </div>
-    </Page>
+      </Page>
+    </HeldPicturesProvider>
   );
 }

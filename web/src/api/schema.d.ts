@@ -1425,7 +1425,8 @@ export interface paths {
         /**
          * Complete Upload
          * @description Call after the browser's POST to the bucket succeeded: checks the object exists and that its size, type and
-         *     first bytes match the file's name.
+         *     first bytes match the file's name. With forum.auto-check on, a forum picture is then held for Claude's check
+         *     ('checking': only its uploader and moderators see it), which runs straight after this response.
          *
          *     Errors: not_uploaded (409), mismatch (422; the object is deleted), feature_off (404: the upload's feature was
          *     switched off since it started).
@@ -7622,7 +7623,7 @@ export interface components {
              * Targettype
              * @enum {string}
              */
-            targetType: "thread" | "reply" | "library_item" | "request" | "shared_note";
+            targetType: "thread" | "reply" | "library_item" | "request" | "shared_note" | "image";
             /**
              * Targetid
              * Format: uuid
@@ -7632,7 +7633,7 @@ export interface components {
              * Reason
              * @enum {string}
              */
-            reason: "spam" | "harassment" | "inappropriate" | "copyright" | "other";
+            reason: "spam" | "harassment" | "inappropriate" | "copyright" | "other" | "hub_flagged" | "hub_unchecked";
             /** Note */
             note: string | null;
             /**
@@ -7868,7 +7869,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp";
+            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp";
             /** Label */
             label: string;
             /** Hides */
@@ -7894,7 +7895,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp")[];
         };
         /** FileLink */
         FileLink: {
@@ -8530,6 +8531,25 @@ export interface components {
             version: string;
             /** Commit */
             commit: string | null;
+        };
+        /**
+         * HeldImage
+         * @description A picture in the thread or its replies that the automatic check holds. Only its uploader and moderators
+         *     can open it: everyone else sees "Picture being checked" in its place, or that it was removed.
+         */
+        HeldImage: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "checking" | "held" | "removed";
+            /** Mine */
+            mine: boolean;
         };
         /**
          * HideRequest
@@ -9273,7 +9293,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp")[];
             /**
              * Status
              * @enum {string}
@@ -10406,7 +10426,7 @@ export interface components {
             /** Label */
             label: string;
             /** Feature */
-            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp") | null;
+            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp") | null;
         };
         /** Page[ItemOut] */
         Page_ItemOut_: {
@@ -11309,6 +11329,8 @@ export interface components {
             isMine: boolean;
             /** Canedit */
             canEdit: boolean;
+            /** Heldbycheck */
+            heldByCheck: boolean;
         };
         /** ReplyCreate */
         ReplyCreate: {
@@ -11363,7 +11385,7 @@ export interface components {
              * Targettype
              * @enum {string}
              */
-            targetType: "thread" | "reply" | "library_item" | "request" | "shared_note";
+            targetType: "thread" | "reply" | "library_item" | "request" | "shared_note" | "image";
             /**
              * Targetid
              * Format: uuid
@@ -11378,11 +11400,13 @@ export interface components {
             /** Targetstatus */
             targetStatus?: ("visible" | "hidden" | "deleted" | "pending" | "published" | "rejected" | "removed" | "open" | "planned" | "done" | "declined") | null;
             targetAuthor?: components["schemas"]["UserPublic"] | null;
+            /** Targetimage */
+            targetImage?: string | null;
             /**
              * Reason
              * @enum {string}
              */
-            reason: "spam" | "harassment" | "inappropriate" | "copyright" | "other";
+            reason: "spam" | "harassment" | "inappropriate" | "copyright" | "other" | "hub_flagged" | "hub_unchecked";
             /** Note */
             note: string | null;
             /**
@@ -11391,6 +11415,11 @@ export interface components {
              */
             status: "open" | "resolved" | "dismissed";
             reporter: components["schemas"]["UserPublic"] | null;
+            /**
+             * Fromhub
+             * @default false
+             */
+            fromHub: boolean;
             /**
              * Createdat
              * Format: date-time
@@ -12707,6 +12736,10 @@ export interface components {
              * @enum {string}
              */
             following: "answers" | "replies" | "off";
+            /** Heldbycheck */
+            heldByCheck: boolean;
+            /** Heldimages */
+            heldImages: components["schemas"]["HeldImage"][];
         };
         /** ThreadModeration */
         ThreadModeration: {
@@ -13558,6 +13591,7 @@ export type GuidesDoc = components['schemas']['GuidesDoc'];
 export type GuidesEditable = components['schemas']['GuidesEditable'];
 export type GuidesSave = components['schemas']['GuidesSave'];
 export type Health = components['schemas']['Health'];
+export type HeldImage = components['schemas']['HeldImage'];
 export type HideRequest = components['schemas']['HideRequest'];
 export type HintMove = components['schemas']['HintMove'];
 export type HomeOut = components['schemas']['HomeOut'];
@@ -17182,7 +17216,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp";
+                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp";
             };
             cookie?: never;
         };

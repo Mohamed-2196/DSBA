@@ -32,6 +32,7 @@ function reply(over: Partial<Reply> = {}): Reply {
     accepted: false,
     isMine: false,
     canEdit: false,
+    heldByCheck: false,
     ...over,
   };
 }

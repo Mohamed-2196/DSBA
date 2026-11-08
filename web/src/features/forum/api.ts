@@ -397,7 +397,11 @@ export function useThread(slug: string) {
     queryKey: forumKeys.thread(slug),
     queryFn: ({ signal }) => call(api.GET('/api/v1/forum/threads/{slug}', { params: { path: { slug } }, signal })),
     enabled: !!slug,
-    refetchInterval: 30_000,
+    // A picture of yours the Hub is still checking (or, for a rep, any): look again soon, so it shows once checked.
+    refetchInterval: (query) =>
+      query.state.data?.heldImages.some((i) => i.state === 'checking' && (i.mine || query.state.data?.canModerate))
+        ? 4_000
+        : 30_000,
     refetchIntervalInBackground: false,
   });
 }

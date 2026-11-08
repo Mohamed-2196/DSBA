@@ -621,6 +621,21 @@
   flex: 0 0 auto;
   font-size: 18px;
 }
+/* A picture the Hub's check holds: its uploader and the reps see it with a line under it. */
+.forum-figure__held {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  line-height: 1.4;
+}
+.forum-figure__held svg {
+  flex: 0 0 auto;
+  font-size: 16px;
+}
 .forum-code {
   display: grid;
   min-width: 0;

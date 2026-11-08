@@ -5,6 +5,7 @@ import { ApiError, errorMessage } from '../../../api/errors';
 import { Button, Modal, TextArea } from '../../../ui';
 import { useToast } from '../../../state';
 import { useResolveReport } from '../api';
+import { hubDecision } from '../lib/hubReports';
 import { remainingNote } from '../lib/threadForm';
 import type { Decision } from './ReportCard';
 import './dialogs.css';
@@ -24,6 +25,8 @@ export function DecideDialog({
   const [error, setError] = useState<string | null>(null);
   const status = decision?.status ?? 'resolved';
   const count = remainingNote(note.length, NOTE_MAX);
+  const hub = decision ? hubDecision(decision.report) : null;
+  const hubChoice = hub ? (status === 'resolved' ? hub.resolve : hub.dismiss) : null;
 
   const close = () => {
     if (resolve.isPending) return;
@@ -37,11 +40,15 @@ export function DecideDialog({
       { reportId: decision.report.id, status, note: note.trim() || null },
       {
         onSuccess: () => {
-          push({
-            title: status === 'resolved' ? 'Report resolved' : 'Report dismissed',
-            body: 'The person who reported it has been told.',
-            tone: 'success',
-          });
+          push(
+            hubChoice
+              ? { title: 'Done', body: hubChoice.hint, tone: 'success' }
+              : {
+                  title: status === 'resolved' ? 'Report resolved' : 'Report dismissed',
+                  body: 'The person who reported it has been told.',
+                  tone: 'success',
+                },
+          );
           setNote('');
           setError(null);
           onClose();
@@ -63,11 +70,13 @@ export function DecideDialog({
       open={!!decision}
       onClose={close}
       size="sm"
-      title={status === 'resolved' ? 'Resolve this report' : 'Dismiss this report'}
+      title={hubChoice ? `${hubChoice.label}?` : status === 'resolved' ? 'Resolve this report' : 'Dismiss this report'}
       description={
-        status === 'resolved'
-          ? 'Resolve it once you have dealt with the post, for example by hiding it.'
-          : 'Dismiss it when the post is fine as it is. Nothing changes on the post.'
+        hubChoice
+          ? hubChoice.hint
+          : status === 'resolved'
+            ? 'Resolve it once you have dealt with the post, for example by hiding it.'
+            : 'Dismiss it when the post is fine as it is. Nothing changes on the post.'
       }
       footer={
         <>
@@ -75,7 +84,7 @@ export function DecideDialog({
             Cancel
           </Button>
           <Button variant="primary" onClick={confirm} loading={resolve.isPending} data-hub="report-decide">
-            {status === 'resolved' ? 'Resolve report' : 'Dismiss report'}
+            {hubChoice ? hubChoice.label : status === 'resolved' ? 'Resolve report' : 'Dismiss report'}
           </Button>
         </>
       }

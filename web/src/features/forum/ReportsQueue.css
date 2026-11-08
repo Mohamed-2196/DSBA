@@ -85,6 +85,29 @@ a.forum-reports__target:hover {
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
+/* A reported picture: covered by its "Show picture" button until the rep chooses to look. */
+.forum-reports__picture {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 240px);
+  min-height: 96px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-control);
+  background: var(--surface-2);
+}
+.forum-reports__picture.is-shown {
+  min-height: 0;
+  border-style: solid;
+  overflow: hidden;
+}
+.forum-reports__picture img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+  object-fit: contain;
+}
 .forum-reports__meta {
   display: flex;
   flex-wrap: wrap;

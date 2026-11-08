@@ -22,11 +22,18 @@ export function HiddenBanner({ thread, onUnhide, unhiding }: HiddenBannerProps) 
     return (
       <div className="forum-notice is-alert" role="note" data-hub="thread-hidden-note">
         <Icon glyph={glyph.eyeOff} className="forum-notice__icon" />
-        <span className="forum-notice__text">
-          <strong>A student rep hid this thread.</strong> Only you and the student reps can see it, and it can’t take
-          replies or votes. If the rep gave a reason, it’s in your notifications. Contact a student rep if you think
-          this is a mistake.
-        </span>
+        {thread.heldByCheck ? (
+          <span className="forum-notice__text">
+            <strong>The Hub’s automatic check hid this thread.</strong> Only you and the student reps can see it until a
+            rep looks at it, and it can’t take replies or votes meanwhile.
+          </span>
+        ) : (
+          <span className="forum-notice__text">
+            <strong>A student rep hid this thread.</strong> Only you and the student reps can see it, and it can’t take
+            replies or votes. If the rep gave a reason, it’s in your notifications. Contact a student rep if you think
+            this is a mistake.
+          </span>
+        )}
       </div>
     );
   }
@@ -35,7 +42,7 @@ export function HiddenBanner({ thread, onUnhide, unhiding }: HiddenBannerProps) 
     <div className="forum-notice is-alert" role="note">
       <Icon glyph={glyph.eyeOff} className="forum-notice__icon" />
       <span className="forum-notice__text">
-        <strong>This thread is hidden.</strong>{' '}
+        <strong>{thread.heldByCheck ? 'The Hub’s automatic check hid this thread.' : 'This thread is hidden.'}</strong>{' '}
         {gone
           ? 'Only student reps and admins can see it. Its text was deleted, so unhiding it brings it back as a deleted thread.'
           : 'Student reps, admins and its author can see it; nobody else.'}{' '}

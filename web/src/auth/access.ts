@@ -29,6 +29,7 @@ export const FEATURE_KEYS = [
   'forum',
   'forum.anonymous',
   'forum.follow',
+  'forum.auto-check',
   'forum.help-below',
   'library',
   'library.uploads',

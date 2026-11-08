@@ -152,6 +152,14 @@ const ACTIONS: Record<string, Describe> = {
   'forum.reply.unhide': (d) => `brought back a reply in${quoted(d.title)}`,
   'forum.reply.edit': (d) => `edited a reply in${quoted(d.title)}`,
   'forum.reply.delete': (d) => `deleted a reply in${quoted(d.title)}`,
+  'forum.thread.auto_hide': (d) => `hid the thread${quoted(d.title)} for a moderator: the automatic check flagged it`,
+  'forum.reply.auto_hide': (d) => `hid a reply in${quoted(d.title)} for a moderator: the automatic check flagged it`,
+  'forum.image.auto_hold': (d) =>
+    d.verdict === 'unchecked'
+      ? 'kept a forum picture hidden for a moderator: the automatic check couldn’t check it'
+      : 'kept a forum picture hidden for a moderator: the automatic check flagged it',
+  'forum.image.show': () => 'showed a forum picture the automatic check had hidden',
+  'forum.image.remove': () => 'removed a forum picture the automatic check had hidden',
   'user.reset_link': (_d, name) => `made a password reset link for ${name ?? 'an account'}`,
   'user.password_reset': () => 'set a new password with a reset link',
   'user.takeover': (_d, name) =>
@@ -261,8 +269,8 @@ export function describeAudit(entry: AuditOut, nameOf: (userId: string) => strin
 }
 
 /** Who did it: the account, the name it had then, or the Hub itself for what ran on the server: a command
- *  (`via: 'cli'`) or the server's own settings (`via: 'bootstrap'`). */
+ *  (`via: 'cli'`), the server's own settings (`via: 'bootstrap'`) or the forum's automatic check (`via: 'check'`). */
 export function auditActor(entry: AuditOut): string {
-  const byTheHub = entry.data?.via === 'cli' || entry.data?.via === 'bootstrap';
+  const byTheHub = entry.data?.via === 'cli' || entry.data?.via === 'bootstrap' || entry.data?.via === 'check';
   return entry.actor?.displayName ?? str(entry.data?.actorName) ?? (byTheHub ? 'The Hub' : 'A deleted user');
 }

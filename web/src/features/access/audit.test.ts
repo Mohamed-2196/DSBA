@@ -229,6 +229,9 @@ describe('auditActor', () => {
     expect(auditActor({ ...entry('user.roles', { via: 'bootstrap', to: ['Admin'] }), actor: null } as AuditOut)).toBe(
       'The Hub',
     );
+    expect(
+      auditActor({ ...entry('forum.image.auto_hold', { via: 'check', verdict: 'flagged' }), actor: null } as AuditOut),
+    ).toBe('The Hub');
     expect(auditActor({ ...entry('forum.thread.hide', {}), actor: null } as AuditOut)).toBe('A deleted user');
     expect(auditActor({ ...entry('user.roles', { from: ['Student'], to: ['Rep'] }), actor: null } as AuditOut)).toBe(
       'A deleted user',

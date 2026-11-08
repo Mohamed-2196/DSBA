@@ -145,8 +145,9 @@ export function ReplyItem({
 
         {hiddenFromOthers ? (
           <p className="forum-reply__note" role="note">
-            A student rep hid your reply. Only you and the student reps can see it. If they gave a reason, it’s in your
-            notifications.
+            {reply.heldByCheck
+              ? 'The Hub’s automatic check hid your reply. Only you and the student reps can see it until a rep looks at it.'
+              : 'A student rep hid your reply. Only you and the student reps can see it. If they gave a reason, it’s in your notifications.'}
           </p>
         ) : null}
 

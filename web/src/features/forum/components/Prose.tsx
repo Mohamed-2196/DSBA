@@ -4,6 +4,8 @@ import { API_ORIGIN } from '../../../api/client';
 import { TeX, cx, Icon, glyph } from '../../../ui';
 import { mediaSrc, safeLink } from '../lib/links';
 import { parseBlocks, parseInline, type Block, type InlineToken } from '../lib/markdown';
+import { canOpen, heldCaption, useHeldPicture } from '../lib/heldPictures';
+import { HeldPlaceholder } from './HeldPictures';
 import './forum.css';
 
 // Everything below renders user text as React children (React escapes it): there is no HTML anywhere in this file.
@@ -68,11 +70,14 @@ function renderInline(text: string): ReactNode {
   });
 }
 
-/** A picture in a post. When it can't load (removed, or the post is hidden), a quiet note takes its place. */
+/** A picture in a post. When it can't load (removed, or the post is hidden), a quiet note takes its place. While the
+ * Hub's check holds it, others see "Picture being checked", and its uploader and the reps see it with a line why. */
 function Picture({ src, alt }: { src: string; alt: string }) {
   const [broken, setBroken] = useState(false);
+  const held = useHeldPicture(src);
   const url = mediaSrc(src);
   if (!url) return null;
+  if (held && !canOpen(held.image, held.moderator)) return <HeldPlaceholder image={held.image} />;
   if (broken) {
     return (
       <p className="forum-figure is-broken" role="note">
@@ -82,8 +87,14 @@ function Picture({ src, alt }: { src: string; alt: string }) {
     );
   }
   return (
-    <figure className="forum-figure" data-hub="forum-image">
+    <figure className={cx('forum-figure', held && 'is-held')} data-hub="forum-image">
       <img src={url} alt={alt} loading="lazy" decoding="async" onError={() => setBroken(true)} />
+      {held ? (
+        <figcaption className="forum-figure__held">
+          <Icon glyph={glyph.eyeOff} aria-hidden="true" />
+          <span>{heldCaption(held.image, held.moderator)}</span>
+        </figcaption>
+      ) : null}
     </figure>
   );
 }
