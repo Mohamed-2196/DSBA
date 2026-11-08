@@ -53,6 +53,7 @@ What production refuses (`app/config.py`, `Settings.production_problems`):
 | `DSBA_GOOGLE_CLIENT_ID`, `DSBA_GOOGLE_CLIENT_SECRET` | set together or not at all (in every environment); both empty turns "Continue with Google" off |
 | `DSBA_S3_*` | bucket and keys set, not the development keys; the endpoint set explicitly (empty for AWS S3); what browsers use (`DSBA_S3_PUBLIC_ENDPOINT_URL`, else `DSBA_S3_ENDPOINT_URL`) is `https://`; `DSBA_S3_CREATE_BUCKET` false (the default in production) |
 | `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain; `DSBA_SMTP_STARTTLS` true, unless `DSBA_SMTP_PORT` is 465 (TLS from the start) |
+| `DSBA_VAPID_PRIVATE_KEY`, `DSBA_VAPID_SUBJECT` | both or neither (section 11); the key a P-256 private key, the subject `mailto:` or `https://` |
 
 Every other setting, the optional ones included, is in section 12.
 
@@ -430,7 +431,7 @@ in the `.env` of your checkout. Without the script, the import alone is
 `docker compose -f compose.prod.yaml run --rm -e DSBA_GOOGLE_API_KEY api python -m app.cli import-drive` with
 `--dry-run`, `--module ID`, `--limit N`, `--pace SECONDS` or `--yes`.
 
-## 11. Mini Noora, the Sunday summary and bug reports
+## 11. Mini Noora, the Sunday summary, bug reports and notifications on devices
 
 **Mini Noora's AI answers** come from Claude. Put `DSBA_ANTHROPIC_API_KEY` in `.env` (compose passes it to the API's
 services, never to the text worker), then turn on `noora.ai` in Access; it arrives off. The model is `DSBA_NOORA_MODEL`
@@ -445,6 +446,27 @@ edit in Manage → Mini Noora, and calls nobody.
 `summary` in Access. The `mail` service queues it on Sunday from the time set in Manage → Sunday summary and sends it;
 nothing else needs scheduling. `python -m app.cli weekly-summary` queues this week's at once (for whoever hasn't had
 it), and `--preview YEAR` prints a year's text and sends nothing.
+
+**Notifications on phones and computers (web push).** A student turns on "Notifications on this device" on Your
+account, and the browser's push service (Google's, Apple's, Mozilla's or Microsoft's) then delivers the Hub's
+notifications to that device, even with the Hub closed: free, with no account at any of them. Only replies to your
+own posts come at first; each student turns on the other kinds. On an iPhone or iPad it works only in the Hub added
+to the Home Screen (iOS 16.4 or later). To turn it on:
+
+1. Make the hub's key once per environment: `python -m app.cli vapid-key` prints `DSBA_VAPID_PRIVATE_KEY=...`. Keep
+   it secret, and never make a new one for a running hub: browsers subscribed with the old key's public half, so a
+   new key stops every device's notifications until each student turns them on again.
+2. Set `DSBA_VAPID_PRIVATE_KEY` and `DSBA_VAPID_SUBJECT` (`mailto:` an address you read, or the hub's `https://`
+   address: the push services write there if the hub misbehaves) on the API and on the `mail` worker, which sends
+   them. On Railway, set both on the API service and on a service running `python -m app.cli mail-worker` from the
+   API's image: the dev environment has no such service yet (web, api and Postgres only), so nothing queued there,
+   pushes or emails, is sent until one is added.
+3. Turn on `push` in Access ("Notifications on phones and computers"); it arrives off, for admins too.
+
+Each device's subscription belongs to the signed-in session that made it: signing out (or out of every device)
+stops that device's notifications. A push waits in `push_outbox` and the mail worker sends it with retries, as the
+emails; a device its push service no longer knows (404, 410) is forgotten. Turning `push` off drops what waits and
+keeps the devices.
 
 **Bug reports.** Anyone, guests included, can send one ("Report a bug" in the account menu, the More drawer, the
 command palette and About), and a signed-in reporter can add a screenshot. They are kept in `bug_reports` and admins
@@ -497,6 +519,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_NOORA_EFFORT` | `medium` | how much she thinks before she answers: `low`, `medium` or `high` |
 | `DSBA_NOORA_INPUT_USD_PER_MTOK`, `DSBA_NOORA_OUTPUT_USD_PER_MTOK` | `0.10`, `0.50` | the model's prices, for the estimated cost the monthly budget is checked against |
 | `DSBA_NOORA_LONG_PROMPT_TOKENS`, `DSBA_NOORA_LONG_INPUT_USD_PER_MTOK`, `DSBA_NOORA_LONG_OUTPUT_USD_PER_MTOK` | `100000`, `0.50`, `2.50` | the prices for a prompt over that many tokens |
+| `DSBA_VAPID_PRIVATE_KEY`, `DSBA_VAPID_SUBJECT` | none | notifications on phones and computers (section 11): the hub's VAPID key (base64url or PEM; `python -m app.cli vapid-key`) and a `mailto:` or `https://` contact; off while either is empty |
 | `DSBA_NOORA_MAX_ANSWER_TOKENS`, `DSBA_NOORA_ANSWERS_AT_ONCE` | `8000`, `8` | the longest answer (her thinking included), and answers streaming at once hub-wide |
 | `DSBA_EDGE_PROXIES` (Caddy) | `127.0.0.1/32` | proxies in front of Caddy whose `X-Forwarded-For` it keeps; on Railway `private_ranges 100.64.0.0/10` (section 5) |
 | `DSBA_ROLE` | `api` | what the process is: `backup` and `sweep` (compose.prod.yaml) are checked for the settings they hold only; the API refuses any role but `api` |

@@ -41,6 +41,9 @@ x-api-env: &api-env
   DSBA_PORTAL_HOSTS: ${DSBA_PORTAL_HOSTS:-bibf.edu.bh,bibf.com,london.ac.uk}  # Site settings' links (SEC-64)
   DSBA_ANTHROPIC_API_KEY: ${DSBA_ANTHROPIC_API_KEY:-}  # Mini Noora's AI answers (the noora.ai feature)
   DSBA_NOORA_MODEL: ${DSBA_NOORA_MODEL:-claude-haiku-5-5}
+  # Notifications on phones and computers (DEPLOYMENT.md, section 11): off while either is empty.
+  DSBA_VAPID_PRIVATE_KEY: ${DSBA_VAPID_PRIVATE_KEY:-}
+  DSBA_VAPID_SUBJECT: ${DSBA_VAPID_SUBJECT:-}
 
 # Docker's logs rotate (10 MB, 5 files a service), so they never fill the disk the database lives on.
 x-logging: &logging
@@ -176,7 +179,8 @@ services:
         condition: service_completed_successfully
 
   mail:
-    # The mail worker: sends the queued emails (notifications, account notices) and retries failures with backoff.
+    # The mail worker: sends the queued emails (notifications, account notices) and pushes to phones and computers,
+    # and retries failures with backoff.
     # Several may run (each email is claimed with FOR UPDATE SKIP LOCKED); `docker compose stop` lets it finish the
     # email in hand.
     <<: *api
