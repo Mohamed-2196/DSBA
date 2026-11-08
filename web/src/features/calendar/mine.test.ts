@@ -69,6 +69,7 @@ const prefs = (over: Partial<CalendarPrefs> = {}): CalendarPrefs => ({
   hiddenTypes: [],
   showPlan: false,
   feedPath: null,
+  widgetPath: null,
   ...over,
 });
 const card = (id: string, due: string, over: Partial<PlanCard> = {}): PlanCard => ({

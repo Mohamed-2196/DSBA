@@ -64,6 +64,7 @@ PAGES: tuple[tuple[str, str, Feature | None], ...] = (
     ("/modules/<id>/lessons/<lesson id>", "One lesson (its id as the module's lessons list it)", None),
     ("/modules/<id>?tab=files", "A module's files: past papers, notes and guides", Feature.library),
     ("/calendar", "The programme calendar: exams, deadlines and events", Feature.calendar),
+    ("/calendar/widgets", "Add a widget: the calendar and the Hub on the phone's home screen", Feature.calendar),
     ("/forum", "The forum: ask other students", Feature.forum),
     ("/forum/new", "Start a forum thread", Feature.forum),
     ("/newsletter", "The DSBA newsletter", Feature.newsletter),
@@ -83,7 +84,7 @@ CALENDAR_DATES = 8  # the next dates she is told about
 # The app's own routes (web/src/routes.tsx; a test keeps them in step). A page the student is on goes to Noora only
 # when its path is one of them.
 ROUTE_PATH = re.compile(
-    r"/(?:about|account|admin/access|board|calendar|career(?:/electives)?|connect-ai|daily(?:/[\w-]+){0,2}|forum(?:/[\w-]+)?"
+    r"/(?:about|account|admin/access|board|calendar(?:/widgets)?|career(?:/electives)?|connect-ai|daily(?:/[\w-]+){0,2}|forum(?:/[\w-]+)?"
     r"|grades|library(?:/[\w-]+)?|manage|modules(?:/[\w-]+(?:/(?:lessons|practise)/[\w-]+)?)?|newsletter(?:/[\w-]+(?:/edit)?)?"
     r"|noora|notes(?:/shared)?(?:/[\w-]+)?|requests(?:/[\w-]+)?|reset-password|results-day|styleguide)?/?",
     re.ASCII,

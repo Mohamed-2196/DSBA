@@ -903,6 +903,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
                 "hidden_modules": list(calendar_prefs.hidden_modules),
                 "hidden_types": list(calendar_prefs.hidden_types),
                 "private_feed": calendar_prefs.feed_salt is not None,
+                "widget_feed": calendar_prefs.widget_salt is not None,
             }
         )
         if calendar_prefs is not None

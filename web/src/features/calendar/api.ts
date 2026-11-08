@@ -188,6 +188,7 @@ export function useDeleteEvent() {
 //   GET /api/v1/calendar/mine/events/{id}.ics                 one of them to import
 //   GET/PATCH /api/v1/calendar/mine/settings                  the programme dates they hide, their private feed
 //   POST/DELETE /api/v1/calendar/mine/feed                    a new private feed address, or none
+//   POST/DELETE /api/v1/calendar/mine/widget                  a new widget feed address, or none
 
 export const mineKeys = {
   events: [...CALENDAR_KEY, 'mine', 'events'] as const,
@@ -331,7 +332,20 @@ export function usePrivateFeed() {
   });
 }
 
-/** The private feed's absolute address, for calendar apps. */
+/** A new widget feed address (the old one stops working; the calendar feed's stays), or `off`: none. */
+export function useWidgetFeed() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (action: 'new' | 'off') =>
+      call(action === 'new' ? api.POST('/api/v1/calendar/mine/widget') : api.DELETE('/api/v1/calendar/mine/widget')),
+    onSuccess: (saved) =>
+      qc.setQueryData<CalendarPrefs>(mineKeys.settings, (before) =>
+        before ? { ...before, widgetPath: saved.widgetPath } : saved,
+      ),
+  });
+}
+
+/** A private feed's absolute address (the calendar's or the widget's), for calendar and widget apps. */
 export const privateFeedUrl = (path: string): string =>
   new URL(apiUrl(path as `/api/v1/${string}`), window.location.origin).href;
 

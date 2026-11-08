@@ -21,6 +21,7 @@ from calendar import monthrange
 from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
 from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
+from typing import Literal
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
@@ -354,11 +355,14 @@ def _prefs_for_update(db: Session, user: User) -> CalendarPrefs:
     return prefs
 
 
-def feed_token(user_id: uuid.UUID, salt: str) -> str:
-    """The private feed's secret: an HMAC of the account and its salt under the server's key, so the address can
-    be shown again without being stored. 43 URL-safe characters (256 bits)."""
+FeedKind = Literal["calendar", "widget"]
+
+
+def feed_token(user_id: uuid.UUID, salt: str, kind: FeedKind = "calendar") -> str:
+    """A private feed's secret: an HMAC of the account, the feed and its salt under the server's key, so the address
+    can be shown again without being stored. 43 URL-safe characters (256 bits)."""
     key = get_settings().secret_key.get_secret_value().encode()
-    mac = hmac.new(key, f"calendar-feed:{user_id}:{salt}".encode(), hashlib.sha256).digest()
+    mac = hmac.new(key, f"{kind}-feed:{user_id}:{salt}".encode(), hashlib.sha256).digest()
     return base64.urlsafe_b64encode(mac).decode().rstrip("=")
 
 
@@ -367,13 +371,20 @@ def _feed_hash(token: str) -> str:
 
 
 def feed_path(user_id: uuid.UUID, salt: str) -> str:
-    """The private feed's path under the API's origin."""
+    """The private calendar feed's path under the API's origin."""
     return f"/api/v1/feeds/calendar/{feed_token(user_id, salt)}.ics"
+
+
+def widget_path(user_id: uuid.UUID, salt: str) -> str:
+    """The widget feed's path under the API's origin."""
+    return f"/api/v1/feeds/widget/{feed_token(user_id, salt, 'widget')}.json"
 
 
 def prefs_out(user: User, prefs: CalendarPrefs | None) -> CalendarPrefsOut:
     if prefs is None:
-        return CalendarPrefsOut(hidden_events=[], hidden_modules=[], hidden_types=[], show_plan=False, feed_path=None)
+        return CalendarPrefsOut(
+            hidden_events=[], hidden_modules=[], hidden_types=[], show_plan=False, feed_path=None, widget_path=None
+        )
     return CalendarPrefsOut.model_validate(
         {
             "hidden_events": list(prefs.hidden_events),
@@ -381,6 +392,7 @@ def prefs_out(user: User, prefs: CalendarPrefs | None) -> CalendarPrefsOut:
             "hidden_types": list(prefs.hidden_types),
             "show_plan": prefs.show_plan,
             "feed_path": feed_path(user.id, prefs.feed_salt) if prefs.feed_salt else None,
+            "widget_path": widget_path(user.id, prefs.widget_salt) if prefs.widget_salt else None,
         }
     )
 
@@ -412,6 +424,22 @@ def new_feed(db: Session, user: User) -> CalendarPrefs:
 def stop_feed(db: Session, user: User) -> CalendarPrefs:
     prefs = _prefs_for_update(db, user)
     prefs.feed_salt = prefs.feed_hash = None
+    prefs.updated_at = utcnow()
+    return prefs
+
+
+def new_widget(db: Session, user: User) -> CalendarPrefs:
+    """Turns the widget feed on at a new address: the old address, if any, stops working."""
+    prefs = _prefs_for_update(db, user)
+    prefs.widget_salt = secrets.token_hex(16)
+    prefs.widget_hash = _feed_hash(feed_token(user.id, prefs.widget_salt, "widget"))
+    prefs.updated_at = utcnow()
+    return prefs
+
+
+def stop_widget(db: Session, user: User) -> CalendarPrefs:
+    prefs = _prefs_for_update(db, user)
+    prefs.widget_salt = prefs.widget_hash = None
     prefs.updated_at = utcnow()
     return prefs
 
@@ -469,16 +497,22 @@ def counts_for(
     return year is None or e.year is None or e.year == year
 
 
-def _owner_of_feed(db: Session, token: str) -> tuple[User, CalendarPrefs]:
-    """The account whose private feed `token` opens, while the calendar is on for it; else 404 not_found (an old,
-    wrong or switched-off address all look the same)."""
-    gone = not_found("This calendar link doesn't work any more. Copy your new one from the Hub's calendar.")
+def owner_of_feed(db: Session, token: str, kind: FeedKind = "calendar") -> tuple[User, CalendarPrefs]:
+    """The account whose private feed of `kind` `token` opens, while the calendar is on for it; else 404 not_found
+    (an old, wrong or switched-off address all look the same)."""
+    gone = not_found(
+        "This calendar link doesn't work any more. Copy your new one from the Hub's calendar."
+        if kind == "calendar"
+        else "This widget link doesn't work any more. Copy your new one from the Hub's Add a widget page."
+    )
     if len(token) != 43:
         raise gone
-    prefs = db.scalar(select(CalendarPrefs).where(CalendarPrefs.feed_hash == _feed_hash(token)))
-    if prefs is None or prefs.feed_salt is None:
+    column = CalendarPrefs.feed_hash if kind == "calendar" else CalendarPrefs.widget_hash
+    prefs = db.scalar(select(CalendarPrefs).where(column == _feed_hash(token)))
+    salt = None if prefs is None else prefs.feed_salt if kind == "calendar" else prefs.widget_salt
+    if prefs is None or salt is None:
         raise gone
-    if not hmac.compare_digest(feed_token(prefs.user_id, prefs.feed_salt), token):
+    if not hmac.compare_digest(feed_token(prefs.user_id, salt, kind), token):
         raise gone
     user = db.get(User, prefs.user_id)
     if user is None or not access.feature_on(db, user, Feature.calendar):
@@ -601,7 +635,7 @@ def plan_of(db: Session, user: User) -> list[AgendaCard]:
 def private_feed(db: Session, token: str) -> str:
     """The private feed: the student's programme dates (their year, papers and resits, less what they hid), their own
     events, and their plan when they show it on their calendar. 404 not_found for an address that doesn't work."""
-    user, prefs = _owner_of_feed(db, token)
+    user, prefs = owner_of_feed(db, token)
     catalogue = db.scalars(select(Module)).all()
     papers = papers_of(user, catalogue, grades.choice_ids(db))
     modules = {m.id: m for m in catalogue}

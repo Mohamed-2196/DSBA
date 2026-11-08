@@ -1,13 +1,14 @@
-"""What the API's logs may hold: no bearer secrets. The private calendar feed is the one address with a secret in its
-path (/api/v1/feeds/calendar/<secret>.ics, routers/feeds.py): every log line that would carry it, the access log's
-request line included, carries /api/v1/feeds/calendar/….ics instead."""
+"""What the API's logs may hold: no bearer secrets. The private feeds are the addresses with a secret in their path
+(/api/v1/feeds/calendar/<secret>.ics and /api/v1/feeds/widget/<secret>.json, routers/feeds.py): every log line that
+would carry one, the access log's request line included, carries /api/v1/feeds/calendar/….ics (or widget/….json)
+instead."""
 
 from __future__ import annotations
 
 import logging
 import re
 
-_FEED_SECRET = re.compile(r"(/feeds/calendar/)[^/?#\s\"]+(\.ics)")
+_FEED_SECRET = re.compile(r"(/feeds/(?:calendar|widget)/)[^/?#\s\"]+(\.ics|\.json)")
 
 
 def redact_path(text: str) -> str:

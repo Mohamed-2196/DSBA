@@ -40,6 +40,7 @@ export interface PhoneTools {
   /** signed in */
   onCustomise?: () => void;
   onSubscribe: () => void;
+  onWidgets: () => void;
   /** reps */
   onAddDate?: () => void;
   onAddMine: () => void;
@@ -75,6 +76,7 @@ export function CalendarBar({ view, tools }: { view: CalendarView; tools?: Phone
             ]
           : []),
         { id: 'subscribe', label: 'Subscribe', icon: <Icon glyph={glyph.link} />, onSelect: tools.onSubscribe },
+        { id: 'widgets', label: 'Add a widget', icon: <Icon glyph={glyph.mobile} />, onSelect: tools.onWidgets },
         ...(tools.onAddDate
           ? [{ id: 'date', label: 'Programme date', icon: <Icon glyph={glyph.plus} />, onSelect: tools.onAddDate }]
           : []),

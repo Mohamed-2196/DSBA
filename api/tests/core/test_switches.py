@@ -178,6 +178,7 @@ DECIDED_BY_REQUEST: dict[tuple[str, str], str] = {
     ("GET", "/admin/gaps"): "lists the gaps of the features on for the viewer",
     ("GET", "/media/{upload_id}"): "a forum picture needs the forum, a newsletter picture the newsletter",
     ("GET", "/feeds/calendar/{token}.ics"): "a student's private feed: the calendar must be on for its owner",
+    ("GET", "/feeds/widget/{token}.json"): "a student's widget feed: the calendar must be on for its owner",
     ("GET", "/admin/noora"): "the Claude budget: Mini Noora's AI answers or paper tagging, which share it, must be on",
     ("PUT", "/admin/noora"): "as GET /admin/noora",
 }

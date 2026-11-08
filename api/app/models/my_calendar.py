@@ -60,7 +60,7 @@ class PersonalEvent(Base):
 
 
 class CalendarPrefs(Base):
-    """What one student keeps off their calendar, and their private feed's secret (a row once they change any)."""
+    """What one student keeps off their calendar, and their private feeds' secrets (a row once they change any)."""
 
     __tablename__ = "calendar_prefs"
 
@@ -74,4 +74,7 @@ class CalendarPrefs(Base):
     # address's SHA-256. A new salt is a new address; no salt: the feed is off.
     feed_salt: Mapped[str | None] = mapped_column(String(32))
     feed_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
+    # The widget feed (services/widget.py): its own address, kept the same way.
+    widget_salt: Mapped[str | None] = mapped_column(String(32))
+    widget_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
     updated_at: Mapped[datetime] = created_ts()

@@ -361,6 +361,7 @@ def test_hide_programme_dates_and_show_them_again(client_for: Clients, make_user
         "hiddenTypes": [],
         "showPlan": False,
         "feedPath": None,
+        "widgetPath": None,
     }
     r = c.patch(SETTINGS, json={"hiddenEvents": ["y2-exam", "y2-exam", "x"], "hiddenTypes": ["break"]})
     assert r.status_code == 200, r.text
@@ -630,6 +631,7 @@ def test_export_and_deletion(client_for: Clients, make_user: MakeUser, db: Sessi
         "hiddenModules": [],
         "hiddenTypes": ["careers"],
         "privateFeed": True,
+        "widgetFeed": False,
     }
     assert c.delete(f"{API}/me").status_code == 204
     db.expire_all()

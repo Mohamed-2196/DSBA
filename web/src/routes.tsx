@@ -103,6 +103,13 @@ const pages: AppRoute[] = [
     feature: 'calendar',
   },
   {
+    id: 'widgets',
+    path: '/calendar/widgets',
+    title: 'Add a widget',
+    Page: lazyPage(() => import('./features/calendar/WidgetsPage')),
+    feature: 'calendar',
+  },
+  {
     id: 'requests',
     path: '/requests',
     title: 'Requests',

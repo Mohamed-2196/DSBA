@@ -309,3 +309,20 @@ def stop_my_feed(user: ActiveUser, db: DB) -> CalendarPrefsOut:
     prefs = mine.stop_feed(db, user)
     db.commit()
     return mine.prefs_out(user, prefs)
+
+
+@router.post("/calendar/mine/widget", response_model=CalendarPrefsOut)
+def new_my_widget(user: ActiveUser, db: DB) -> CalendarPrefsOut:
+    """Turns your widget feed on at a new address (what a widget app on your phone reads). An address you had before
+    stops working; your calendar feed's stays as it is."""
+    prefs = mine.new_widget(db, user)
+    db.commit()
+    return mine.prefs_out(user, prefs)
+
+
+@router.delete("/calendar/mine/widget", response_model=CalendarPrefsOut)
+def stop_my_widget(user: ActiveUser, db: DB) -> CalendarPrefsOut:
+    """Turns your widget feed off: its address stops working."""
+    prefs = mine.stop_widget(db, user)
+    db.commit()
+    return mine.prefs_out(user, prefs)

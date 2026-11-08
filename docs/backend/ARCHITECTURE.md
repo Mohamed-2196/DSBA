@@ -121,7 +121,7 @@ needs a change in an area another builder holds says so in its report (file, wha
 | Requests, "You asked, we did", the reps' gaps | `requests` | `requests`, `gaps` | `requests`, `request_me_toos` | `requests` |
 | Modules and lessons, their editor and pictures, suggested videos | `modules`, `suggestions` | `modules`, `module_editor`, `suggestions`, `chapter_outlines` | `modules` (with `art`), `chapters` (with `outline`), `chapter_topics`, `lessons`, `video_suggestions` | `modules` (`modules/editor`) |
 | Newsletter, its settings and pictures, polls | `newsletter` | `newsletter`, `newsletter_settings`, `newsletter_images`, `polls` | `newsletter_*`, `content_docs` | `newsletter` (`newsletter/settings`) |
-| Programme calendar, each student's own calendar and private feed | `calendar`, `feeds` | `calendar`, `my_calendar` | `calendar_events` (`resit`), `personal_events`, `calendar_prefs`; `users.resits` | `calendar` (`mine.ts`, `MyEventDialog`) |
+| Programme calendar, each student's own calendar, its private feed and the widget feed | `calendar`, `feeds` | `calendar`, `my_calendar`, `widget` | `calendar_events` (`resit`), `personal_events`, `calendar_prefs`; `users.resits` | `calendar` (`mine.ts`, `MyEventDialog`, `WidgetsPage`, `widgetScript.ts`) |
 | Career Navigator and its editor, seniors who answer | `content`, `seniors` | `career`, `content`, `documents`, `seniors` | `content_docs` (`career`), `uploads` (logos), `senior_profiles` | `career` (`career/editor`) |
 | Site settings and the guides | `site` | `site`, `documents` | `content_docs` | `site`, `start` (`start/editor`) |
 | Grades calculator's rules | `grades` | `grades`, `documents` | `content_docs` | `grades` (`grades/editor`) |

@@ -3084,6 +3084,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/calendar/mine/widget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * New My Widget
+         * @description Turns your widget feed on at a new address (what a widget app on your phone reads). An address you had before
+         *     stops working; your calendar feed's stays as it is.
+         */
+        post: operations["new_my_widget_api_v1_calendar_mine_widget_post"];
+        /**
+         * Stop My Widget
+         * @description Turns your widget feed off: its address stops working.
+         */
+        delete: operations["stop_my_widget_api_v1_calendar_mine_widget_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/feeds/calendar/{token}.ics": {
         parameters: {
             query?: never;
@@ -3098,6 +3123,27 @@ export interface paths {
          *     current. Errors: not_found (404).
          */
         get: operations["private_calendar_api_v1_feeds_calendar__token__ics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feeds/widget/{token}.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Widget Feed
+         * @description What a student's home-screen widget shows: their next exam, today's dates and events, and the lesson to carry
+         *     on with. Works only while the calendar is on for them and the address is current. Errors: not_found (404).
+         */
+        get: operations["widget_feed_api_v1_feeds_widget__token__json_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6211,6 +6257,8 @@ export interface components {
             showPlan: boolean;
             /** Feedpath */
             feedPath: string | null;
+            /** Widgetpath */
+            widgetPath: string | null;
         };
         /**
          * CalendarPrefsUpdate
@@ -7298,8 +7346,8 @@ export interface components {
         };
         /**
          * ExportCalendarSettings
-         * @description What this person keeps off their calendar, and whether their private feed is on (its address is a secret,
-         *     left out).
+         * @description What this person keeps off their calendar, and whether their private feeds are on (their addresses are
+         *     secrets, left out).
          */
         ExportCalendarSettings: {
             /** Hiddenevents */
@@ -7310,6 +7358,8 @@ export interface components {
             hiddenTypes: ("exam" | "mock" | "revision" | "deadline" | "careers" | "event" | "break" | "term")[];
             /** Privatefeed */
             privateFeed: boolean;
+            /** Widgetfeed */
+            widgetFeed: boolean;
         };
         /** ExportDailyPlay */
         ExportDailyPlay: {
@@ -13497,6 +13547,70 @@ export interface components {
             /** Theme */
             theme?: string | null;
         };
+        /** WidgetEvent */
+        WidgetEvent: {
+            /** Title */
+            title: string;
+            /** Time */
+            time: string | null;
+            /** Text */
+            text: string;
+            /** Url */
+            url: string;
+        };
+        /** WidgetExam */
+        WidgetExam: {
+            /** Title */
+            title: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Daysleft */
+            daysLeft: number;
+            /** Text */
+            text: string;
+            /** Url */
+            url: string;
+        };
+        /**
+         * WidgetFeed
+         * @description What a home-screen widget shows at a glance, for one student.
+         */
+        WidgetFeed: {
+            /**
+             * Today
+             * Format: date
+             */
+            today: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+            /** Url */
+            url: string;
+            nextExam: components["schemas"]["WidgetExam"] | null;
+            /** Todayevents */
+            todayEvents: components["schemas"]["WidgetEvent"][];
+            /** Todaytext */
+            todayText: string;
+            carryOn: components["schemas"]["WidgetLesson"] | null;
+        };
+        /** WidgetLesson */
+        WidgetLesson: {
+            /** Module */
+            module: string;
+            /** Chapter */
+            chapter: string;
+            /** Position */
+            position: string;
+            /** Text */
+            text: string;
+            /** Url */
+            url: string;
+        };
         /**
          * WordData
          * @description The word: an answer, five letters, in the guess list.
@@ -14024,6 +14138,10 @@ export type WatchedLesson = components['schemas']['WatchedLesson'];
 export type WebLink = components['schemas']['WebLink'];
 export type WeekOut = components['schemas']['WeekOut'];
 export type WeekSave = components['schemas']['WeekSave'];
+export type WidgetEvent = components['schemas']['WidgetEvent'];
+export type WidgetExam = components['schemas']['WidgetExam'];
+export type WidgetFeed = components['schemas']['WidgetFeed'];
+export type WidgetLesson = components['schemas']['WidgetLesson'];
 export type WordData = components['schemas']['WordData'];
 export type WordRow = components['schemas']['WordRow'];
 export type WordView = components['schemas']['WordView'];
@@ -29279,6 +29397,172 @@ export interface operations {
             };
         };
     };
+    new_my_widget_api_v1_calendar_mine_widget_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarPrefsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    stop_my_widget_api_v1_calendar_mine_widget_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarPrefsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     private_calendar_api_v1_feeds_calendar__token__ics_get: {
         parameters: {
             query?: never;
@@ -29297,6 +29581,91 @@ export interface operations {
                 };
                 content: {
                     "text/calendar": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    widget_feed_api_v1_feeds_widget__token__json_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WidgetFeed"];
                 };
             };
             /** @description Bad Request */

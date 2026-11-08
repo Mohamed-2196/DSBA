@@ -38,7 +38,7 @@ def home(db: Session, user: User | None, year: int, picks: Collection[str]) -> H
     today = bahrain_today()
     on = set(access.features_on(db, user))
     catalogue = list(db.scalars(select(Module).where(Module.hidden.is_(False))))
-    dates = _dates(db, user, year, picks, catalogue, today) if Feature.calendar in on else []
+    dates = dates_for(db, user, year, picks, catalogue, today) if Feature.calendar in on else []
     exam = next_exam(dates, today)
     guides = site.guides(db)
     results = results_event(db, today, guides) if Feature.calendar in on else None
@@ -53,7 +53,7 @@ def home(db: Session, user: User | None, year: int, picks: Collection[str]) -> H
     )
 
 
-def _dates(
+def dates_for(
     db: Session, user: User | None, year: int, picks: Collection[str], catalogue: Sequence[Module], today: dt.date
 ) -> list[CalendarEventOut]:
     """The dates from today to DATES_AHEAD that count for the student (my_calendar.counts_for: a module's own year

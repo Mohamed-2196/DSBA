@@ -19473,6 +19473,188 @@
         }
       }
     },
+    "/api/v1/calendar/mine/widget": {
+      "post": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "New My Widget",
+        "description": "Turns your widget feed on at a new address (what a widget app on your phone reads). An address you had before\nstops working; your calendar feed's stays as it is.",
+        "operationId": "new_my_widget_api_v1_calendar_mine_widget_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarPrefsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Stop My Widget",
+        "description": "Turns your widget feed off: its address stops working.",
+        "operationId": "stop_my_widget_api_v1_calendar_mine_widget_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarPrefsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/feeds/calendar/{token}.ics": {
       "get": {
         "tags": [
@@ -19500,6 +19682,110 @@
               "text/calendar": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/feeds/widget/{token}.json": {
+      "get": {
+        "tags": [
+          "calendar"
+        ],
+        "summary": "Widget Feed",
+        "description": "What a student's home-screen widget shows: their next exam, today's dates and events, and the lesson to carry\non with. Works only while the calendar is on for them and the address is current. Errors: not_found (404).",
+        "operationId": "widget_feed_api_v1_feeds_widget__token__json_get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetFeed"
                 }
               }
             }
@@ -35138,6 +35424,17 @@
               }
             ],
             "title": "Feedpath"
+          },
+          "widgetPath": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Widgetpath"
           }
         },
         "type": "object",
@@ -35146,7 +35443,8 @@
           "hiddenModules",
           "hiddenTypes",
           "showPlan",
-          "feedPath"
+          "feedPath",
+          "widgetPath"
         ],
         "title": "CalendarPrefsOut",
         "description": "What a student keeps off their calendar, and their private feed. Hidden programme dates leave their list,\nmonth, Home and private feed; the shared feed and other people's calendars are unchanged."
@@ -38243,6 +38541,10 @@
           "privateFeed": {
             "type": "boolean",
             "title": "Privatefeed"
+          },
+          "widgetFeed": {
+            "type": "boolean",
+            "title": "Widgetfeed"
           }
         },
         "type": "object",
@@ -38250,10 +38552,11 @@
           "hiddenEvents",
           "hiddenModules",
           "hiddenTypes",
-          "privateFeed"
+          "privateFeed",
+          "widgetFeed"
         ],
         "title": "ExportCalendarSettings",
-        "description": "What this person keeps off their calendar, and whether their private feed is on (its address is a secret,\nleft out)."
+        "description": "What this person keeps off their calendar, and whether their private feeds are on (their addresses are\nsecrets, left out)."
       },
       "ExportDailyPlay": {
         "properties": {
@@ -56260,6 +56563,169 @@
         "type": "object",
         "title": "WeekSave",
         "description": "The theme for a week to come, or null to follow the rotation."
+      },
+      "WidgetEvent": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "time",
+          "text",
+          "url"
+        ],
+        "title": "WidgetEvent"
+      },
+      "WidgetExam": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "daysLeft": {
+            "type": "integer",
+            "title": "Daysleft"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "date",
+          "daysLeft",
+          "text",
+          "url"
+        ],
+        "title": "WidgetExam"
+      },
+      "WidgetFeed": {
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date",
+            "title": "Today"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "nextExam": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetExam"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "todayEvents": {
+            "items": {
+              "$ref": "#/components/schemas/WidgetEvent"
+            },
+            "type": "array",
+            "title": "Todayevents"
+          },
+          "todayText": {
+            "type": "string",
+            "title": "Todaytext"
+          },
+          "carryOn": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetLesson"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "today",
+          "updatedAt",
+          "url",
+          "nextExam",
+          "todayEvents",
+          "todayText",
+          "carryOn"
+        ],
+        "title": "WidgetFeed",
+        "description": "What a home-screen widget shows at a glance, for one student."
+      },
+      "WidgetLesson": {
+        "properties": {
+          "module": {
+            "type": "string",
+            "title": "Module"
+          },
+          "chapter": {
+            "type": "string",
+            "title": "Chapter"
+          },
+          "position": {
+            "type": "string",
+            "title": "Position"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "module",
+          "chapter",
+          "position",
+          "text",
+          "url"
+        ],
+        "title": "WidgetLesson"
       },
       "WordData": {
         "properties": {

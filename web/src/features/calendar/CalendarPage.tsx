@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
 import { useAuth } from '../../auth';
 import { BREAKPOINTS, cohortLabel, useMediaQuery, useSetQueryParams, useToast, useYear } from '../../state';
@@ -55,6 +56,7 @@ export default function CalendarPage() {
   const manages = can('calendar.manage');
   const employers = useEmployers(featureOn('career'));
   const my = useMyCalendar();
+  const navigate = useNavigate();
   const [subscribing, setSubscribing] = useState(false);
   const [customising, setCustomising] = useState(false);
   const [pickingPapers, setPickingPapers] = useState(false);
@@ -105,6 +107,7 @@ export default function CalendarPage() {
   const phoneTools: PhoneTools = {
     onCustomise: my.signedIn ? () => setCustomising(true) : undefined,
     onSubscribe: () => setSubscribing(true),
+    onWidgets: () => void navigate('/calendar/widgets'),
     onAddDate: manages ? () => setEditing({ event: null }) : undefined,
     onAddMine: () => addMine(),
   };
@@ -125,6 +128,9 @@ export default function CalendarPage() {
         data-hub="calendar-subscribe-open"
       >
         Subscribe
+      </Button>
+      <Button leadingIcon={<Icon glyph={glyph.mobile} />} to="/calendar/widgets" data-hub="calendar-widgets">
+        Add a widget
       </Button>
       {manages ? (
         <Button

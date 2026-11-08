@@ -413,13 +413,14 @@ class ExportNote(ApiModel):
 
 
 class ExportCalendarSettings(ApiModel):
-    """What this person keeps off their calendar, and whether their private feed is on (its address is a secret,
-    left out)."""
+    """What this person keeps off their calendar, and whether their private feeds are on (their addresses are
+    secrets, left out)."""
 
     hidden_events: list[str]
     hidden_modules: list[str]
     hidden_types: list[EventType]
     private_feed: bool
+    widget_feed: bool
 
 
 class ExportNotebook(ApiModel):

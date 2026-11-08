@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { errorMessage } from '../../api/errors';
 import { cohortLabel, normalizeYear, useToast, YEARS, type CohortYear } from '../../state';
 import { Button, ConfirmDialog, Modal, SegmentedControl, TextField, Icon, glyph } from '../../ui';
@@ -195,6 +196,9 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
         </ul>
         <p className="cal-subscribe__note">
           Each date’s notes say whether it’s confirmed, with its time and place once they’re published.
+        </p>
+        <p className="cal-subscribe__note">
+          Want it on your home screen? <Link to="/calendar/widgets">Add a widget</Link>.
         </p>
       </div>
       <ConfirmDialog

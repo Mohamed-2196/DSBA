@@ -492,7 +492,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | Setting | Default | What it is |
 |---|---|---|
 | `DSBA_ENV` | `development` | `development`, `test` or `production` (the API image sets `production`) |
-| `DSBA_SECRET_KEY` | development value | keys the sign-in limits' address hashes, the CSRF tokens and the private calendar feeds' addresses (a new key gives every feed a new address) |
+| `DSBA_SECRET_KEY` | development value | keys the sign-in limits' address hashes, the CSRF tokens and the private calendar and widget feeds' addresses (a new key gives every feed a new address) |
 | `DSBA_DATABASE_URL` | the local `dsba` database | PostgreSQL, `postgresql+psycopg://…` |
 | `DSBA_WEB_ORIGINS` | `http://127.0.0.1:5173,http://localhost:5173` | the app's origins, comma-separated (CORS, CSRF) |
 | `DSBA_WEB_BASE_URL` | `http://127.0.0.1:5173` | the app's address: in emails, in reset links, and Google's redirect URI (`<it>/api/v1/auth/google/callback`, section 14) |

@@ -1,4 +1,5 @@
-"""Private calendar feeds, read by calendar apps without a session: the secret in the address says whose it is."""
+"""Private feeds, read without a session by calendar apps and widget apps: the secret in the address says whose it
+is."""
 
 from __future__ import annotations
 
@@ -8,8 +9,9 @@ from fastapi import Path, Response
 
 from app.core.security import DB
 from app.routers._base import router_for
+from app.schemas.calendar import WidgetFeed
 from app.schemas.common import ErrorResponse
-from app.services import my_calendar
+from app.services import my_calendar, widget
 
 router = router_for("calendar")
 
@@ -35,3 +37,13 @@ def private_calendar(token: Token, db: DB) -> Response:
             "X-Robots-Tag": "noindex",
         },
     )
+
+
+@router.get("/feeds/widget/{token}.json", response_model=WidgetFeed, responses={404: {"model": ErrorResponse}})
+def widget_feed(token: Token, db: DB, response: Response) -> WidgetFeed:
+    """What a student's home-screen widget shows: their next exam, today's dates and events, and the lesson to carry
+    on with. Works only while the calendar is on for them and the address is current. Errors: not_found (404)."""
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["X-Robots-Tag"] = "noindex"
+    return widget.widget_feed(db, token)
