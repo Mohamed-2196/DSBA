@@ -1,5 +1,5 @@
 // The one competition on the board, under the page's band.
-import { Badge, glyph, Icon } from '../../ui';
+import { Badge, cx, glyph, Icon } from '../../ui';
 import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
 import { webUrl } from './lib/links';
@@ -18,7 +18,7 @@ export function FeaturedCompetition() {
   return (
     <aside
       id={`career-opp-${f.id}`}
-      className="career-featured"
+      className={cx('career-featured', !f.open && 'career-featured--closed')}
       aria-labelledby="career-featured-title"
       data-hub="career-featured"
       data-opp-id={f.id}

@@ -227,7 +227,7 @@ a.career-study__name::after {
 a.career-study__name:focus-visible {
   outline: none;
 }
-.career-study__option:hover .career-study__name,
+.career-study__option:hover a.career-study__name,
 .career-study__option:hover .career-study__go {
   color: var(--accent-text);
 }

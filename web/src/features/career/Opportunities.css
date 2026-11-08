@@ -16,6 +16,10 @@
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
+/* entries closed or not open yet: the stripe is grey, like the badge */
+.career-featured--closed {
+  border-left-color: var(--line-strong);
+}
 .career-featured__head {
   display: flex;
   flex-wrap: wrap;

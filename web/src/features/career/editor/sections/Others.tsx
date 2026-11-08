@@ -519,7 +519,7 @@ const MAX_STUDY_OPTIONS = 12;
 /** The courses and scholarships under the further-study line, as the editor's other lists: a row each, opening into
  *  its form. They have no ids, so each is named by its place in the list. */
 function StudyOptionsField({ options, onChange }: { options: StudyOption[]; onChange: (next: StudyOption[]) => void }) {
-  const { open, setOpen, err } = useEditor();
+  const { open, setOpen, err, keepRow } = useEditor();
   const keyOf = (n: number) => openKey('furtherStudy', String(n));
   const items = options.map((o, n) => ({ ...o, n }));
   const strip = (list: typeof items): StudyOption[] => list.map(({ n: _n, ...o }) => o);
@@ -538,6 +538,11 @@ function StudyOptionsField({ options, onChange }: { options: StudyOption[]; onCh
         hasError={(n) => ['name', 'when', 'url', 'note'].some((f) => err(`furtherStudy.options.${n}.${f}`))}
         onMove={(from, by) => {
           onChange(moveItem(options, from, by));
+          // the two rows swap their keys with their places, so focus stays on the moved item's button
+          const [a, b] = [String(from), String(from + by)];
+          keepRow('furtherStudy', '~swap', a);
+          keepRow('furtherStudy', a, b);
+          keepRow('furtherStudy', b, '~swap');
           if (open === keyOf(from)) setOpen(keyOf(from + by));
         }}
         onRemove={(id) => onChange(strip(items.filter((o) => String(o.n) !== id)))}
