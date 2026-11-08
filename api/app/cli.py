@@ -49,9 +49,11 @@ export-question-tags [FILE]  write Claude's tags to the seed (default app/seed/d
 dev-login EMAIL    development only: print a session token for an account (created if needed, holding Student,
                    its address counted as confirmed; --role gives one more role, --password sets its password)
 enable-features    development only: switch every feature on for everyone (each change goes to the activity log)
+vapid-key          print a new VAPID private key for web push (DSBA_VAPID_PRIVATE_KEY) and its public half. Set it
+                   once per environment: a new key stops every browser's notifications until it is turned on again
 
-Nothing here prints a password, and only dev-login prints a token (it refuses to run in production). Nothing
-prints the Google API key."""
+Nothing here prints a password or a stored key (vapid-key prints the one it makes), and only dev-login prints a
+token (it refuses to run in production). Nothing prints the Google API key."""
 
 from __future__ import annotations
 
@@ -393,6 +395,16 @@ def cmd_setup_bucket(_: argparse.Namespace) -> int:
     storage = get_storage()
     lifecycle = "set" if storage.ensure_bucket(s.web_origins) else "not supported here: clear incoming/ yourself"
     print(f"bucket {storage.bucket}: CORS for {', '.join(s.web_origins)}; incoming/ expiry {lifecycle}")
+    return 0
+
+
+def cmd_vapid_key(_: argparse.Namespace) -> int:
+    """Prints a new VAPID key pair for web push: the private key for DSBA_VAPID_PRIVATE_KEY, and its public half."""
+    from app.services.webpush import VapidKey, new_vapid_key
+
+    private = new_vapid_key()
+    print(f"DSBA_VAPID_PRIVATE_KEY={private}")
+    print(f"public key (browsers get it from the API): {VapidKey.parse(private).public_b64}")
     return 0
 
 
@@ -774,6 +786,7 @@ def main(argv: list[str] | None = None) -> int:
     mw.add_argument("--once", action="store_true", help="stop when nothing is due")
     mw.add_argument("--poll", type=float, default=5.0, help="seconds to wait when nothing is due (default 5)")
     mw.set_defaults(fn=cmd_mail_worker)
+    sub.add_parser("vapid-key").set_defaults(fn=cmd_vapid_key)
     ws = sub.add_parser("weekly-summary")
     ws.add_argument("--preview", type=int, choices=[1, 2, 3], default=None, metavar="YEAR", help="print, don't send")
     ws.set_defaults(fn=cmd_weekly_summary)

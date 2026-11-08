@@ -142,6 +142,15 @@ class Preferences(ApiModel):
     email_new_issues: bool  # a new issue of The DSBA Newsletter is out
     email_date_changes: bool  # an exam, mock or deadline of your year moved, or was confirmed
     email_weekly_summary: bool  # the Sunday summary: opt in
+    # What comes as a push to the phones and computers where "Notifications on this device" is on. Only replies to
+    # your own posts start on.
+    push_replies: bool = True  # someone replied to your thread or your reply, or asked you as a senior
+    push_followed: bool = False  # a new reply or an accepted answer in a thread you follow
+    push_answer_accepted: bool = False  # your reply was accepted as the answer
+    push_upload_reviews: bool = False  # a student rep published or rejected your upload
+    push_new_issues: bool = False  # a new issue of The DSBA Newsletter is out
+    push_date_changes: bool = False  # an exam, mock or deadline of your year moved, or was confirmed
+    push_reminders: bool = False  # the reminders of your own events and of your board's cards
     track_progress: bool = False  # keep the lessons watched and the lesson to resume: opt in
     # Home's blocks that show, in order; a block left out is hidden. null: the default layout.
     home_blocks: list[HomeBlock] | None = None
@@ -161,6 +170,13 @@ class PreferencesUpdate(ApiModel):
     email_new_issues: bool | None = None
     email_date_changes: bool | None = None
     email_weekly_summary: bool | None = None
+    push_replies: bool | None = None
+    push_followed: bool | None = None
+    push_answer_accepted: bool | None = None
+    push_upload_reviews: bool | None = None
+    push_new_issues: bool | None = None
+    push_date_changes: bool | None = None
+    push_reminders: bool | None = None
     track_progress: bool | None = None
     home_blocks: Annotated[list[HomeBlock], Field(max_length=MAX_HOME_BLOCKS)] | None = None
     daily_question: DailyQuestionChoice | None = None  # the whole choice

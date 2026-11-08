@@ -84,6 +84,7 @@ from app.models.newsletter import IssueStatus, NewsletterIssue, NewsletterReacti
 from app.models.noora import NooraLimits, NooraUsage
 from app.models.notes import Note, Notebook, NotebookLimits, NotebookUploadDay, NoteInk, NoteShareEvent, SharedNote
 from app.models.outbox import EmailOutbox, OutboxStatus, WeeklySummarySent
+from app.models.push import PushOutbox, PushSubscription
 from app.models.requests import RequestMeToo, RequestStatus, StudentRequest
 from app.models.seniors import SeniorProfile
 from app.models.user import (
@@ -179,6 +180,8 @@ __all__ = [
     "PersonalEvent",
     "PollVote",
     "PostStatus",
+    "PushOutbox",
+    "PushSubscription",
     "QuestionMark",
     "ReplyVote",
     "Report",

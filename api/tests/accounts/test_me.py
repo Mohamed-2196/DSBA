@@ -138,6 +138,13 @@ def test_me(client_for: ClientFor, make_user: MakeUser) -> None:
             "emailNewIssues": True,
             "emailDateChanges": True,
             "emailWeeklySummary": False,
+            "pushReplies": True,
+            "pushFollowed": False,
+            "pushAnswerAccepted": False,
+            "pushUploadReviews": False,
+            "pushNewIssues": False,
+            "pushDateChanges": False,
+            "pushReminders": False,
             "trackProgress": False,
             "homeBlocks": None,
             "dailyQuestion": None,
@@ -417,7 +424,7 @@ def test_year(client_for: ClientFor, make_user: MakeUser) -> None:
 
 def _switches(**changed: bool) -> dict[str, object]:
     """The preferences as the API shows them to someone who answered yes about emails at sign-up: the Sunday summary
-    and lesson progress off, the other emails on, Home's default layout; except those given."""
+    and lesson progress off, the other emails on, only replies pushed, Home's default layout; except those given."""
     defaults: dict[str, object] = {
         "notificationEmails": True,
         "emailReplies": True,
@@ -426,6 +433,13 @@ def _switches(**changed: bool) -> dict[str, object]:
         "emailNewIssues": True,
         "emailDateChanges": True,
         "emailWeeklySummary": False,
+        "pushReplies": True,
+        "pushFollowed": False,
+        "pushAnswerAccepted": False,
+        "pushUploadReviews": False,
+        "pushNewIssues": False,
+        "pushDateChanges": False,
+        "pushReminders": False,
         "trackProgress": False,
         "homeBlocks": None,
         "dailyQuestion": None,

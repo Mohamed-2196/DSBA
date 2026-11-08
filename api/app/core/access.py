@@ -83,6 +83,7 @@ class Feature(enum.StrEnum):
     modules_time_stamps = "modules.time-stamps"  # what a lesson's video covers, by time, suggested by students
     daily = "daily"  # the daily puzzles, their scores and leaderboard
     mcp = "mcp"  # AI apps (Claude first) reading the Hub as a student, through its MCP server (services/ai_apps)
+    push = "push"  # notifications sent to a phone or computer (web push), for those who turn them on
 
 
 class BoxInfo(NamedTuple):
@@ -252,6 +253,11 @@ FEATURES: dict[Feature, FeatureInfo] = {
         "Connecting an AI app such as Claude to the Hub, so it can search the Hub and quote files as the student. "
         "Apps already connected can't read the Hub while it's off; their connections are kept.",
     ),
+    Feature.push: FeatureInfo(
+        "Notifications on phones and computers",
+        "Notifications sent to the phones and computers where students turned them on, for admins too. Those "
+        "waiting are dropped; the devices are kept, and get them again when it's on again.",
+    ),
 }
 
 
@@ -337,7 +343,7 @@ class SwitchState:
 
 # Switched off, these are gone for admins too. Every other feature stays visible to admins while off.
 ADMINS_FOLLOW_SWITCH = frozenset(
-    {Feature.noora, Feature.noora_ai, Feature.daily, Feature.modules_time_stamps, Feature.board_plan}
+    {Feature.noora, Feature.noora_ai, Feature.daily, Feature.modules_time_stamps, Feature.board_plan, Feature.push}
 )
 
 

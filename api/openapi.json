@@ -2720,6 +2720,288 @@
         }
       }
     },
+    "/api/v1/push/key": {
+      "get": {
+        "tags": [
+          "push"
+        ],
+        "summary": "Key",
+        "description": "The key a browser subscribes with. 404 feature_off when the hub has no VAPID key.",
+        "operationId": "key_api_v1_push_key_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushKeyOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/push/subscriptions": {
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "Subscribe",
+        "description": "This browser gets the signed-in person's pushes until they turn it off or this session ends. Sending it again\nis harmless (the web app does on every start, so the session it is tied to stays the current one).",
+        "operationId": "subscribe_api_v1_push_subscriptions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushSubscriptionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/push/subscriptions/remove": {
+      "post": {
+        "tags": [
+          "push"
+        ],
+        "summary": "Unsubscribe",
+        "description": "This browser gets no more pushes. 204 whether or not it had any (in the body, not the path: an endpoint is a\nbrowser's address and stays out of logs).",
+        "operationId": "unsubscribe_api_v1_push_subscriptions_remove_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushEndpointIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/stats": {
       "get": {
         "tags": [
@@ -4053,7 +4335,8 @@
                 "modules.video-suggestions",
                 "modules.time-stamps",
                 "daily",
-                "mcp"
+                "mcp",
+                "push"
               ],
               "type": "string",
               "title": "Feature"
@@ -39581,7 +39864,8 @@
               "modules.video-suggestions",
               "modules.time-stamps",
               "daily",
-              "mcp"
+              "mcp",
+              "push"
             ],
             "title": "Feature"
           },
@@ -39682,7 +39966,8 @@
                 "modules.video-suggestions",
                 "modules.time-stamps",
                 "daily",
-                "mcp"
+                "mcp",
+                "push"
               ]
             },
             "type": "array",
@@ -44101,7 +44386,8 @@
                 "modules.video-suggestions",
                 "modules.time-stamps",
                 "daily",
-                "mcp"
+                "mcp",
+                "push"
               ]
             },
             "type": "array",
@@ -47220,7 +47506,8 @@
                   "modules.video-suggestions",
                   "modules.time-stamps",
                   "daily",
-                  "mcp"
+                  "mcp",
+                  "push"
                 ]
               },
               {
@@ -48762,6 +49049,41 @@
             "type": "boolean",
             "title": "Emailweeklysummary"
           },
+          "pushReplies": {
+            "type": "boolean",
+            "title": "Pushreplies",
+            "default": true
+          },
+          "pushFollowed": {
+            "type": "boolean",
+            "title": "Pushfollowed",
+            "default": false
+          },
+          "pushAnswerAccepted": {
+            "type": "boolean",
+            "title": "Pushansweraccepted",
+            "default": false
+          },
+          "pushUploadReviews": {
+            "type": "boolean",
+            "title": "Pushuploadreviews",
+            "default": false
+          },
+          "pushNewIssues": {
+            "type": "boolean",
+            "title": "Pushnewissues",
+            "default": false
+          },
+          "pushDateChanges": {
+            "type": "boolean",
+            "title": "Pushdatechanges",
+            "default": false
+          },
+          "pushReminders": {
+            "type": "boolean",
+            "title": "Pushreminders",
+            "default": false
+          },
           "trackProgress": {
             "type": "boolean",
             "title": "Trackprogress",
@@ -48896,6 +49218,83 @@
               }
             ],
             "title": "Emailweeklysummary"
+          },
+          "pushReplies": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pushreplies"
+          },
+          "pushFollowed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pushfollowed"
+          },
+          "pushAnswerAccepted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pushansweraccepted"
+          },
+          "pushUploadReviews": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pushuploadreviews"
+          },
+          "pushNewIssues": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pushnewissues"
+          },
+          "pushDateChanges": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pushdatechanges"
+          },
+          "pushReminders": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pushreminders"
           },
           "trackProgress": {
             "anyOf": [
@@ -49429,6 +49828,76 @@
           "emailed"
         ],
         "title": "PublishedIssue"
+      },
+      "PushEndpointIn": {
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Endpoint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "endpoint"
+        ],
+        "title": "PushEndpointIn"
+      },
+      "PushKeyOut": {
+        "properties": {
+          "publicKey": {
+            "type": "string",
+            "title": "Publickey"
+          }
+        },
+        "type": "object",
+        "required": [
+          "publicKey"
+        ],
+        "title": "PushKeyOut"
+      },
+      "PushKeys": {
+        "properties": {
+          "p256dh": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "P256Dh"
+          },
+          "auth": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Auth"
+          }
+        },
+        "type": "object",
+        "required": [
+          "p256dh",
+          "auth"
+        ],
+        "title": "PushKeys"
+      },
+      "PushSubscriptionIn": {
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Endpoint"
+          },
+          "keys": {
+            "$ref": "#/components/schemas/PushKeys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "endpoint",
+          "keys"
+        ],
+        "title": "PushSubscriptionIn",
+        "description": "A browser's PushSubscription, as its toJSON() gives it (expirationTime is ignored)."
       },
       "QuestionMark": {
         "properties": {

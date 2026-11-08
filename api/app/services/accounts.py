@@ -104,6 +104,7 @@ from app.schemas.notifications import NotificationKind
 from app.services import access, sessions
 from app.services.modules import link_of, student_lesson, student_lessons, visible_lessons
 from app.services.outbox import ACCOUNT_NOTICE, ANSWER, answer_of, wants
+from app.services.push import PUSH_DEFAULTS, wants_push
 from app.services.storage import Storage
 
 log = logging.getLogger("dsba.accounts")
@@ -115,7 +116,8 @@ NOTIFICATION_KINDS = frozenset(get_args(NotificationKind))
 # The email switches, one per kind of email (decision D1), and the other switches kept on the account: the answer
 # about emails at sign-up, and lesson progress.
 EMAIL_SWITCHES = tuple(name for name in Preferences.model_fields if name.startswith("email_"))
-SWITCHES = (*EMAIL_SWITCHES, ANSWER, "track_progress")
+PUSH_CHOICES = tuple(PUSH_DEFAULTS)
+SWITCHES = (*EMAIL_SWITCHES, *PUSH_CHOICES, ANSWER, "track_progress")
 HOME_BLOCKS = frozenset(get_args(HomeBlock))
 NO_ANSWER = "Choose whether we email you about replies and date changes."
 
@@ -158,11 +160,12 @@ def tracks_progress(user: User) -> bool:
 
 def preferences_of(user: User) -> Preferences:
     """The preferences as they work for the account: users.preferences, with each email switch as outbox.wants()
-    reads it."""
+    reads it and each push choice as push.wants_push() does."""
     return Preferences.model_validate(
         {
             "notification_emails": answer_of(user),
             **{name: wants(user, name) for name in EMAIL_SWITCHES},
+            **{name: wants_push(user, name) for name in PUSH_CHOICES},
             "track_progress": tracks_progress(user),
             "home_blocks": home_blocks_of(user),
             "daily_question": daily_question_of(user),

@@ -43,7 +43,9 @@ def _decrypt(body: bytes, ua_private: ec.EllipticCurvePrivateKey, auth: bytes) -
     as_public = body[21 : 21 + id_len]
     ciphertext = body[21 + id_len :]
     assert len(ciphertext) <= record_size
-    ua_public = ua_private.public_key().public_bytes(serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint)
+    ua_public = ua_private.public_key().public_bytes(
+        serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint
+    )
     shared = ua_private.exchange(ec.ECDH(), ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), as_public))
     ikm = HKDF(hashes.SHA256(), 32, auth, b"WebPush: info\x00" + ua_public + as_public).derive(shared)
     cek = HKDF(hashes.SHA256(), 16, salt, b"Content-Encoding: aes128gcm\x00").derive(ikm)
@@ -71,7 +73,9 @@ def test_the_rfc_example_decrypts_with_the_receivers_key() -> None:
 def test_a_fresh_message_decrypts_for_its_browser_only() -> None:
     browser = ec.generate_private_key(ec.SECP256R1())
     other = ec.generate_private_key(ec.SECP256R1())
-    public = browser.public_key().public_bytes(serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint)
+    public = browser.public_key().public_bytes(
+        serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint
+    )
     auth = b"0123456789abcdef"
     one = webpush.encrypt(b'{"title":"Hi"}', public, auth)
     two = webpush.encrypt(b'{"title":"Hi"}', public, auth)
@@ -83,7 +87,9 @@ def test_a_fresh_message_decrypts_for_its_browser_only() -> None:
 
 def test_a_message_too_long_for_one_record_is_refused() -> None:
     browser = ec.generate_private_key(ec.SECP256R1())
-    public = browser.public_key().public_bytes(serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint)
+    public = browser.public_key().public_bytes(
+        serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint
+    )
     webpush.encrypt(b"x" * webpush.MAX_PLAINTEXT, public, b"0123456789abcdef")
     with pytest.raises(ValueError, match="too long"):
         webpush.encrypt(b"x" * (webpush.MAX_PLAINTEXT + 1), public, b"0123456789abcdef")

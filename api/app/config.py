@@ -107,6 +107,12 @@ class Settings(BaseSettings):
     smtp_starttls: bool = False
     email_file_dir: str = "var/mail"
 
+    # Web push (notifications on phones and computers; app/services/push.py). Unset: the Hub offers no push. The key
+    # is the hub's VAPID private key (`python -m app.cli vapid-key` makes one; set it once: a new one stops every
+    # browser's subscription), the subject a mailto: or https: contact the browsers' push services can reach.
+    vapid_private_key: SecretStr | None = None
+    vapid_subject: str | None = None
+
     # Object storage (S3 API: AWS S3 or MinIO; see docs/backend/DEPLOYMENT.md about Cloudflare R2)
     s3_endpoint_url: str | None = "http://127.0.0.1:9000"  # None = AWS
     # The endpoint browsers use for presigned URLs, when it differs from the one the API uses (Docker networks).
@@ -391,6 +397,12 @@ class Settings(BaseSettings):
             )
         if self.email_from == DEV_EMAIL_FROM:
             add("DSBA_EMAIL_FROM must be an address on your own domain, like 'DSBA Hub <no-reply@example.com>'.")
+
+        # Web push: optional, but whole when set
+        from app.services.webpush import settings_problems as push_problems
+
+        key = self.vapid_private_key.get_secret_value().strip() if self.vapid_private_key else None
+        problems.extend(push_problems(key, self.vapid_subject))
         return problems
 
     def texts_problems(self) -> list[str]:

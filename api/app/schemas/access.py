@@ -61,6 +61,7 @@ FeatureKey = Literal[
     "modules.time-stamps",
     "daily",
     "mcp",
+    "push",
 ]
 
 

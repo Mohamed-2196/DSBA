@@ -185,3 +185,23 @@ def post(
     if topic:
         headers["Topic"] = topic
     return http.post(endpoint, content=body, headers=headers, follow_redirects=False)
+
+
+def settings_problems(value: str | None, subject: str | None) -> list[str]:
+    """What is wrong with the push settings (production's checks): both or neither, a key that parses, a subject a
+    push service accepts."""
+    if not value and not subject:
+        return []
+    found: list[str] = []
+    if not value:
+        found.append("DSBA_VAPID_SUBJECT is set but DSBA_VAPID_PRIVATE_KEY isn't: set both, or neither.")
+    else:
+        try:
+            VapidKey.parse(value)
+        except ValueError as e:
+            found.append(str(e))
+    if not subject:
+        found.append("DSBA_VAPID_PRIVATE_KEY is set but DSBA_VAPID_SUBJECT isn't: set it to mailto:<an address>.")
+    elif not subject.startswith(("mailto:", "https://")):
+        found.append("DSBA_VAPID_SUBJECT must be mailto:<an address> or an https:// address.")
+    return found

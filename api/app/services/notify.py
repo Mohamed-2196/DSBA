@@ -7,7 +7,10 @@ is queued in the same transaction when the person has that switch on (outbox.wan
 before they answer the question about emails at sign-up) and hasn't had EMAIL_MAX_PER_HOUR of them in the last
 hour; the mail worker sends it (app/services/outbox.py). The emails are plain text: what happened, a link to it,
 and a link to the switches. Text that other people wrote is quoted with its links taken out, so nobody can send a
-link from the Hub's own address."""
+link from the Hub's own address.
+
+For the kinds that also come as a push to a phone or computer (push.PUSH_SWITCHES), a push is queued for each of the
+person's browsers whose choice for it is on (app/services/push.py)."""
 
 from __future__ import annotations
 
@@ -25,7 +28,9 @@ from app.core.text import clip
 from app.core.time import utcnow
 from app.models import EmailOutbox, Notification, OutboxStatus, User
 from app.schemas.notifications import NotificationKind
+from app.services import push
 from app.services.outbox import ACCOUNT_NOTICE, EMAIL_SWITCHES, queue, wanted_by, wants
+from app.services.push import PUSH_SWITCHES
 
 URL_MAX = 300  # Notification.url
 # A page of the Hub: '/forum/<slug>', never '//host' or '/\host' (both lead off-site), a scheme, spaces or control
@@ -131,15 +136,14 @@ def notify(
         data=data or {},
     )
     db.add(n)
+    person = db.get(User, user_id) if kind in PUSH_SWITCHES or kind in EMAIL_SWITCHES else None
+    if person is not None and kind in PUSH_SWITCHES:
+        push.queue(db, n, person)
     switch = EMAIL_SWITCHES.get(kind)
-    if switch is not None:
-        person = db.get(User, user_id)
-        if person is not None and wants(person, switch) and not inbox_full(db, user_id):
-            db.flush()  # the notification's row first: the email refers to it
-            text = email_text(title, body, path, switch)
-            queue(
-                db, to=person.email, subject=unlink(title), body=text, kind=kind, user_id=user_id, notification_id=n.id
-            )
+    if switch is not None and person is not None and wants(person, switch) and not inbox_full(db, user_id):
+        db.flush()  # the notification's row first: the email refers to it
+        text = email_text(title, body, path, switch)
+        queue(db, to=person.email, subject=unlink(title), body=text, kind=kind, user_id=user_id, notification_id=n.id)
     return n
 
 
@@ -197,10 +201,11 @@ def notify_all(
     notified = conn.execute(
         insert(Notification).from_select(columns, readers).returning(Notification.id, Notification.user_id)
     ).all()
+    by_user = {user_id: notification_id for notification_id, user_id in notified}
+    push.queue_all(db, kind, by_user, title=title, body=body, url=path)
     switch = EMAIL_SWITCHES.get(kind)
     if not email or switch is None or not notified:
         return len(notified)
-    by_user = {user_id: notification_id for notification_id, user_id in notified}
     recipients = conn.execute(
         select(User.id, User.email).where(
             User.id.in_(list(by_user)),

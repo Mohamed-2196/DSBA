@@ -70,6 +70,9 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("board", "GET", "/board-links"),
     ("board", "POST", "/board-cards"),
     ("board", "POST", "/board-labels"),
+    # GET /push/key answers feature_off while the hub has no VAPID key, so it isn't listed: test_push.py covers it
+    ("push", "POST", "/push/subscriptions"),
+    ("push", "POST", "/push/subscriptions/remove"),
     ("board.plan", "POST", "/board-plans"),
     ("board.plan", "DELETE", "/board-plans/economics"),
     ("board", "GET", f"/board-files/{NOTHING}"),
@@ -129,6 +132,7 @@ OFF_AT_FIRST = (
     "library.autotag",
     "mcp",
     "forum.auto-check",
+    "push",
 )
 
 # Features that live inside another one, whose routes need it on too.

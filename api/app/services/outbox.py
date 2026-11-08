@@ -261,10 +261,11 @@ def run_worker(
     """The mail worker: sends due emails, waits `poll_seconds` when there are none, purges old rows hourly, turns
     board cards' reminders into notifications as they come (app/services/board/reminders.py), sends the reminders
     for students' own events (app/services/my_calendar.py), on Sunday morning (Bahrain) queues the week's
-    summaries (app/services/summary.py), has Claude tag new past papers, one a round
-    (app/services/paper_tagging.py), and runs the forum checks still due (app/services/forum/checks.py). SIGTERM
-    and SIGINT stop it after the email in hand. With `once`, it stops when nothing is due."""
-    from app.services import my_calendar, summary
+    summaries (app/services/summary.py), sends the queued pushes to phones and computers (app/services/push.py),
+    has Claude tag new past papers, one a round (app/services/paper_tagging.py), and runs the forum checks still due
+    (app/services/forum/checks.py). SIGTERM and SIGINT stop it after the email in hand. With `once`, it stops when
+    nothing is due."""
+    from app.services import my_calendar, push, summary
     from app.services.board import reminders
 
     stop = stop or threading.Event()
@@ -291,11 +292,13 @@ def run_worker(
             if last_purge is None or utcnow() - last_purge > PURGE_EVERY:
                 with sessions() as db:
                     purged = purge(db)
-                if purged:
-                    log.info("purged %d old email(s) from the outbox", purged)
+                    purged_pushes = push.purge(db)
+                if purged or purged_pushes:
+                    log.info("purged %d old email(s) and %d old push(es) from the outboxes", purged, purged_pushes)
                 last_purge = utcnow()
             reminders.send_due(sessions)
             handled = drain(sessions)
+            handled += push.drain(sessions)
             handled += _tag_papers(sessions)
             handled += _check_forum(sessions)
         except SQLAlchemyError:
