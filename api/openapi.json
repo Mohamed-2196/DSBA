@@ -35270,6 +35270,11 @@
             "minLength": 1,
             "title": "Badge"
           },
+          "open": {
+            "type": "boolean",
+            "title": "Open",
+            "default": false
+          },
           "blurb": {
             "type": "string",
             "maxLength": 600,

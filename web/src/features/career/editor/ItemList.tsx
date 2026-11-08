@@ -31,6 +31,8 @@ export interface ItemListProps<T> {
   children: (item: T, index: number) => ReactNode;
   /** an error the API reported for this item (its index) */
   hasError?: (index: number) => boolean;
+  /** the most items the list takes: the add button goes at that many */
+  max?: number;
 }
 
 export function ItemList<T>({
@@ -49,6 +51,7 @@ export function ItemList<T>({
   onAdd,
   children,
   hasError,
+  max,
 }: ItemListProps<T>) {
   const { open, setOpen, saved, rowKey, keepRow } = useEditor();
   const [removing, setRemoving] = useState<{ id: string; title: string } | null>(null);
@@ -150,18 +153,20 @@ export function ItemList<T>({
       ) : (
         <p className="cedit__empty">{`No ${noun}s yet.`}</p>
       )}
-      <Button
-        variant="secondary"
-        leadingIcon={<Icon glyph={glyph.plus} />}
-        onClick={() => {
-          const id = onAdd();
-          keepRow(section, id);
-          setOpen(openKey(section, id));
-        }}
-        className="cedit-list__add"
-      >
-        {`Add ${/^[aeiou]/i.test(noun) ? 'an' : 'a'} ${noun}`}
-      </Button>
+      {max === undefined || items.length < max ? (
+        <Button
+          variant="secondary"
+          leadingIcon={<Icon glyph={glyph.plus} />}
+          onClick={() => {
+            const id = onAdd();
+            keepRow(section, id);
+            setOpen(openKey(section, id));
+          }}
+          className="cedit-list__add"
+        >
+          {`Add ${/^[aeiou]/i.test(noun) ? 'an' : 'a'} ${noun}`}
+        </Button>
+      ) : null}
 
       <ConfirmDialog
         open={removing !== null}

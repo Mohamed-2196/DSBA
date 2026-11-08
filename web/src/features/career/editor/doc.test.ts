@@ -167,6 +167,7 @@ function mockDoc(): CareerDoc {
       mono: 'TQ',
       logo: { kind: 'employer', id: 'nbb' },
       badge: 'Applications open',
+      open: true,
       blurb: 'Simulated trading',
       note: 'Through university',
       url: 'https://bahrainbourse.com',
@@ -275,6 +276,11 @@ describe('career editor doc logic', () => {
       section: 'skills',
       item: 'python',
     });
+    expect(errorPlace({ 'furtherStudy.options.2.url': 'Use https' })).toEqual({
+      section: 'furtherStudy',
+      item: '2',
+    });
+    expect(errorPlace({ 'furtherStudy.body': 'Required' })).toEqual({ section: 'furtherStudy', item: null });
     expect(errorPlace({ intro: 'Required' })).toEqual({ section: 'text', item: null });
     expect(errorPlace({})).toBeNull();
   });

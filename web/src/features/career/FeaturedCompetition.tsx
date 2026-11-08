@@ -37,7 +37,7 @@ export function FeaturedCompetition() {
               f.title
             )}
           </h2>
-          {f.badge ? <Badge tone="signal">{f.badge}</Badge> : null}
+          {f.badge ? <Badge tone={f.open ? 'signal' : 'neutral'}>{f.badge}</Badge> : null}
         </div>
         <p className="career-featured__blurb">
           {f.kind ? <span className="career-featured__kind">{f.kind}.</span> : null} {f.blurb}{' '}

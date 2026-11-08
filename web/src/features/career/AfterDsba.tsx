@@ -135,20 +135,29 @@ function StudyOptions({ options }: { options: FurtherStudyOption[] }) {
   if (!options.length) return null;
   return (
     <ul className="career-study__list" aria-label="Courses and scholarships">
-      {options.map((o) => {
+      {options.map((o, n) => {
         const url = webUrl(o.url);
+        const words = o.name.trim().split(' ');
+        const last = words.pop();
         return (
-          <li key={o.name} className="career-study__option">
+          <li key={`${n}-${o.name}`} className="career-study__option">
             {url ? (
               <a href={url} target="_blank" rel="noopener noreferrer" className="career-study__name">
-                {o.name}
-                <Icon glyph={glyph.external} size={14} className="career-study__go" />
+                {words.length ? `${words.join(' ')} ` : null}
+                <span className="career-study__tail">
+                  {last}
+                  <Icon glyph={glyph.external} size={14} className="career-study__go" />
+                </span>
                 <span className="visually-hidden">{`, opens ${hostOf(url)} in a new tab`}</span>
               </a>
             ) : (
               <span className="career-study__name">{o.name}</span>
             )}
-            {o.when ? <span className="career-study__when">{o.when}</span> : null}
+            {o.when ? (
+              <span className="career-study__when">{o.when}</span>
+            ) : (
+              <span className="career-study__when career-study__when--none">Dates on its page</span>
+            )}
             <span className="career-study__note">{o.note}</span>
           </li>
         );

@@ -170,6 +170,7 @@ NEW_EMPLOYERS: list[dict[str, Any]] = [
 FEATURED_ID = "cfa-research-challenge"
 FEATURED_CHANGES = {
     "badge": "This season’s teams are set",
+    "open": False,
     "note": "Teams for the 2026–27 season formed in October. Ask the programme office about joining next season.",
 }
 

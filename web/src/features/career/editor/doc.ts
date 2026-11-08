@@ -254,8 +254,10 @@ export interface ErrorPlace {
 /** Where the first field error (by its path under the document) belongs, to open it; null when there is none. */
 export function errorPlace(fields: Record<string, string>): ErrorPlace | null {
   for (const key of Object.keys(fields)) {
-    const [part, item] = key.split('.');
+    const [part, item, option] = key.split('.');
     if (!part) continue;
+    // furtherStudy.options.2.url: the third course or scholarship
+    if (part === 'furtherStudy') return { section: 'furtherStudy', item: item === 'options' ? (option ?? null) : null };
     return { section: PART_SECTION[part] ?? 'text', item: item ?? null };
   }
   return null;
@@ -276,6 +278,9 @@ export function savedIdsOf(saved: CareerDoc, section: EditorSection): string[] {
       return saved.checklist.map((x) => x.id);
     case 'skills':
       return Object.keys(saved.skills);
+    case 'furtherStudy':
+      // the courses and scholarships have no ids: each is named by its place in the list
+      return (saved.furtherStudy?.options ?? []).map((_, n) => String(n));
     default:
       return [];
   }

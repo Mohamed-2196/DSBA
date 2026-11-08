@@ -2,14 +2,14 @@
 // words (labels, notes, the date links were checked).
 import { useMemo } from 'react';
 import type { CareerCert, CareerChecklistItem, CareerDoc, CareerFeatured } from '../../../../api/types';
-import { Button, glyph, Icon, IconButton, Select, Switch, TextArea, TextField } from '../../../../ui';
+import { Button, Select, Switch, TextArea, TextField } from '../../../../ui';
 import { CertCard } from '../../Certificates';
 import { CareerContext } from '../../context';
 import { LogoSlot } from '../../LogoSlot';
 import { freeId, moveItem, publicDoc, removalBlocker, removeItem, savedIdsOf } from '../doc';
 import { ChecklistLinkField, LogoField, PickList } from '../fields';
 import { ItemList } from '../ItemList';
-import { useEditor } from '../state';
+import { openKey, useEditor } from '../state';
 import { IdField } from './common';
 import { useItemSetter, useModuleOptions, useNameToId } from '../hooks';
 
@@ -254,6 +254,7 @@ const EMPTY_FEATURED = (doc: CareerDoc): CareerFeatured => ({
   mono: '',
   logo: doc.certs[0] ? { kind: 'cert', id: doc.certs[0].id } : { kind: 'employer', id: doc.employers[0]?.id ?? '' },
   badge: '',
+  open: false,
   blurb: '',
   note: '',
   url: 'https://',
@@ -331,6 +332,12 @@ export function FeaturedSection() {
               error={err('featured.badge')}
               maxLength={60}
               required
+            />
+            <Switch
+              checked={f.open}
+              onChange={(on) => set({ open: on })}
+              label="Entries are open now"
+              description="The badge is green while students can take part, and grey once entries close or before they open."
             />
             <TextField
               label="Link"
@@ -499,11 +506,7 @@ export function FurtherStudySection() {
               required
             />
           </div>
-          <StudyOptionsField
-            options={s.options}
-            onChange={(options) => set({ options })}
-            err={(path) => err(`furtherStudy.options.${path}`)}
-          />
+          <StudyOptionsField options={s.options} onChange={(options) => set({ options })} />
         </>
       ) : null}
     </div>
@@ -513,94 +516,100 @@ export function FurtherStudySection() {
 type StudyOption = NonNullable<CareerDoc['furtherStudy']>['options'][number];
 const MAX_STUDY_OPTIONS = 12;
 
-/** The courses and scholarships under the further-study line: each with its name, date, page and one line. */
-function StudyOptionsField({
-  options,
-  onChange,
-  err,
-}: {
-  options: StudyOption[];
-  onChange: (next: StudyOption[]) => void;
-  err: (path: string) => string | undefined;
-}) {
-  const setAt = (n: number, patch: Partial<StudyOption>) =>
-    onChange(options.map((o, k) => (k === n ? { ...o, ...patch } : o)));
+/** The courses and scholarships under the further-study line, as the editor's other lists: a row each, opening into
+ *  its form. They have no ids, so each is named by its place in the list. */
+function StudyOptionsField({ options, onChange }: { options: StudyOption[]; onChange: (next: StudyOption[]) => void }) {
+  const { open, setOpen, err } = useEditor();
+  const keyOf = (n: number) => openKey('furtherStudy', String(n));
+  const items = options.map((o, n) => ({ ...o, n }));
+  const strip = (list: typeof items): StudyOption[] => list.map(({ n: _n, ...o }) => o);
   return (
     <fieldset className="cedit-group">
       <legend className="cedit-group__legend">Courses and scholarships</legend>
       <p className="cedit__note">Dates change every year: check each official page before the next intake.</p>
-      <ol role="list" className="cedit-rows">
-        {options.map((o, n) => (
-          <li key={n} className="cedit-study">
-            <div className="cedit-grid">
-              <TextField
-                label="Name"
-                value={o.name}
-                onChange={(v) => setAt(n, { name: v.target.value })}
-                error={err(`${n}.name`)}
-                maxLength={160}
-                required
-              />
-              <TextField
-                label="Date"
-                hint="Its deadline or window, e.g. Closes 3 Jan 2027. Leave empty if none is published."
-                value={o.when ?? ''}
-                onChange={(v) => setAt(n, { when: v.target.value || null })}
-                error={err(`${n}.when`)}
-                maxLength={60}
-              />
-            </div>
-            <TextField
-              label="Official page"
-              value={o.url}
-              onChange={(v) => setAt(n, { url: v.target.value })}
-              error={err(`${n}.url`)}
-              maxLength={500}
-              required
-            />
-            <TextArea
-              label="One line"
-              hint="Who it’s for and what it pays."
-              rows={2}
-              value={o.note}
-              onChange={(v) => setAt(n, { note: v.target.value })}
-              error={err(`${n}.note`)}
-              maxLength={600}
-              required
-            />
-            <div className="cedit-study__tools">
-              <IconButton
-                icon={<Icon glyph={glyph.arrowUp} />}
-                label={`Move ${o.name || `course ${n + 1}`} up`}
-                onClick={() => onChange(moveItem(options, n, -1))}
-                disabled={n === 0}
-              />
-              <IconButton
-                icon={<Icon glyph={glyph.arrowDown} />}
-                label={`Move ${o.name || `course ${n + 1}`} down`}
-                onClick={() => onChange(moveItem(options, n, 1))}
-                disabled={n === options.length - 1}
-              />
-              <IconButton
-                icon={<Icon glyph={glyph.trash} />}
-                label={`Remove ${o.name || `course ${n + 1}`}`}
-                onClick={() => onChange(options.filter((_, k) => k !== n))}
-              />
-            </div>
-          </li>
-        ))}
-      </ol>
-      {options.length < MAX_STUDY_OPTIONS ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          leadingIcon={<Icon glyph={glyph.plus} />}
-          onClick={() => onChange([...options, { name: '', note: '', when: null, url: 'https://' }])}
-        >
-          Add a course or scholarship
-        </Button>
-      ) : null}
+      <ItemList
+        section="furtherStudy"
+        noun="course or scholarship"
+        items={items}
+        idOf={(o) => String(o.n)}
+        titleOf={(o) => o.name}
+        metaOf={(o) => o.when || 'No date'}
+        max={MAX_STUDY_OPTIONS}
+        hasError={(n) => ['name', 'when', 'url', 'note'].some((f) => err(`furtherStudy.options.${n}.${f}`))}
+        onMove={(from, by) => {
+          onChange(moveItem(options, from, by));
+          if (open === keyOf(from)) setOpen(keyOf(from + by));
+        }}
+        onRemove={(id) => onChange(strip(items.filter((o) => String(o.n) !== id)))}
+        onAdd={() => {
+          onChange([...options, { name: '', note: '', when: null, url: 'https://' }]);
+          return String(options.length);
+        }}
+      >
+        {(o, n) => (
+          <StudyOptionForm
+            option={o}
+            index={n}
+            onChange={(patch) => onChange(options.map((x, k) => (k === n ? { ...x, ...patch } : x)))}
+          />
+        )}
+      </ItemList>
     </fieldset>
+  );
+}
+
+function StudyOptionForm({
+  option: o,
+  index: n,
+  onChange,
+}: {
+  option: StudyOption;
+  index: number;
+  onChange: (patch: Partial<StudyOption>) => void;
+}) {
+  const { err } = useEditor();
+  const at = `furtherStudy.options.${n}`;
+  return (
+    <div className="cedit-form">
+      <div className="cedit-grid">
+        <TextField
+          label="Name"
+          value={o.name}
+          onChange={(v) => onChange({ name: v.target.value })}
+          error={err(`${at}.name`)}
+          maxLength={160}
+          required
+        />
+        <TextField
+          label="Date"
+          hint="Its deadline or window, e.g. Closes 3 Jan 2027. Leave empty if none is published: the page will say “Dates on its page”."
+          value={o.when ?? ''}
+          onChange={(v) => onChange({ when: v.target.value || null })}
+          error={err(`${at}.when`)}
+          maxLength={60}
+        />
+      </div>
+      <TextField
+        label="Official page"
+        type="url"
+        inputMode="url"
+        value={o.url}
+        onChange={(v) => onChange({ url: v.target.value })}
+        error={err(`${at}.url`)}
+        maxLength={500}
+        required
+      />
+      <TextArea
+        label="One line"
+        hint="Who it’s for and what it pays."
+        rows={2}
+        value={o.note}
+        onChange={(v) => onChange({ note: v.target.value })}
+        error={err(`${at}.note`)}
+        maxLength={600}
+        required
+      />
+    </div>
   );
 }
 

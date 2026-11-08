@@ -6343,6 +6343,11 @@ export interface components {
             logo: components["schemas"]["FeaturedLogo"];
             /** Badge */
             badge: string;
+            /**
+             * Open
+             * @default false
+             */
+            open: boolean;
             /** Blurb */
             blurb: string;
             /** Note */

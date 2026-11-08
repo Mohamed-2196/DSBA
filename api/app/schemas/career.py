@@ -88,6 +88,7 @@ class CareerFeatured(ApiModel):
     mono: Mono
     logo: FeaturedLogo
     badge: Short
+    open: bool = False  # entries are open now: the badge is green; closed or not yet open, it's grey
     blurb: Text
     note: Text
     url: HttpsUrl
