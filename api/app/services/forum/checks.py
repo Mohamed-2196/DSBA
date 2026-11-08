@@ -403,6 +403,18 @@ def _ask(
     return verdict_of(message)
 
 
+def _still_ours(db: Session, job: ContentCheck, claimed: tuple[datetime, datetime]) -> bool:
+    """Whether the check is still the run this worker claimed (its queued_at and started_at): not queued again by an
+    edit, nor taken over by another run after going stale. Locks the row until the commit, so an edit landing now
+    waits, then queues it again."""
+    row = db.execute(
+        select(ContentCheck.status, ContentCheck.queued_at, ContentCheck.started_at)
+        .where(ContentCheck.id == job.id)
+        .with_for_update()
+    ).one_or_none()
+    return row is not None and row.status == CheckStatus.working.value and (row.queued_at, row.started_at) == claimed
+
+
 def run_one(db: Session, connect: Connect = connect, settings: Settings | None = None) -> bool:
     """Runs the next queued check, if any. Whether there was one. Commits as it goes; never raises for one check's
     trouble."""
@@ -430,6 +442,7 @@ def run_one(db: Session, connect: Connect = connect, settings: Settings | None =
         return True
     job.status, job.started_at = CheckStatus.working.value, now
     job.attempts += 1
+    claimed = (job.queued_at, now)
     db.commit()
 
     try:
@@ -437,6 +450,11 @@ def run_one(db: Session, connect: Connect = connect, settings: Settings | None =
         verdict = _ask(db, job, content, connect(s), s)
     except CheckError as e:
         verdict = Verdict(CheckVerdict.unchecked, None, str(e))
+    # An edit while Claude read it queued it again (or a slow run was taken over): the newer check decides.
+    if not _still_ours(db, job, claimed):
+        db.commit()  # what this request cost stays counted
+        log.info("forum check %s %s: superseded", job.target_type, job.target_id)
+        return True
     # A rep may have acted, or the author deleted it, while Claude read it: look again before acting.
     subject = _subject(db, job)
     if subject is None:

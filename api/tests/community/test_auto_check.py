@@ -59,9 +59,10 @@ REQUEST = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
 
 @dataclass
 class Stub:
-    """Claude, as the check sees it: answers in turn (an exception is raised), and the requests it was sent."""
+    """Claude, as the check sees it: answers in turn (an exception is raised; a function runs while Claude "reads",
+    then gives the answer), and the requests it was sent."""
 
-    answers: list[Message | Exception] = field(default_factory=list)
+    answers: list[Message | Exception | Callable[[], Message]] = field(default_factory=list)
     sent: list[Any] = field(default_factory=list)
 
     def create(self, params: Any) -> Message:
@@ -69,7 +70,7 @@ class Stub:
         reply = self.answers.pop(0) if self.answers else answer()
         if isinstance(reply, Exception):
             raise reply
-        return reply
+        return reply() if callable(reply) else reply
 
 
 @dataclass
@@ -553,6 +554,25 @@ def test_an_edit_is_checked_again(harness: Harness, client_for: Clients, student
     # an edit that changes nothing isn't sent again
     me.patch(f"{API}/forum/replies/{reply['id']}", json={"body": reply["body"]})
     assert len(harness.stub.sent) == 3
+
+
+def test_an_edit_made_while_claude_reads_the_post_is_checked_too(
+    harness: Harness, client_for: Clients, student: User, db: Session
+) -> None:
+    harness.inline = False
+    me = client_for(student)
+    thread = new_thread(me)
+
+    def edit_meanwhile() -> Message:
+        r = me.patch(f"{API}/forum/threads/{thread['id']}", json={"body": "Call Ali on 3999 1234"})
+        assert r.status_code == 200, r.text
+        return answer()  # the verdict on the text before the edit
+
+    harness.stub.answers.extend([edit_meanwhile, answer("flag", "personal_data", "Posts a phone number.")])
+    harness.run()
+    assert len(harness.stub.sent) == 2
+    assert "3999 1234" in str(harness.stub.sent[1]["messages"])
+    assert thread_row(db, thread["id"]).status == PostStatus.hidden
 
 
 def test_one_open_report_from_the_hub_per_post(

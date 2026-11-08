@@ -551,6 +551,10 @@ re-chains them at merge.
     JSON, a picture that can't be read): a picture **stays hidden** (fail closed: a picture can't be unseen) and its
     uploader is told; a post **stays up** (fail open: an outage mustn't hide the forum). Either way the Hub reports
     it as "couldn't be checked" (`hub_unchecked`), so a moderator looks.
+  - **Edits:** an edit queues the post's check again; one landing while Claude reads the older text makes that run
+    stand down (its cost still counts), so the newest text is what decides. Known gap: edits have no rate limit, so
+    one account editing a post hundreds of times can use up the day's cap; the cap bounds the cost, and after it
+    every post still goes to Reports as "couldn't be checked".
   - **Privacy notice line:** "Pictures and posts in the forum are checked by an outside service, Anthropic (the
     maker of Claude), for content against the forum's rules. It sees the picture or the text only, never your name
     or account."
