@@ -18,6 +18,7 @@ from app.core.security import CSRFMiddleware, ForwardedSchemeMiddleware
 from app.routers import api_router
 from app.routers.health import VERSION
 from app.schemas.notes import INK_BODY_MAX
+from app.services.ai_apps.server import AiAppsMiddleware
 from app.services.storage import get_storage
 
 log = logging.getLogger("dsba")
@@ -65,6 +66,9 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["Content-Type", "X-CSRF-Token"],
     )
+    # The MCP server for AI apps and its OAuth routes (/api/mcp, two /.well-known addresses): outside CORS and the
+    # cookie CSRF check, which they don't use (bearer tokens; AI apps call from their own origins).
+    app.add_middleware(AiAppsMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(ForwardedSchemeMiddleware)
     app.include_router(api_router)

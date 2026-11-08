@@ -179,7 +179,7 @@ def for_paper(db: Session, item_id: uuid.UUID, user: User | None) -> list[PaperQ
     return to_out(db, tags, user)
 
 
-def _tags(q: Select[tuple[T]], module_id: str | None, *, staff: bool) -> Select[tuple[T]]:
+def published_tags(q: Select[tuple[T]], module_id: str | None, *, staff: bool) -> Select[tuple[T]]:
     """`q` over the tags on published papers (of `module_id`, when given). Hidden modules and chapters don't exist
     for anyone but `staff` (SEC-55)."""
     q = (
@@ -210,7 +210,7 @@ def for_module(
         raise invalid("moduleId", "Choose a module.")
     staff = sees_hidden_modules(user)
     require_module(db, module_id, visible=not staff)
-    q = _tags(select(PaperQuestion), module_id, staff=staff)
+    q = published_tags(select(PaperQuestion), module_id, staff=staff)
     if topic_id is not None and chapter_id is None:
         raise invalid("chapterId", "Choose the topic's chapter too.")
     if chapter_id is not None:
@@ -373,7 +373,7 @@ def daily(
     is passed over. Errors: invalid_input (422: an unknown module)."""
     staff = sees_hidden_modules(user)
     require_module(db, module_id, visible=not staff)
-    q = _tags(select(PaperQuestion.id), module_id, staff=staff)
+    q = published_tags(select(PaperQuestion.id), module_id, staff=staff)
     ids = db.scalars(q).all()
     if len(ids) < DAILY_MIN_TAGS:
         return DailyQuestion(question=None, offered=False, pool=0)

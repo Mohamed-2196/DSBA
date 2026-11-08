@@ -99,6 +99,9 @@ SWITCHED: list[tuple[str, str, str]] = [
     ("daily", "POST", "/daily/2026-10-01/word/moves"),
     ("daily", "GET", "/daily/leaderboard"),
     ("daily", "GET", "/daily/me"),
+    ("mcp", "GET", "/ai-apps"),
+    ("mcp", "GET", "/ai-apps/consent?request=x"),
+    ("mcp", "POST", "/ai-apps/consent"),
 ]
 # Features that arrive switched off (the migrations' switches): the tests switch them on first.
 OFF_AT_FIRST = (
@@ -124,6 +127,7 @@ OFF_AT_FIRST = (
     "notes.share",
     "modules.time-stamps",
     "library.autotag",
+    "mcp",
 )
 
 # Features that live inside another one, whose routes need it on too.
@@ -196,6 +200,7 @@ AREAS: dict[str, Feature] = {
     "/shared-notes": Feature.notes_share,
     "/lesson-topics": Feature.modules_time_stamps,
     "/content/lesson-topics": Feature.modules_time_stamps,
+    "/ai-apps": Feature.mcp,
 }
 
 

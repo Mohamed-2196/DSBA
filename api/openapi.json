@@ -4051,7 +4051,8 @@
                 "summary",
                 "modules.video-suggestions",
                 "modules.time-stamps",
-                "daily"
+                "daily",
+                "mcp"
               ],
               "type": "string",
               "title": "Feature"
@@ -30612,6 +30613,404 @@
         }
       }
     },
+    "/api/v1/ai-apps/consent": {
+      "get": {
+        "tags": [
+          "ai-apps"
+        ],
+        "summary": "Ask",
+        "description": "The app asking to read the Hub as the student, from the signed request /api/mcp/authorize sent them with.\n\nErrors: invalid_input (422: the request is out of date, or not the Hub's).",
+        "operationId": "ask_api_v1_ai_apps_consent_get",
+        "parameters": [
+          {
+            "name": "request",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000,
+              "title": "Request"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentAsk"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ai-apps"
+        ],
+        "summary": "Answer",
+        "description": "The student's answer. Yes connects the app (read-only) and gives it a one-time code; either way the web app\nsends the student to `redirectUrl`, back to the app. Errors: invalid_input (422: out of date).",
+        "operationId": "answer_api_v1_ai_apps_consent_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentAnswer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentRedirect"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/ai-apps": {
+      "get": {
+        "tags": [
+          "ai-apps"
+        ],
+        "summary": "Connected",
+        "description": "The AI apps connected to your account, the newest first.",
+        "operationId": "connected_api_v1_ai_apps_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConnectedApp"
+                  },
+                  "type": "array",
+                  "title": "Response Connected Api V1 Ai Apps Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai-apps/{connection_id}": {
+      "delete": {
+        "tags": [
+          "ai-apps"
+        ],
+        "summary": "Disconnect",
+        "description": "Removes an app from your account: its tokens stop working at once. Errors: not_found (404).",
+        "operationId": "disconnect_api_v1_ai_apps__connection_id__delete",
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Connection Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/admin/noora": {
       "get": {
         "tags": [
@@ -36182,6 +36581,106 @@
         ],
         "title": "CommentCreate"
       },
+      "ConnectedApp": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "appName": {
+            "type": "string",
+            "title": "Appname"
+          },
+          "redirectHost": {
+            "type": "string",
+            "title": "Redirecthost"
+          },
+          "connectedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Connectedat"
+          },
+          "lastUsedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastusedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "appName",
+          "redirectHost",
+          "connectedAt",
+          "lastUsedAt"
+        ],
+        "title": "ConnectedApp"
+      },
+      "ConsentAnswer": {
+        "properties": {
+          "request": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Request"
+          },
+          "allow": {
+            "type": "boolean",
+            "title": "Allow"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request",
+          "allow"
+        ],
+        "title": "ConsentAnswer"
+      },
+      "ConsentAsk": {
+        "properties": {
+          "appName": {
+            "type": "string",
+            "title": "Appname"
+          },
+          "redirectHost": {
+            "type": "string",
+            "title": "Redirecthost"
+          },
+          "alreadyConnected": {
+            "type": "boolean",
+            "title": "Alreadyconnected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "appName",
+          "redirectHost",
+          "alreadyConnected"
+        ],
+        "title": "ConsentAsk",
+        "description": "What the page asks the student: an app (by the name it gave itself, and where it sends them back) wants to\nread the Hub as them."
+      },
+      "ConsentRedirect": {
+        "properties": {
+          "redirectUrl": {
+            "type": "string",
+            "title": "Redirecturl"
+          }
+        },
+        "type": "object",
+        "required": [
+          "redirectUrl"
+        ],
+        "title": "ConsentRedirect"
+      },
       "Contributor": {
         "properties": {
           "user": {
@@ -39076,7 +39575,8 @@
               "summary",
               "modules.video-suggestions",
               "modules.time-stamps",
-              "daily"
+              "daily",
+              "mcp"
             ],
             "title": "Feature"
           },
@@ -39175,7 +39675,8 @@
                 "summary",
                 "modules.video-suggestions",
                 "modules.time-stamps",
-                "daily"
+                "daily",
+                "mcp"
               ]
             },
             "type": "array",
@@ -43562,7 +44063,8 @@
                 "summary",
                 "modules.video-suggestions",
                 "modules.time-stamps",
-                "daily"
+                "daily",
+                "mcp"
               ]
             },
             "type": "array",
@@ -46679,7 +47181,8 @@
                   "summary",
                   "modules.video-suggestions",
                   "modules.time-stamps",
-                  "daily"
+                  "daily",
+                  "mcp"
                 ]
               },
               {

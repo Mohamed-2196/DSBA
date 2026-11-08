@@ -44,7 +44,8 @@ class AskedQuestion:
     report_text: str | None
 
 
-def _text(db: Session, item_id: object) -> str | None:
+def read_text(db: Session, item_id: object) -> str | None:
+    """A file's words as the text worker read them (pages split by PAGE_BREAK); None: not read, or none."""
     row = db.get(LibraryText, item_id)
     return row.body if row is not None and row.status == TextStatus.done and row.body else None
 
@@ -82,7 +83,7 @@ def load(db: Session, user: User, asked: NooraPaper) -> AskedQuestion:
         or library.hidden_from(db, paper, user)
     ):
         raise not_found("This past paper doesn't exist or isn't public.")
-    body = _text(db, paper.id)
+    body = read_text(db, paper.id)
     report = report_for(db, paper)
     if report is not None and library.hidden_from(db, report, user):  # a hidden module's report stays out (SEC-55)
         report = None
@@ -92,7 +93,7 @@ def load(db: Session, user: User, asked: NooraPaper) -> AskedQuestion:
         page=asked.page,
         pages=body.split(PAGE_BREAK) if body else None,
         report=report,
-        report_text=_text(db, report.id) if report else None,
+        report_text=read_text(db, report.id) if report else None,
     )
 
 

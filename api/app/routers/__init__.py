@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from app.routers import (
     access,
     admin,
+    ai_apps,
     auth,
     board,
     bugs,
@@ -73,6 +74,7 @@ for module in (
     site,
     grades,
     home,
+    ai_apps,
 ):
     api_router.include_router(module.router)
 api_router.include_router(noora.budget)  # the Claude budget: her AI answers or paper tagging (see noora.py)

@@ -81,6 +81,7 @@ class Feature(enum.StrEnum):
     modules_video_suggestions = "modules.video-suggestions"  # videos students suggest for chapters
     modules_time_stamps = "modules.time-stamps"  # what a lesson's video covers, by time, suggested by students
     daily = "daily"  # the daily puzzles, their scores and leaderboard
+    mcp = "mcp"  # AI apps (Claude first) reading the Hub as a student, through its MCP server (services/ai_apps)
 
 
 class BoxInfo(NamedTuple):
@@ -239,6 +240,11 @@ FEATURES: dict[Feature, FeatureInfo] = {
         "What a lesson's video covers, by time, beside the player; suggesting them, and their queue in Manage.",
     ),
     Feature.daily: FeatureInfo("Daily", "The daily puzzles, their points, streaks and leaderboard, and Home's card."),
+    Feature.mcp: FeatureInfo(
+        "AI apps",
+        "Connecting an AI app such as Claude to the Hub, so it can search the Hub and quote files as the student. "
+        "Apps already connected can't read the Hub while it's off; their connections are kept.",
+    ),
 }
 
 

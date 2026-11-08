@@ -59,6 +59,7 @@ FeatureKey = Literal[
     "modules.video-suggestions",
     "modules.time-stamps",
     "daily",
+    "mcp",
 ]
 
 

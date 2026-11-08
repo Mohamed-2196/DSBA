@@ -10,6 +10,7 @@ from app.models.activity import (
     Report,
     ReportStatus,
 )
+from app.models.ai_apps import AiAppCall, AiAppClient, AiAppCode, AiAppConnection, AiAppToken
 from app.models.base import Base
 from app.models.board import (
     Board,
@@ -95,6 +96,11 @@ from app.models.user import (
 
 __all__ = [
     "AccessRole",
+    "AiAppCall",
+    "AiAppClient",
+    "AiAppCode",
+    "AiAppConnection",
+    "AiAppToken",
     "AttemptKind",
     "AuditEntry",
     "Base",
