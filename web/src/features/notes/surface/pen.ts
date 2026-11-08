@@ -8,7 +8,7 @@ const ERASER_BUTTON = 5;
 const ERASER_BIT = 32;
 const CONTACT_BIT = 1;
 /** The hover dot's smallest radius (units), so the finest pen still shows one. */
-const MIN_DOT = 1.5;
+const MIN_DOT = 2;
 
 export interface PenButtons {
   pointerType: string;

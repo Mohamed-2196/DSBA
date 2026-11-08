@@ -97,7 +97,7 @@ describe('hoverDot', () => {
   });
 
   it('stays big enough to see with the finest pen', () => {
-    expect(hoverDot('pen', { ...pens, pen: { color: '#1f2933', width: 1.6 } }, false, false)?.r).toBe(1.5);
+    expect(hoverDot('pen', { ...pens, pen: { color: '#1f2933', width: 1.6 } }, false, false)?.r).toBe(2);
   });
 
   it('is nothing for the lasso and the laser (the laser shows its own trail)', () => {

@@ -342,6 +342,18 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
   `MN3141_Marketing management.PDF` is empty in Drive and is retried on the next import. exam-meta changed nothing;
   extract-texts read 282 files (31 scans). Every seeded tag is on dev (per module, the counts match the file).
 
+### Stylus: the eraser button and hover, 2026-11-08 (COM-191, branch `stylus-eraser-hover`)
+
+- A pen's eraser end, or its eraser button held (`button` 5 on down, `buttons & 32` while it moves; Windows pens and
+  Wacom), erases whatever tool is picked. The tool stays as it was, so it is back when the pen lifts. Pressed in the
+  middle of a line, the line so far stays and the pen erases from there.
+- A pen hovering above the page (Apple Pencil on M2 and later iPads, the S Pen) shows a dot of the tool's size and
+  colour where it will land (a ring for the eraser). It hides when the pen touches down or leaves, or a finger touches
+  down; a mouse or finger never shows it. The rules are pure functions in `web/src/features/notes/surface/pen.ts`.
+- Not tested on a real tablet yet: whether the S Pen's side button reports as the eraser in Chrome on Android is
+  unknown. Apple Pencil double-tap and squeeze don't reach web pages. The e2e test (`notebook.spec.ts`, "stylus")
+  dispatches synthetic pen events.
+
 ## Operating notes
 
 - **Railway dev region (2026-10-20):** Postgres, api and web run in `southeast-asia` (moved from Amsterdam with
