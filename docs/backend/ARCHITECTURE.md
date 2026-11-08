@@ -114,7 +114,7 @@ needs a change in an area another builder holds says so in its report (file, wha
 
 | Area | Routers | Services | Tables | Web |
 |---|---|---|---|---|
-| Accounts, sign-in, sessions | `auth`, `me`, `progress`, `notifications` | `accounts`, `identifiers`, `signin`, `passwords`, `google`, `sessions`, `notifications`, `notify`, `outbox`, `mailer` | `users`, `sign_in_attempts`, `google_logins`, `password_resets`, `user_sessions`, `notifications`, `lesson_views`, `lesson_resume`, `email_outbox` | `src/auth`, `account`, `notifications`, `onboarding` |
+| Accounts, sign-in, sessions | `auth`, `me`, `progress`, `notifications` | `accounts`, `identifiers`, `signin`, `passwords`, `google`, `sessions`, `notifications`, `notify`, `outbox`, `mailer`, `push`, `webpush` | `users`, `sign_in_attempts`, `google_logins`, `password_resets`, `user_sessions`, `notifications`, `lesson_views`, `lesson_resume`, `email_outbox`, `push_subscriptions`, `push_outbox` | `src/auth`, `account`, `notifications`, `onboarding` |
 | Access, people, reports, the activity log | `access`, `admin`, `features`, `reports` | `access`, `roles`, `audit`, `reports` | `roles`, `role_boxes`, `user_roles`, `feature_switches`, `feature_switch_roles`, `reports`, `audit_log` | `access`, `manage` |
 | Forum, with its categories, tags, guidelines and tips | `forum` | `forum/` (`taxonomy` and `settings` for Manage → Forum) | `forum_*` | `forum` (`forum/settings` is Manage → Forum) |
 | Library, past papers, the Drive import, the text worker | `library`, `uploads` | `library`, `uploads`, `storage`, `past_questions`, `question_tagging`, `paper_tagging`, `question_anchors`, `exam_names`, `drive`, `drive_import`, `paper_text`, `text_extract` | `library_items`, `library_texts`, `library_stars`, `paper_questions`, `paper_question_topics`, `paper_question_flags`, `paper_taggings`, `drive_folders`, `uploads` | `library`, `papers` |
@@ -197,9 +197,12 @@ app's types are generated from it (`web/src/api/schema.d.ts`). On the wire, fiel
 - **Notifications** go through `app.services.notify.notify(...)` (or `notify_all()` for every account). It never
   notifies an actor about their own action. The in-app notification always comes; for the kinds in
   `outbox.EMAIL_SWITCHES` an email is queued in the same transaction when the person has an email address and
-  keeps that switch on (decision D1). The mail worker (`python -m app.cli mail-worker`) sends queued emails with
-  retries; never send mail inside a request. **Audit** every moderation and admin action
-  with `app.services.audit.record(...)`; actions on an account carry its name (`targetName`).
+  keeps that switch on (decision D1). For the kinds in `push.PUSH_SWITCHES` a push is queued for each browser where
+  the person turned on "Notifications on this device" and keeps that kind's push choice on (only replies to your own
+  posts start on; `app/services/push.py`, sent and signed by `webpush.py`). The mail worker
+  (`python -m app.cli mail-worker`) sends queued emails and pushes with retries; never send either inside a
+  request. **Audit** every moderation and admin action with `app.services.audit.record(...)`; actions on an
+  account carry its name (`targetName`).
 - **Shared rules:** slugs and ids from titles with `core.text.insert_with_unique_slug()`
   (a free one, retried on a race; a title without Latin letters gets a short id, decision D8), link and picture
   rules from `core.links`, a module from a request with `modules.require_module()`, how a person appears with
@@ -312,9 +315,9 @@ Docker". Either way:
   `context.add_cookies([{name:'dsba_session', value: token, domain:'127.0.0.1', path:'/'}])`).
 - **Seed the dev DB:** `python -m app.cli seed` (the Docker stack's `api` service runs the migrations and the seed
   when it starts). `python -m app.cli enable-features` switches every feature on (development only, audited).
-- **The mail worker** (`python -m app.cli mail-worker`; Docker starts one) sends notification emails, queues the
-  Sunday summaries at the time set in Manage → Sunday summary, and turns board cards' and personal events'
-  reminders into notifications.
+- **The mail worker** (`python -m app.cli mail-worker`; Docker starts one) sends notification emails and pushes,
+  queues the Sunday summaries at the time set in Manage → Sunday summary, and turns board cards' and personal
+  events' reminders into notifications.
 - **The text worker:** `python -m app.cli text-worker` reads the words and makes the cover of each published PDF and
   Word file, for search inside papers. `extract-texts` does the files already there.
 - **Mini Noora AI:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (default: `claude-haiku-5-5`) power

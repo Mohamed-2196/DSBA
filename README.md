@@ -28,6 +28,11 @@ loads the reference content when it starts, and reloads when a file under `api/a
 after the first ones arrives switched off: `docker compose exec api python -m app.cli enable-features` turns them
 all on. "Continue with Google" needs an OAuth client of your own (docs/backend/DEPLOYMENT.md, section 14).
 
+Notifications on phones and computers (web push) need a VAPID key and a production build, since only that has the
+service worker: put the output of `docker compose exec api python -m app.cli vapid-key` and
+`DSBA_VAPID_SUBJECT=mailto:you@example.com` in `.env`, restart `api` and `mail`, then `cd web && npm run build &&
+npx vite preview` (http://localhost:4173, the API proxied as in dev) and turn it on in Your account.
+
 The defaults need no `.env`; to change them, copy `.env.example` to `.env`. To make yourself an admin, put your
 email in `DSBA_ADMIN_IDENTIFIERS` and continue with Google, or, without Google, use dev-login with `--role admin`
 (below; it counts the address as confirmed). Staff roles need an address Google confirmed.

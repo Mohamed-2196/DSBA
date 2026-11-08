@@ -316,7 +316,7 @@ def run_worker(
             log.exception("mail worker: database error; trying again in %.0f s", poll_seconds)
             handled = 0
         if handled:
-            log.info("mail worker handled %d email(s)", handled)
+            log.info("mail worker handled %d email(s), push(es) and job(s)", handled)
             continue
         if once:
             break
