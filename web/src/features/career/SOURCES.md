@@ -155,6 +155,19 @@ for entry in 2027 and were read on 8 November 2026. Re-check them every autumn.
 | AlMabarrah AlKhalifia Foundation postgraduate scholarship | https://mkfbh.org/ | Loaded | "A distinguished postgraduate scholarship awarded to outstanding Bahraini students, enabling them to pursue Master's and PhD degrees at prestigious international universities" (the "Employees 23 and above" pathway). The site shows no date. Its name (Tamayaz) and an April window appear only in news reports, so neither is on the page. |
 | Chevening (the line in the text) | https://www.chevening.org/scholarships/who-can-apply/ | Loaded | Bahrain isn't on the list of eligible countries (the list goes "Bahamas, Bangladesh, Barbados"; Oman is listed). |
 
+## Logo files of the four employers added on 8 November 2026
+
+The other 32 files are described in `public/logos/README.md`. These four were fetched on 8 November 2026, flattened
+onto white, trimmed and fitted to 380 px wide at most (never enlarged). Nothing in a mark was redrawn or recoloured,
+except SGB's as noted.
+
+| File | Source | Notes |
+| --- | --- | --- |
+| `employers/gulf-air.png` | Wikipedia, `File:Gulf_Air_Logo_2018.svg` (https://en.wikipedia.org/wiki/File:Gulf_Air_Logo_2018.svg), the logo in Gulf Air's article | Rendered from the SVG. Wikipedia lists it as a non-free logo used under fair use, like the other Wikipedia logos here. |
+| `employers/iga.png` | iGA's own site, the English header logo: https://www.iga.gov.bh/en/images/logo-IGA.png | The largest the site offers is 268 × 66 px, so the file is 261 px wide after trimming: sharp at tile size, a little soft on a projector. No larger official copy was found (Wikipedia and Wikimedia Commons have none). |
+| `employers/sgb.png` | SGB's own site, the header logo of https://www.sgb.com/ (an inline SVG drawn in the text colour) | The site shows it in white on dark and lilac on its own pages. On the white tile it is drawn in black, which is one of SGB's brand colours on the site (`--color--brand-color--true-black`). |
+| `employers/bcfc.png` | BCFC's own site, the header logo of https://www.bcfc.bh/en/ (`bcfc-logo-3.png`, 6000 × 1590 px) | The light-background version (Arabic and English name with the mark). |
+
 ## Looked at and left off the page
 
 | Organisation or programme                                 | Why it was left off                                                                                                                                                                                                                                                                                                                                                        |

@@ -4,13 +4,11 @@ The Career Navigator page (`#/career`) has a slot for every employer and certifi
 official logo files go. Nothing in the code draws or imitates a logo: until a file is here, the slot shows a
 neutral tile with the organisation's initials.
 
-**36 slots: 29 employers and 7 certificates.** The same list is in `wanted.json` for scripts. Four employers have
-no file yet and show their initials: Gulf Air, Information & eGovernment Authority, Singapore Gulf Bank and Bahrain
-Commercial Facilities Company.
+**36 slots: 29 employers and 7 certificates.** The same list is in `wanted.json` for scripts. Every slot has a file.
 
 ## Where the current files came from
 
-The 32 files here were fetched on 2 October 2026 at the student rep's request, through the browser on his Mac, and are used
+32 of the files here were fetched on 2 October 2026 at the student rep's request, through the browser on his Mac, and are used
 unmodified (only trimmed and resized) to identify each organisation next to the link to its own page. Every logo
 belongs to its owner. Replace any file with one from the organisation's brand kit when you have it.
 
@@ -21,6 +19,9 @@ belongs to its owner. Replace any file with one from the organisation's brand ki
   International Bank, Deloitte, Batelco, EY, McKinsey & Company, Amazon Web Services, Zain, Kuwait Finance House,
   Bank ABC, BBK, Alba, CFA Institute, GARP, Microsoft Power BI, Google, Tableau, Bloomberg.
 - They are screen captures of those images at about 380 px wide: sharp at tile size, a little soft if enlarged.
+- **Added 8 November 2026** for the four new employers: Gulf Air (Wikipedia), Information & eGovernment Authority
+  (iga.gov.bh), Singapore Gulf Bank (sgb.com) and Bahrain Commercial Facilities Company (bcfc.bh). Exact sources and
+  what was done to each are in `src/features/career/SOURCES.md` → "Logo files of the four employers".
 
 ## How to supply a file
 
@@ -69,10 +70,10 @@ belongs to its owner. Replace any file with one from the organisation's brand ki
 | `employers/bank-abc.png` | Bank ABC |
 | `employers/bbk.png` | BBK |
 | `employers/alba.png` | Alba |
-| `employers/gulf-air.png` | Gulf Air (no file yet) |
-| `employers/iga.png` | Information & eGovernment Authority (no file yet) |
-| `employers/sgb.png` | Singapore Gulf Bank (no file yet) |
-| `employers/bcfc.png` | Bahrain Commercial Facilities Company (no file yet) |
+| `employers/gulf-air.png` | Gulf Air |
+| `employers/iga.png` | Information & eGovernment Authority |
+| `employers/sgb.png` | Singapore Gulf Bank |
+| `employers/bcfc.png` | Bahrain Commercial Facilities Company |
 
 ## Certificates and courses (`public/logos/certs/`)
 
