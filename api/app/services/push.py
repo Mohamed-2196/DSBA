@@ -376,6 +376,12 @@ def send_one(db: Session, http: httpx.Client, now: datetime | None = None) -> bo
         _retry(row, now, f"couldn't reach the push service ({type(e).__name__})")
         db.commit()
         return True
+    except Exception as e:  # anything else is this row's trouble: it must never stop the worker
+        log.exception("a %s push failed", row.kind)
+        row.status = OutboxStatus.failed
+        row.last_error = f"failed ({type(e).__name__})"
+        db.commit()
+        return True
     code = response.status_code
     if 200 <= code < 300:
         row.status, row.sent_at, row.last_error = OutboxStatus.sent, utcnow(), None

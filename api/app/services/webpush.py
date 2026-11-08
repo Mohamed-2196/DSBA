@@ -147,15 +147,23 @@ def vapid_header(key: VapidKey, endpoint: str, subject: str, *, now: datetime | 
 
 
 def push_service(endpoint: str) -> bool:
-    """Whether `endpoint` is on one of the browsers' push services: https, the default port, no user name, and a host
-    in PUSH_HOSTS or under PUSH_DOMAINS."""
+    """Whether `endpoint` is on one of the browsers' push services: printable ASCII with no backslash, https, the
+    default port, no user name, and a host in PUSH_HOSTS or under PUSH_DOMAINS, read the same by urlsplit and by
+    httpx (which sends it), so no parser difference can send it elsewhere."""
+    if not endpoint.isascii() or not endpoint.isprintable() or "\\" in endpoint or " " in endpoint:
+        return False
     try:
         parts = urlsplit(endpoint)
         port = parts.port
-    except ValueError:
+        sent = httpx.URL(endpoint)
+        sent_host = sent.raw_host.decode("ascii").lower()  # as sent: punycode stays punycode
+        sent_port, sent_user = sent.port, sent.userinfo
+    except Exception:  # any parser's refusal (ValueError, httpx.InvalidURL, an IDNA error) is a no
         return False
     host = (parts.hostname or "").lower()
     if parts.scheme != "https" or port not in (None, 443) or parts.username is not None or parts.password is not None:
+        return False
+    if sent.scheme != "https" or sent_host != host or sent_port not in (None, 443) or sent_user:
         return False
     return host in PUSH_HOSTS or any(host.endswith(d) and len(host) > len(d) for d in PUSH_DOMAINS)
 

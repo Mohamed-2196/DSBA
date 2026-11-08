@@ -251,6 +251,17 @@ def _check_forum(sessions: Callable[[], AbstractContextManager[Session]]) -> int
         return 0
 
 
+def _send_pushes(sessions: Callable[[], AbstractContextManager[Session]]) -> int:
+    """The pushes due to phones and computers (app/services/push.py); their trouble never stops the mail."""
+    from app.services import push
+
+    try:
+        return push.drain(sessions)
+    except Exception:  # pushes must never stop the mail
+        log.exception("mail worker: sending pushes failed")
+        return 0
+
+
 def run_worker(
     sessions: Callable[[], AbstractContextManager[Session]],
     *,
@@ -298,7 +309,7 @@ def run_worker(
                 last_purge = utcnow()
             reminders.send_due(sessions)
             handled = drain(sessions)
-            handled += push.drain(sessions)
+            handled += _send_pushes(sessions)
             handled += _tag_papers(sessions)
             handled += _check_forum(sessions)
         except SQLAlchemyError:

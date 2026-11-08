@@ -537,3 +537,19 @@ def test_every_pushed_kind_names_its_feature_and_a_choice_the_preferences_have()
     assert set(push.PUSH_FEATURES) == set(push.PUSH_SWITCHES)
     assert set(push.PUSH_DEFAULTS) <= set(Preferences.model_fields)
     assert [name for name, on in push.PUSH_DEFAULTS.items() if on] == ["push_replies"]
+
+
+@pytest.mark.usefixtures("push_on")
+def test_an_unexpected_error_fails_that_push_and_the_next_one_still_goes(
+    client_for: ClientFor, make_user: MakeUser, db: Session, service: PushService, send: Deliver
+) -> None:
+    person, _, _ = _one_waiting(client_for, make_user, db)
+    service.error = RuntimeError("something nobody planned for")
+    assert send() == 1
+    [row] = _queued(db, person)
+    assert (row.status, row.last_error) == (OutboxStatus.failed, "failed (RuntimeError)")
+    service.error = None
+    notify(db, person.id, "thread_reply", "Another reply", url="/forum/y", actor=make_user())
+    db.commit()
+    assert send() == 1
+    assert _queued(db, person)[-1].status == OutboxStatus.sent

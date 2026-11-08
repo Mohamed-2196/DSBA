@@ -175,6 +175,11 @@ def test_the_browsers_push_services_are_accepted(endpoint: str) -> None:
         "https://user@fcm.googleapis.com/x",
         "https://notify.windows.com.example/x",
         "fcm.googleapis.com/x",
+        "https://fcm.googleapis.com\\@evil.example/x",  # a backslash: parsers disagree on the host
+        "https://fcm.googleapis.com/x y",
+        "https://fcm.googleapis.com/\u00e9",  # not ASCII
+        "https://xn--fcm-googleapis.com/x",
+        "https://[::1]/x",
         "",
     ],
 )
