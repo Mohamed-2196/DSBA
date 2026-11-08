@@ -40,6 +40,12 @@
 	# The API. Caddy writes the client's address in X-Forwarded-For (it drops whatever the client sent; from a proxy in
 	# DSBA_EDGE_PROXIES it keeps that proxy's header and adds the proxy's address), and
 	# no request body is over 1 MB: files go straight to the bucket, never through here.
+	# AI apps find the sign-in for the Hub's MCP server (/api/mcp) at these two addresses (RFC 9728, RFC 8414).
+	@oauth_discovery path /.well-known/oauth-protected-resource/* /.well-known/oauth-authorization-server/*
+	handle @oauth_discovery {
+		reverse_proxy {$DSBA_API_UPSTREAM:api:8000}
+	}
+
 	handle /api/* {
 		request_body {
 			max_size 1MB

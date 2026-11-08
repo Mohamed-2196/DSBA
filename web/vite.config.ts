@@ -249,8 +249,9 @@ export default defineConfig(({ mode }) => {
       host: env.VITE_DEV_HOST || '127.0.0.1',
       port: 5173,
       strictPort: true,
-      proxy: { '/api': { target: api } },
+      // /.well-known/oauth-*: AI apps find the Hub's sign-in for its MCP server there (services/ai_apps)
+      proxy: { '/api': { target: api }, '/.well-known/oauth-': { target: api } },
     },
-    preview: { port: 4173, proxy: { '/api': { target: api } } },
+    preview: { port: 4173, proxy: { '/api': { target: api }, '/.well-known/oauth-': { target: api } } },
   };
 });

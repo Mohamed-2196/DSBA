@@ -180,6 +180,13 @@ const pages: AppRoute[] = [
     modules: false,
   },
   {
+    id: 'connect-ai',
+    path: '/connect-ai',
+    title: 'Connect an AI app',
+    Page: lazyPage(() => import('./features/aiapps/ConnectAiPage')),
+    modules: false,
+  },
+  {
     id: 'reset-password',
     path: '/reset-password',
     title: 'Choose a new password',

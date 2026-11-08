@@ -1,4 +1,4 @@
-// /account: profile, sign-in methods, emails, signed-in devices, data export and account deletion.
+// /account: profile, sign-in methods, emails, signed-in devices, AI apps, data export and account deletion.
 import { useEffect, useState, type FormEvent } from 'react';
 import { ApiError, errorMessage, placeFieldErrors, unplacedMessage } from '../../api/errors';
 import type { Me, SessionInfo } from '../../api/types';
@@ -28,6 +28,7 @@ import {
   timeAgo,
 } from '../../ui';
 import { downloadAccountData, useRevokeSessions, useSessions, useUpdateMe } from './api';
+import { ConnectedApps } from '../aiapps/public';
 import { SeniorListing } from '../career/public';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { describeDevice } from './device';
@@ -592,6 +593,12 @@ export default function AccountPage() {
       <PageSection aria-labelledby="acct-devices">
         <Sessions />
       </PageSection>
+
+      {featureOn('mcp') ? (
+        <PageSection aria-labelledby="acct-ai-apps">
+          <ConnectedApps />
+        </PageSection>
+      ) : null}
 
       <PageSection aria-labelledby="acct-data">
         <SectionHeader id="acct-data" title="Your data" />
