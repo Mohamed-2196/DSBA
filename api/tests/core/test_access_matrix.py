@@ -188,7 +188,7 @@ def test_people_search_without_admin_matches_names_only(
     """Security review AD-2: without Admin, a search can't find anyone by part of an address."""
     make_user(name="Sara Student", email="sara.hidden@example.com")
     make_user(name="Omar Other", email="omar.3312@example.com")
-    boss = make_user(name="Head Admin", roles=("student", "admin"))
+    boss = make_user(name="Head Admin", email="head.admin@example.com", roles=("student", "admin"))
     keeper = client_for(holder(frozenset({Box.people_suspend})))
 
     def names(c: TestClient, q: str) -> list[str]:
