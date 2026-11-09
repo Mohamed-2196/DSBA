@@ -594,11 +594,6 @@ export default function AccountPage() {
 
       {featureOn('push') ? (
         <PageSection aria-labelledby="acct-push">
-          <SectionHeader
-            id="acct-push"
-            title="Notifications on your devices"
-            description="On your phone or computer, even when the Hub is closed. Off until you turn it on here."
-          />
           <DevicePush me={me} />
         </PageSection>
       ) : null}

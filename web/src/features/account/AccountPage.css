@@ -127,31 +127,40 @@
   gap: var(--sp-16);
 }
 
-/* Notifications on this device */
+/* Notifications on your devices: this device in a panel of its own, then the kinds that come to every device. */
 .acct-push__steps {
   display: grid;
-  gap: var(--sp-8);
 }
-.acct-push__lead {
+.acct-push__lead,
+.acct-push__title {
   margin: 0;
   color: var(--ink);
+  font-family: var(--font-ui);
   font-size: var(--fs-15);
   font-weight: var(--fw-medium);
+  letter-spacing: normal;
+  line-height: var(--lh-sans);
+}
+.acct-push__steps > .acct-note {
+  margin-top: var(--sp-4);
 }
 .acct-push__list {
   display: grid;
   gap: var(--sp-8);
-  margin: 0;
+  margin: var(--sp-12) 0 0;
   padding-left: 1.4em;
   color: var(--ink);
   font-size: var(--fs-14);
   line-height: var(--lh-sans);
 }
 .acct-push__blocked {
-  margin-top: 0;
+  margin-top: var(--sp-12);
+  color: var(--ink);
 }
-.acct-push__heading {
-  margin-top: var(--sp-8);
+.acct-push__kinds {
+  display: grid;
+  gap: var(--sp-2);
+  margin: var(--sp-24) 0 var(--sp-8);
 }
 
 /* Data */

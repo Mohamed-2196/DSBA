@@ -1,7 +1,7 @@
-// "Notifications on this device" on Your account: turning web push on or off for this browser (lib/push.ts), and
-// which notifications come to every device where it is on. Only replies to your own posts start on. The browser's
-// permission is asked only when the switch is tapped; on an iPhone or iPad outside the Home Screen app, the steps to
-// add it come first.
+// "Notifications on your devices" on Your account: a panel for this browser alone, with web push on or off
+// (lib/push.ts), then which notifications come to every device where it is on. Only replies to your own posts start
+// on. The browser's permission is asked only when the switch is tapped; on an iPhone or iPad outside the Home Screen
+// app, the steps to add it come first. While the browser blocks the Hub's notifications, the switch is off limits.
 import { useEffect, useState } from 'react';
 import { errorMessage } from '../../api/errors';
 import type { Me } from '../../api/types';
@@ -15,8 +15,9 @@ import {
   turnPushOn,
   type PushSupport,
 } from '../../lib/push';
+import { IphoneSteps } from '../../shell/InstallSteps';
 import { useToast } from '../../state';
-import { Divider, Panel, Switch } from '../../ui';
+import { Divider, Panel, SectionHeader, Switch } from '../../ui';
 
 type PushChoice =
   | 'pushReplies'
@@ -74,12 +75,6 @@ const PUSH_CHOICES: { key: PushChoice; label: string; description: string; featu
   },
 ];
 
-const HOME_SCREEN_STEPS = [
-  'Open the Hub in Safari.',
-  'Tap Share, then Add to Home Screen, then Add.',
-  'Open the Hub from your Home Screen and turn this on there.',
-];
-
 function ThisDevice({ me, support }: { me: Me; support: PushSupport }) {
   const { push } = useToast();
   const [on, setOn] = useState(false);
@@ -97,16 +92,35 @@ function ThisDevice({ me, support }: { me: Me; support: PushSupport }) {
     };
   }, [me.id, support]);
 
+  // Allowing them again in the browser's settings brings the switch back without a reload.
+  useEffect(() => {
+    if (support !== 'yes' || !navigator.permissions) return;
+    let status: PermissionStatus | null = null;
+    let live = true;
+    const read = () => setBlocked(pushPermission() === 'denied');
+    navigator.permissions
+      .query({ name: 'notifications' })
+      .then((s) => {
+        if (!live) return;
+        status = s;
+        s.addEventListener('change', read);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+      status?.removeEventListener('change', read);
+    };
+  }, [support]);
+
   if (support === 'home-screen') {
     return (
       <div className="acct-push__steps">
         <p className="acct-push__lead">Add the Hub to your Home Screen first</p>
         <p className="acct-note">On an iPhone or iPad, notifications only come to the Hub on your Home Screen.</p>
-        <ol className="acct-push__list">
-          {HOME_SCREEN_STEPS.map((s) => (
-            <li key={s}>{s}</li>
-          ))}
-        </ol>
+        <IphoneSteps
+          className="acct-push__list"
+          last="Open the Hub from your Home Screen, come back here and turn it on."
+        />
       </div>
     );
   }
@@ -141,10 +155,10 @@ function ThisDevice({ me, support }: { me: Me; support: PushSupport }) {
   return (
     <>
       <Switch
-        label="Notifications on this device"
-        description="Show the Hub’s notifications on this device, even when the Hub is closed."
+        label="On this device"
+        description="Only this browser. Turn it on again on your other devices."
         checked={on}
-        disabled={busy}
+        disabled={busy || blocked}
         onChange={(next) => void change(next)}
         data-hub="account-push-device"
       />
@@ -169,22 +183,32 @@ export function DevicePush({ me }: { me: Me }) {
     });
   const choices = PUSH_CHOICES.filter((c) => featureOn(c.feature) || (c.also !== undefined && featureOn(c.also)));
   return (
-    <Panel className="acct-switches">
-      <div className="acct-switches__item">
+    <>
+      <SectionHeader
+        id="acct-push"
+        title="Notifications on your devices"
+        description="They show on your phone or computer even when the Hub is closed. Turn them on for each device."
+      />
+      <Panel>
         <ThisDevice me={me} support={support} />
+      </Panel>
+      <div className="acct-push__kinds">
+        <h3 className="acct-push__title">Which ones come to your devices</h3>
+        <p className="acct-note acct-note--inset">To every device where you’ve turned them on.</p>
       </div>
-      <p className="acct-note acct-note--inset acct-push__heading">What comes to every device where they’re on:</p>
-      {choices.map((c, i) => (
-        <div key={c.key} className="acct-switches__item">
-          {i > 0 ? <Divider /> : null}
-          <Switch
-            label={c.label}
-            description={c.description}
-            checked={me.preferences[c.key] ?? false}
-            onChange={(on) => save({ [c.key]: on })}
-          />
-        </div>
-      ))}
-    </Panel>
+      <Panel className="acct-switches">
+        {choices.map((c, i) => (
+          <div key={c.key} className="acct-switches__item">
+            {i > 0 ? <Divider /> : null}
+            <Switch
+              label={c.label}
+              description={c.description}
+              checked={me.preferences[c.key] ?? false}
+              onChange={(on) => save({ [c.key]: on })}
+            />
+          </div>
+        ))}
+      </Panel>
+    </>
   );
 }

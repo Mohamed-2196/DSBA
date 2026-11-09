@@ -1,5 +1,5 @@
 // The steps to install the app where the browser has no prompt of its own (an iPhone or iPad, some Android browsers,
-// Safari on a Mac).
+// Safari on a Mac). The iPhone's steps are also on Your account, before notifications can be turned on there.
 import { Button, Modal } from '../ui';
 import type { InstallOffer } from './useInstallOffer';
 import './InstallSteps.css';
@@ -11,10 +11,29 @@ const STEPS = {
 };
 
 const DESCRIPTION = {
-  iphone: 'The Hub then opens from your home screen like any other app.',
+  iphone: 'The Hub then opens from your Home Screen like any other app.',
   android: 'The Hub then opens from your home screen like any other app.',
   mac: 'The Hub then opens from your Dock in its own window. This needs macOS Sonoma 14 or later.',
 };
+
+function StepList({ steps, last, className }: { steps: string[]; last?: string; className: string }) {
+  return (
+    <ol className={className}>
+      {steps.map((s) => (
+        <li key={s}>{s}</li>
+      ))}
+      {last ? <li>{last}</li> : null}
+    </ol>
+  );
+}
+
+/**
+ * Adding the Hub to the Home Screen on an iPhone or iPad, the same list as in the dialog: Your account shows it before
+ * notifications can be turned on, with its own last step.
+ */
+export function IphoneSteps({ last, className }: { last?: string; className: string }) {
+  return <StepList steps={STEPS.iphone} last={last} className={className} />;
+}
 
 export function InstallSteps({ offer }: { offer: InstallOffer }) {
   if (offer.way !== 'iphone' && offer.way !== 'android' && offer.way !== 'mac') return null;
@@ -31,11 +50,7 @@ export function InstallSteps({ offer }: { offer: InstallOffer }) {
         </Button>
       }
     >
-      <ol className="shell-install__steps">
-        {STEPS[offer.way].map((s) => (
-          <li key={s}>{s}</li>
-        ))}
-      </ol>
+      <StepList steps={STEPS[offer.way]} className="shell-install__steps" />
     </Modal>
   );
 }
