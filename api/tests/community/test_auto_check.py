@@ -22,7 +22,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
-from app.models import AuditEntry, ContentCheck, ForumThread, NooraUsage, PostStatus, Report, Upload, User
+from app.models import AuditEntry, CheckVerdict, ContentCheck, ForumThread, NooraUsage, PostStatus, Report, Upload, User
 from app.services.forum import checks
 from tests.community.helpers import API, new_reply, new_thread, notifications_for, reply_row, thread_row
 
@@ -228,7 +228,7 @@ def test_a_flagged_picture_stays_hidden_and_goes_to_reports(
 
     [report] = hub_reports(db)
     assert (report.target_type, report.target_id, report.reason) == ("image", up.id, "hub_flagged")
-    assert report.note == "Sexual content: A nude photo."
+    assert report.note == "Sexual content: a nude photo."
     [told] = [n for n in notifications_for(db, student) if n.title == "Your picture is hidden for now"]
     assert told.url == f"/forum/{thread['slug']}"
     assert "wants a student rep to look at a picture you posted in" in (told.body or "")
@@ -486,7 +486,7 @@ def test_a_flagged_thread_is_hidden_until_a_moderator_looks(
     assert listed["heldByCheck"] is True  # its row in the reps' list says "Waiting for a rep" too
     [report] = hub_reports(db)
     assert (report.target_type, report.reason) == ("thread", "hub_flagged")
-    assert report.note == "Answers to a live exam: Shares answers to today's exam."
+    assert report.note == "Answers to a live exam: shares answers to today's exam."
     [told] = [n for n in notifications_for(db, student) if n.title == "Your thread is hidden for now"]
     assert told.url == f"/forum/{thread['slug']}"
     assert told.body == (
@@ -816,3 +816,25 @@ def test_a_second_complete_call_does_not_queue_the_picture_again(
     assert me.post(f"{API}/uploads/{up.id}/complete").status_code == 200
     assert upload_of(db, url).check_state == "held"
     assert len(harness.stub.sent) == 1
+
+
+@pytest.mark.parametrize(
+    ("reason", "note"),
+    [
+        (
+            "Shares answers to an exam that is running.",
+            "Answers to a live exam: shares answers to an exam that is running.",
+        ),
+        ("UoL exam answers posted while it runs.", "Answers to a live exam: UoL exam answers posted while it runs."),
+        ("ST1 answers, posted during the exam.", "Answers to a live exam: ST1 answers, posted during the exam."),
+        ("I think these are answers.", "Answers to a live exam: I think these are answers."),
+    ],
+)
+def test_flagged_note_reads_as_one_sentence(reason: str, note: str) -> None:
+    v = checks.Verdict(CheckVerdict.flagged, "exam_leak", reason)
+    assert checks._note(v) == note
+
+
+def test_unchecked_note_keeps_our_wording() -> None:
+    v = checks.Verdict(CheckVerdict.unchecked, None, "Claude didn't answer in time.")
+    assert checks._note(v) == "Couldn't be checked: Claude didn't answer in time."

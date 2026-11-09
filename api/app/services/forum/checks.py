@@ -576,8 +576,17 @@ def _note(v: Verdict) -> str:
     """What the report says, starting with what was found (the card already says it is from the Hub)."""
     if v.verdict == CheckVerdict.flagged:
         label = LABELS.get(v.category or "other", LABELS["other"])
-        return f"{label[0].upper()}{label[1:]}: {v.reason}"
+        return f"{label[0].upper()}{label[1:]}: {_mid_sentence(v.reason)}"
     return f"Couldn't be checked: {v.reason}"
+
+
+def _mid_sentence(reason: str) -> str:
+    """Claude's reason, read on after the label: its first letter lowercased unless the first word is "I" or an
+    acronym or code ("UoL", "ST1")."""
+    first = reason.split(" ", 1)[0]
+    if not first or first == "I" or any(c.isupper() or c.isdigit() for c in first[1:]):
+        return reason
+    return reason[0].lower() + reason[1:]
 
 
 def _open_hub_report(db: Session, target_type: Target, target_id: uuid.UUID) -> Report | None:
