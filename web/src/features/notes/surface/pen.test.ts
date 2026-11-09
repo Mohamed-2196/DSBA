@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { erasesByButton, hoverAfter, hoverDot } from './pen';
+import { erasesByButton, hoverAfter, hoverDot, inAir } from './pen';
 import { DEFAULT_PENS } from './tools';
 
 const pen = (button: number, buttons: number) => ({ pointerType: 'pen', button, buttons });
@@ -74,39 +74,68 @@ describe('hoverDot', () => {
     highlighter: { color: '#8ce99a', width: 22 },
     eraser: { mode: 'stroke' as const, size: 28 },
   };
+  // zoomed in far enough (250%) that the pen's own width is bigger than the smallest dot
+  const near = 2.5;
 
   it('is the pen: its colour, the width of its line', () => {
-    expect(hoverDot('pen', pens, false, false)).toEqual({ kind: 'ink', r: 2.2, color: '#1558f0' });
+    expect(hoverDot('pen', pens, false, false, near)).toEqual({ kind: 'ink', r: 2.2, color: '#1558f0' });
   });
 
   it('is the highlighter: its colour, its width', () => {
-    expect(hoverDot('highlighter', pens, false, false)).toEqual({ kind: 'highlighter', r: 11, color: '#8ce99a' });
+    expect(hoverDot('highlighter', pens, false, false, 1)).toEqual({ kind: 'highlighter', r: 11, color: '#8ce99a' });
   });
 
   it('is the eraser: a ring its size', () => {
-    expect(hoverDot('eraser', pens, false, false)).toEqual({ kind: 'eraser', r: 14 });
+    expect(hoverDot('eraser', pens, false, false, 1)).toEqual({ kind: 'eraser', r: 14 });
   });
 
   it('is the eraser while the eraser button is held, whatever tool is picked', () => {
-    expect(hoverDot('pen', pens, true, false)).toEqual({ kind: 'eraser', r: 14 });
-    expect(hoverDot('type', pens, true, false)).toEqual({ kind: 'eraser', r: 14 });
+    expect(hoverDot('pen', pens, true, false, 1)).toEqual({ kind: 'eraser', r: 14 });
+    expect(hoverDot('type', pens, true, false, 1)).toEqual({ kind: 'eraser', r: 14 });
   });
 
   it('is the pen while typing: a stylus picks the pen when it touches', () => {
-    expect(hoverDot('type', pens, false, false)).toEqual({ kind: 'ink', r: 2.2, color: '#1558f0' });
+    expect(hoverDot('type', pens, false, false, near)).toEqual({ kind: 'ink', r: 2.2, color: '#1558f0' });
   });
 
-  it('stays big enough to see with the finest pen', () => {
-    expect(hoverDot('pen', { ...pens, pen: { color: '#1f2933', width: 1.6 } }, false, false)?.r).toBe(2);
+  it('is at least 6 screen pixels across at every zoom, so the finest pen still shows one', () => {
+    const fine = { ...pens, pen: { color: '#1f2933', width: 1.6 } };
+    for (const zoom of [0.3, 0.75, 1, 1.1, 2.5])
+      expect(hoverDot('pen', fine, false, false, zoom)?.r).toBeCloseTo(3 / zoom);
+    const faint = { ...pens, highlighter: { color: '#8ce99a', width: 2 } };
+    expect(hoverDot('highlighter', faint, false, false, 0.5)?.r).toBeCloseTo(6);
   });
 
   it('is nothing for the lasso and the laser (the laser shows its own trail)', () => {
-    expect(hoverDot('lasso', pens, false, false)).toBeNull();
-    expect(hoverDot('laser', pens, false, false)).toBeNull();
+    expect(hoverDot('lasso', pens, false, false, 1)).toBeNull();
+    expect(hoverDot('laser', pens, false, false, 1)).toBeNull();
   });
 
   it('is nothing on a note that cannot be written on', () => {
-    expect(hoverDot('pen', pens, false, true)).toBeNull();
-    expect(hoverDot('eraser', pens, true, true)).toBeNull();
+    expect(hoverDot('pen', pens, false, true, 1)).toBeNull();
+    expect(hoverDot('eraser', pens, true, true, 1)).toBeNull();
+  });
+});
+
+describe('inAir', () => {
+  const ev = (pointerType: string, buttons: number, pressure: number) => ({ pointerType, buttons, pressure });
+
+  it('is a pen pressing a button while it hovers: no contact, no pressure', () => {
+    expect(inAir(ev('pen', 32, 0))).toBe(true); // the eraser button, above the page
+    expect(inAir(ev('pen', 2, 0))).toBe(true); // the barrel button, above the page
+  });
+
+  it('is not a pen touching the page, with its tip or its eraser end', () => {
+    expect(inAir(ev('pen', 1, 0.4))).toBe(false);
+    expect(inAir(ev('pen', 32, 0.4))).toBe(false); // the eraser end has no contact bit, only pressure
+  });
+
+  it('is not a tip that reports contact but no pressure (some pens and drivers)', () => {
+    expect(inAir(ev('pen', 1, 0))).toBe(false);
+  });
+
+  it('is never a finger or a mouse', () => {
+    expect(inAir(ev('touch', 0, 0))).toBe(false);
+    expect(inAir(ev('mouse', 1, 0))).toBe(false);
   });
 });

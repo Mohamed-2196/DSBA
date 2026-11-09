@@ -346,12 +346,19 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
 
 - A pen's eraser end, or its eraser button held (`button` 5 on down, `buttons & 32` while it moves; Windows pens and
   Wacom), erases whatever tool is picked. The tool stays as it was, so it is back when the pen lifts. Pressed in the
-  middle of a line, the line so far stays and the pen erases from there.
-- A pen hovering above the page (Apple Pencil on M2 and later iPads, the S Pen) shows a dot of the tool's size and
-  colour where it will land (a ring for the eraser). It hides when the pen touches down or leaves, or a finger touches
-  down; a mouse or finger never shows it. The rules are pure functions in `web/src/features/notes/surface/pen.ts`.
-- Not tested on a real tablet yet: whether the S Pen's side button reports as the eraser in Chrome on Android is
-  unknown. Apple Pencil double-tap and squeeze don't reach web pages. The e2e test (`notebook.spec.ts`, "stylus")
+  middle of a line, the line so far stays (that erase spares it, even where the pen is) and the pen erases from there.
+- A pen only starts something when it touches: a button pressed while it hovers (Chrome on Windows sends a
+  `pointerdown` with no contact and no pressure for that) does nothing (`inAir` in `pen.ts`).
+- A pen hovering above the page (Apple Pencil on M2 and later iPads and on the iPad mini with A17 Pro, the S Pen) shows
+  a dot of the tool's size and colour where it will land (a ring for the eraser). It is at least 6 screen pixels
+  across at any zoom, and the pen's dot has a white edge and a soft dark halo so it reads as a pointer, not as ink or a
+  full stop over a PDF's text. It hides when the pen touches down or leaves, or a finger touches down; a mouse or finger
+  never shows it. The rules are pure functions in `web/src/features/notes/surface/pen.ts`.
+- The overlay's edges (lasso, eraser ring, hover dot) are divided by the zoom (`--z`) in CSS, so they stay 1.5 screen
+  pixels wide at every zoom; `vector-effect: non-scaling-stroke` doesn't undo the stack's CSS `scale()` in Chrome.
+- Not tested on a real tablet yet: whether the S Pen's side button reports as the eraser in Chrome on Android, and
+  whether iPadOS Safari sends `pointerleave` when the Pencil leaves hover range (if not, the dot stays until the next
+  touch). Apple Pencil double-tap and squeeze don't reach web pages. The e2e test (`notebook.spec.ts`, "stylus")
   dispatches synthetic pen events.
 
 ## Operating notes

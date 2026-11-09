@@ -234,13 +234,14 @@ test('the notes list’s Module filter shows only that module’s notes', async 
 
 /** A pointer event from a stylus, dispatched on the writing surface at a point on screen. Pointer id 1 is the mouse's,
  *  the one pointer Chrome always counts as active, so the surface can capture it as it does a real pen. A `pointerout`
- *  with no `relatedTarget` is the pen leaving the screen's range. */
+ *  with no `relatedTarget` is the pen leaving the screen's range. The pen presses on the page when its tip touches
+ *  (`buttons` has 1) or when `touching` says so (the eraser end, which has no contact bit). */
 async function pen(
   page: Page,
   type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointerout',
   x: number,
   y: number,
-  init: { button?: number; buttons?: number; pointerType?: string } = {},
+  init: { button?: number; buttons?: number; pointerType?: string; touching?: boolean } = {},
 ): Promise<void> {
   await page.locator('[data-hub="note-surface"]').evaluate(
     (el, a) =>
@@ -256,10 +257,18 @@ async function pen(
           clientY: a.y,
           button: a.button,
           buttons: a.buttons,
-          pressure: a.buttons & 1 ? 0.6 : 0,
+          pressure: a.touching ? 0.6 : 0,
         }),
       ),
-    { type, x, y, button: init.button ?? -1, buttons: init.buttons ?? 0, pointerType: init.pointerType ?? 'pen' },
+    {
+      type,
+      x,
+      y,
+      button: init.button ?? -1,
+      buttons: init.buttons ?? 0,
+      pointerType: init.pointerType ?? 'pen',
+      touching: init.touching ?? ((init.buttons ?? 0) & 1) !== 0,
+    },
   );
 }
 
@@ -312,14 +321,35 @@ test('a hovering pen shows a dot where it will land, and the pen’s eraser butt
     await pen(sara, 'pointermove', x + 150, y + 3, { buttons: 32 });
     await expect(dot).toHaveClass(/nb-overlay__eraser/);
 
+    // The eraser button pressed while hovering does nothing until the pen touches.
+    await pen(sara, 'pointerdown', x + 150, y + 3, { button: 5, buttons: 32 });
+    await pen(sara, 'pointermove', x + 160, y + 3, { buttons: 32 });
+    await pen(sara, 'pointerup', x + 160, y + 3, { button: 5, buttons: 0 });
+    await sara.waitForTimeout(400);
+    expect((await ink()).length).toBe(1);
+
     // The eraser button held across the line erases it; the pen is still the tool afterwards.
-    await pen(sara, 'pointerdown', x - 10, y, { button: 5, buttons: 32 });
-    for (let i = 1; i <= 8; i++) await pen(sara, 'pointermove', x + i * 40, y + 3, { buttons: 32 });
+    await pen(sara, 'pointerdown', x - 10, y, { button: 5, buttons: 32, touching: true });
+    for (let i = 1; i <= 8; i++) await pen(sara, 'pointermove', x + i * 40, y + 3, { buttons: 32, touching: true });
     await shot('erasing-by-button.png');
     await pen(sara, 'pointerup', x + 320, y, { button: 5, buttons: 0 });
     await expect.poll(async () => (await ink()).length).toBe(0);
     await expect(penTool).toHaveAttribute('aria-pressed', 'true');
     await shot('erased-by-button.png');
+
+    // The eraser button pressed mid-line: the line so far stays, and the pen erases from there on.
+    const y2 = y + 50;
+    await pen(sara, 'pointerdown', x, y2, { button: 0, buttons: 1 });
+    for (let i = 1; i <= 6; i++) await pen(sara, 'pointermove', x + i * 25, y2 + (i % 2) * 6, { buttons: 1 });
+    // pressed right where the line ends, inside the eraser's reach of it
+    await pen(sara, 'pointermove', x + 152, y2, { buttons: 33 });
+    for (let i = 7; i <= 10; i++) await pen(sara, 'pointermove', x + i * 25, y2 + 20, { buttons: 33 });
+    await pen(sara, 'pointerup', x + 250, y2, { button: 0, buttons: 0 });
+    await expect.poll(async () => (await ink()).length).toBe(1);
+    await shot('switched-mid-line.png');
+    const undo = sara.getByRole('button', { name: 'Undo', exact: true });
+    await undo.click();
+    await expect.poll(async () => (await ink()).length).toBe(0);
 
     // The pen leaving hides the dot; a finger touching down hides it; a mouse never shows one.
     await pen(sara, 'pointermove', x, y);

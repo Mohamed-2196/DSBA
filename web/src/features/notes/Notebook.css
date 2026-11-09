@@ -1665,21 +1665,28 @@ button.nb-where__module:hover {
   overflow: visible;
   pointer-events: none;
 }
+/* The overlay is scaled with the page (a CSS scale on .nb-stack), so its edges are divided by the zoom to stay the
+   same width on screen at every zoom. */
 .nb-overlay__lasso {
   fill: rgba(21, 88, 240, 0.06);
   stroke: #1558f0;
-  stroke-width: 1.5px;
-  stroke-dasharray: 6 4;
+  stroke-width: calc(1.5px / var(--z, 1));
+  stroke-dasharray: calc(6px / var(--z, 1)) calc(4px / var(--z, 1));
 }
 .nb-overlay__eraser {
   fill: rgba(224, 49, 49, 0.12);
   stroke: #e03131;
-  stroke-width: 1.5px;
+  stroke-width: calc(1.5px / var(--z, 1));
 }
-/* the dot under a hovering pen: where it will land, the tool's size and colour (set from the pen settings) */
+/* the dot under a hovering pen: where it will land, the tool's size and colour (set from the pen settings). The pen's
+   dot gets a white edge and a soft dark halo so it reads as a pointer above the page, not as a dot of ink or a full
+   stop over printed text; the highlighter's is see-through like its stroke. */
 .nb-overlay__hover {
   stroke: rgba(255, 255, 255, 0.9);
-  stroke-width: 1px;
+  stroke-width: calc(1.5px / var(--z, 1));
+}
+.nb-overlay__hover:not(.ink-highlighter) {
+  filter: drop-shadow(0 0 calc(1px / var(--z, 1)) rgba(31, 41, 51, 0.6));
 }
 .nb-overlay__laser {
   filter: drop-shadow(0 0 4px rgba(255, 45, 85, 0.85));

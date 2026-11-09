@@ -7,8 +7,8 @@ import type { PenSettings, Tool } from './tools';
 const ERASER_BUTTON = 5;
 const ERASER_BIT = 32;
 const CONTACT_BIT = 1;
-/** The hover dot's smallest radius (units), so the finest pen still shows one. */
-const MIN_DOT = 2;
+/** The hover dot's smallest radius in screen pixels (6 across), so the finest pen still shows one at any zoom. */
+const MIN_DOT_PX = 3;
 
 export interface PenButtons {
   pointerType: string;
@@ -32,16 +32,29 @@ export function hoverAfter(e: { type: string; pointerType: string; buttons: numb
   return e.type === 'pointermove' && e.pointerType === 'pen' && (e.buttons & CONTACT_BIT) === 0 ? 'show' : 'hide';
 }
 
+/** A pen pressing a button while it hovers: Chrome on Windows fires `pointerdown` for that with no contact and no
+ *  pressure. Nothing should start until the pen touches the page. The eraser end touches without the contact bit, so
+ *  pressure decides there; a tip that reports contact counts even at no pressure. */
+export function inAir(e: { pointerType: string; buttons: number; pressure: number }): boolean {
+  return e.pointerType === 'pen' && (e.buttons & CONTACT_BIT) === 0 && e.pressure === 0;
+}
+
 export type HoverDot = { kind: 'ink' | 'highlighter'; r: number; color: string } | { kind: 'eraser'; r: number };
 
-/** The dot under a hovering pen: where it will land, with what it will do there. Null when touching would do nothing
- *  that a dot can show. */
-export function hoverDot(tool: Tool, pens: PenSettings, eraserHeld: boolean, readOnly: boolean): HoverDot | null {
+/** The dot under a hovering pen: where it will land, with what it will do there, in units at `zoom`. Null when
+ *  touching would do nothing that a dot can show. */
+export function hoverDot(
+  tool: Tool,
+  pens: PenSettings,
+  eraserHeld: boolean,
+  readOnly: boolean,
+  zoom: number,
+): HoverDot | null {
   if (readOnly) return null;
   if (eraserHeld || tool === 'eraser') return { kind: 'eraser', r: pens.eraser.size / 2 };
-  if (tool === 'pen' || tool === 'type')
-    return { kind: 'ink', r: Math.max(MIN_DOT, pens.pen.width / 2), color: pens.pen.color };
+  const r = (width: number) => Math.max(width / 2, MIN_DOT_PX / zoom);
+  if (tool === 'pen' || tool === 'type') return { kind: 'ink', r: r(pens.pen.width), color: pens.pen.color };
   if (tool === 'highlighter')
-    return { kind: 'highlighter', r: Math.max(MIN_DOT, pens.highlighter.width / 2), color: pens.highlighter.color };
+    return { kind: 'highlighter', r: r(pens.highlighter.width), color: pens.highlighter.color };
   return null;
 }

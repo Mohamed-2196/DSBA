@@ -58,7 +58,7 @@ import {
   type SheetSpec,
 } from './layout';
 import { PdfPage } from './PdfPage';
-import { erasesByButton, hoverAfter, hoverDot } from './pen';
+import { erasesByButton, hoverAfter, hoverDot, inAir } from './pen';
 import type { PenSettings, Tool } from './tools';
 
 /** A zoom, and where it is anchored: the point of the page (`unit`, in column units) that goes under `client` (a point
@@ -106,6 +106,8 @@ type Gesture =
   | {
       kind: 'erase';
       pointerId: number;
+      /** the line just saved when the eraser button was pressed mid-line: this gesture leaves it be */
+      spare?: string;
       touched: Map<number, { before: readonly InkStroke[]; now: readonly InkStroke[] }>;
     }
   | { kind: 'lasso'; pointerId: number; sheet: Placed; poly: Point[] }
@@ -158,6 +160,7 @@ export function Surface({
   const laserGroup = useRef<SVGGElement>(null);
   const eraserRing = useRef<SVGCircleElement>(null);
   const hoverRing = useRef<SVGCircleElement>(null);
+  const hoverShown = useRef(false);
   const textBox = useRef<HTMLDivElement>(null);
   const gesture = useRef<Gesture | null>(null);
   const dragOffset = useRef<{ dx: number; dy: number } | null>(null);
@@ -274,12 +277,16 @@ export function Surface({
   };
 
   // ── the hover dot: drawn straight into the overlay, like the line being drawn ──
-  const hideHover = () => hoverRing.current?.setAttribute('r', '0');
+  const hideHover = () => {
+    if (!hoverShown.current) return; // a line being drawn hides it on every move: write only when it changes
+    hoverShown.current = false;
+    hoverRing.current?.setAttribute('r', '0');
+  };
   const showHoverAt = (ev: PointerEvent) => {
     const el = hoverRing.current;
     if (!el) return;
-    const { tool: t, pens: p, readOnly: ro } = live.current;
-    const dot = hoverDot(t, p, erasesByButton(ev, true), ro);
+    const { tool: t, pens: p, readOnly: ro, zoom: z } = live.current;
+    const dot = hoverDot(t, p, erasesByButton(ev, true), ro, z);
     const at = dot ? locate(ev.clientX, ev.clientY) : null;
     if (!dot || !at) {
       hideHover();
@@ -288,6 +295,7 @@ export function Surface({
     el.setAttribute('cx', String(at.ux));
     el.setAttribute('cy', String(at.uy));
     el.setAttribute('r', String(dot.r));
+    hoverShown.current = true;
     el.setAttribute(
       'class',
       dot.kind === 'eraser'
@@ -302,8 +310,12 @@ export function Surface({
     else if (next === 'hide') hideHover();
   };
 
-  const startErase = (pointerId: number, at: { sheet: Placed; x: number; y: number; ux: number; uy: number }) => {
-    const g: Gesture = { kind: 'erase', pointerId, touched: new Map() };
+  const startErase = (
+    pointerId: number,
+    at: { sheet: Placed; x: number; y: number; ux: number; uy: number },
+    spare?: string,
+  ) => {
+    const g: Gesture = { kind: 'erase', pointerId, spare, touched: new Map() };
     gesture.current = g;
     eraserRing.current?.setAttribute('cx', String(at.ux));
     eraserRing.current?.setAttribute('cy', String(at.uy));
@@ -324,8 +336,8 @@ export function Surface({
     let entry = g.touched.get(sheet.index);
     const current = entry?.now ?? live.current.strokesOf(sheet.index);
     let next: InkStroke[];
-    if (p.eraser.mode === 'stroke') next = current.filter((s) => !touches(s, x, y, r));
-    else next = current.flatMap((s) => eraseFrom(s, x, y, r));
+    if (p.eraser.mode === 'stroke') next = current.filter((s) => s.id === g.spare || !touches(s, x, y, r));
+    else next = current.flatMap((s) => (s.id === g.spare ? [s] : eraseFrom(s, x, y, r)));
     if (next.length === current.length && next.every((s, i) => s === current[i])) return;
     if (!entry) {
       entry = { before: current, now: next };
@@ -353,6 +365,7 @@ export function Surface({
     onHover(ev);
     if (ev.pointerType === 'pen') live.current.onStylus();
     if (gesture.current || pinching.current) return;
+    if (inAir(ev)) return; // a button pressed above the page: nothing starts until the pen touches
     if (ev.pointerType === 'mouse' && ev.button !== 0) return;
     let active = t;
     if (erasesByButton(ev)) {
@@ -419,7 +432,8 @@ export function Surface({
       return;
     }
     if (ev.pointerId !== g.pointerId) return;
-    // The eraser button pressed mid-line: the line so far stays, and the pen erases from here until it lifts.
+    // The eraser button pressed mid-line: the line so far stays (the eraser spares it, even where the pen is now),
+    // and the pen erases from here until it lifts.
     if (g.kind === 'draw' && erasesByButton(ev, true)) {
       commitDraw(g);
       livePath.current?.setAttribute('d', '');
@@ -428,7 +442,7 @@ export function Surface({
         gesture.current = null;
         return;
       }
-      startErase(ev.pointerId, at);
+      startErase(ev.pointerId, at, g.stroke.id);
       g = gesture.current;
       if (!g) return;
     }
@@ -737,9 +751,9 @@ export function Surface({
             <g ref={liveGroup}>
               <path ref={livePath} />
             </g>
-            <polyline ref={lassoLine} className="nb-overlay__lasso" vectorEffect="non-scaling-stroke" />
-            <circle ref={eraserRing} className="nb-overlay__eraser" r={0} vectorEffect="non-scaling-stroke" />
-            <circle ref={hoverRing} r={0} vectorEffect="non-scaling-stroke" data-hub="pen-hover" />
+            <polyline ref={lassoLine} className="nb-overlay__lasso" />
+            <circle ref={eraserRing} className="nb-overlay__eraser" r={0} />
+            <circle ref={hoverRing} r={0} data-hub="pen-hover" />
             <g ref={laserGroup} className="nb-overlay__laser" />
           </svg>
         </div>
