@@ -5089,6 +5089,8 @@ export interface components {
             user: components["schemas"]["Me"];
             /** Sessions */
             sessions: components["schemas"]["SessionInfo"][];
+            /** Pushdevices */
+            pushDevices: components["schemas"]["ExportPushDevice"][];
             /** Threads */
             threads: components["schemas"]["ExportThread"][];
             /** Replies */
@@ -7592,6 +7594,22 @@ export interface components {
              * Format: date-time
              */
             createdAt: string;
+        };
+        /**
+         * ExportPushDevice
+         * @description A browser that gets this person's notifications on their phone or computer. Its address and keys are left
+         *     out: they would let anyone holding the export send to it or switch it off.
+         */
+        ExportPushDevice: {
+            /** Service */
+            service: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Lastsuccessat */
+            lastSuccessAt: string | null;
         };
         /**
          * ExportQuestionTag
@@ -13669,6 +13687,7 @@ export type ExportNotebook = components['schemas']['ExportNotebook'];
 export type ExportNotebookUploadDay = components['schemas']['ExportNotebookUploadDay'];
 export type ExportNotification = components['schemas']['ExportNotification'];
 export type ExportPollVote = components['schemas']['ExportPollVote'];
+export type ExportPushDevice = components['schemas']['ExportPushDevice'];
 export type ExportQuestionTag = components['schemas']['ExportQuestionTag'];
 export type ExportReaction = components['schemas']['ExportReaction'];
 export type ExportReply = components['schemas']['ExportReply'];

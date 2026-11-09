@@ -15,14 +15,14 @@ import uuid
 from datetime import datetime, timedelta
 
 from fastapi import Request, Response
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.core.errors import ApiError
 from app.core.security import client_ip, hash_token, new_token, set_session_cookie
 from app.core.time import utcnow
-from app.models import User, UserSession
+from app.models import PushSubscription, User, UserSession
 from app.schemas.auth import SessionInfo
 
 USER_AGENT_MAX = 300
@@ -52,13 +52,23 @@ def create(db: Session, user: User, request: Request, response: Response) -> Use
 
 def renew(db: Session, user: User, current: UserSession | None, request: Request, response: Response) -> UserSession:
     """Replaces this browser's session with a new one (sign-in, step-up): revokes the old row, creates the new one,
-    tidies up and keeps the user under MAX_LIVE sessions. The caller commits."""
+    tidies up and keeps the user under MAX_LIVE sessions. The caller commits.
+
+    The same person's browser keeps its notifications (web push, tied to the session): they move to the new session,
+    as the page doesn't reload after a step-up to subscribe again. Signed in as someone else, they stay with the old
+    session and stop, so nobody gets another person's pushes."""
     if current is not None:
         revoke(current)
     db.flush()
     purge(db, user.id, utcnow())
     sess = create(db, user, request, response)
     db.flush()
+    if current is not None and current.user_id == user.id:
+        db.execute(
+            update(PushSubscription)
+            .where(PushSubscription.session_id == current.id, PushSubscription.user_id == user.id)
+            .values(session_id=sess.id)
+        )
     cap(db, user.id)
     return sess
 

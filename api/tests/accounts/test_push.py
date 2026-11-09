@@ -5,6 +5,7 @@ network."""
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -27,7 +28,7 @@ from app.models import Notification, OutboxStatus, PushOutbox, PushSubscription,
 from app.services import push
 from app.services.notify import notify, notify_all
 from app.services.webpush import b64encode, settings_problems
-from tests.accounts.conftest import API, logout
+from tests.accounts.conftest import API, PASSWORD, logout, sync_csrf
 from tests.core.helpers import new_reply, new_thread
 from tests.core.test_webpush import RFC_AS_PRIVATE, RFC_AS_PUBLIC, _decrypt
 
@@ -553,3 +554,132 @@ def test_an_unexpected_error_fails_that_push_and_the_next_one_still_goes(
     db.commit()
     assert send() == 1
     assert _queued(db, person)[-1].status == OutboxStatus.sent
+
+
+# ── the code review's findings (COM-203) ────────────────────────────────────────────────────
+
+
+@pytest.mark.usefixtures("push_on")
+def test_no_log_line_names_a_browsers_endpoint(
+    client_for: ClientFor, make_user: MakeUser, db: Session, send: Deliver, caplog: pytest.LogCaptureFixture
+) -> None:
+    """httpx logs every request's URL at INFO, and a push's URL is the browser's endpoint: whoever reads the worker's
+    logs could otherwise take every browser's address."""
+    _, _, browser = _one_waiting(client_for, make_user, db)
+    caplog.set_level(logging.DEBUG)
+    assert send() == 1
+    path = browser.endpoint.rsplit("/", 1)[-1]
+    assert not [r for r in caplog.records if path in r.getMessage()]
+
+
+def _step_up(c: TestClient) -> None:
+    r = c.post(f"{API}/me/step-up", json={"password": PASSWORD})
+    sync_csrf(c)  # a new session comes with a new CSRF cookie
+    assert r.status_code == 200, r.text
+
+
+@pytest.mark.usefixtures("push_on")
+def test_confirming_your_password_keeps_this_browsers_pushes(
+    client_for: ClientFor, make_user: MakeUser, db: Session, service: PushService, send: Deliver
+) -> None:
+    person = make_user(password=PASSWORD)
+    c = client_for(person)
+    _on(c, Browser())
+    _step_up(c)  # a new session for this browser, with no page load to subscribe again
+    notify(db, person.id, "thread_reply", "A reply", url="/forum/x", actor=make_user())
+    db.commit()
+    [row] = _queued(db, person)
+    assert send() == 1
+    assert _queued(db, person)[0].status == OutboxStatus.sent
+    assert len(service.posted) == 1
+    assert row.subscription_id == _subscriptions(db, person)[0].id
+
+
+@pytest.mark.usefixtures("push_on")
+def test_signing_in_as_someone_else_on_the_browser_doesnt_give_them_its_pushes(
+    client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    first = make_user()
+    second = make_user(email="second-person@example.com", password=PASSWORD)
+    c = client_for(first)
+    _on(c, Browser())
+    r = c.post(f"{API}/auth/sign-in", json={"email": "second-person@example.com", "password": PASSWORD})
+    sync_csrf(c)
+    assert r.status_code == 200, r.text
+    notify(db, first.id, "thread_reply", "A reply", url="/forum/x", actor=make_user())
+    notify(db, second.id, "thread_reply", "A reply", url="/forum/x", actor=make_user())
+    db.commit()
+    assert _queued(db, first) == []  # the browser's session was the first person's, and it ended
+    assert _queued(db, second) == []
+
+
+@pytest.mark.usefixtures("push_on")
+def test_a_push_that_breaks_before_sending_fails_alone(
+    client_for: ClientFor,
+    make_user: MakeUser,
+    db: Session,
+    send: Deliver,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    person, _, _ = _one_waiting(client_for, make_user, db)
+
+    def broken(*_: object) -> int:
+        raise RuntimeError("the unread count broke")
+
+    with monkeypatch.context() as m:
+        m.setattr(push, "_unread", broken)
+        assert send() == 1
+    [row] = _queued(db, person)
+    assert (row.status, row.last_error) == (OutboxStatus.failed, "failed (RuntimeError)")
+    notify(db, person.id, "thread_reply", "Another reply", url="/forum/y", actor=make_user())
+    db.commit()
+    assert send() == 1
+    assert _queued(db, person)[-1].status == OutboxStatus.sent
+
+
+@pytest.mark.usefixtures("push_on")
+def test_nothing_is_queued_while_push_is_off_for_the_reader(
+    client_for: ClientFor, make_user: MakeUser, db: Session, set_feature: Callable[..., None]
+) -> None:
+    person = make_user()
+    c = client_for(person)
+    _on(c, Browser())
+    c.patch(f"{API}/me", json={"preferences": {"pushNewIssues": True}})
+    set_feature("push", "off")
+    notify(db, person.id, "thread_reply", "A reply", url="/forum/x", actor=make_user())
+    notify_all(db, "new_issue", "Issue 12 is out", url="/newsletter/12")
+    db.commit()
+    assert _queued(db, person) == []
+
+
+def test_a_broken_key_outside_production_turns_push_off_instead_of_breaking_notifications(
+    client_for: ClientFor,
+    make_user: MakeUser,
+    db: Session,
+    set_option: Callable[[str, Any], None],
+    set_feature: Callable[..., None],
+) -> None:
+    set_option("vapid_private_key", SecretStr("not a key"))
+    set_option("vapid_subject", SUBJECT)
+    set_feature("push", "everyone")
+    person = make_user()
+    assert push.configured() is False
+    notify(db, person.id, "thread_reply", "A reply", url="/forum/x", actor=make_user())
+    db.commit()
+    assert client_for(person).get(f"{API}/push/key").status_code == 404
+
+
+@pytest.mark.usefixtures("push_on")
+def test_the_export_lists_this_persons_browsers_without_their_addresses(
+    client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    person = make_user()
+    c = client_for(person)
+    browser = Browser()
+    _on(c, browser)
+    r = c.get(f"{API}/me/export")
+    assert r.status_code == 200
+    [device] = r.json()["pushDevices"]
+    assert device["service"] == "fcm.googleapis.com"
+    assert set(device) == {"service", "createdAt", "lastSuccessAt"}
+    assert browser.endpoint not in r.text

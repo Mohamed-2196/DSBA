@@ -8,11 +8,14 @@ to send and when is app/services/push.py.
   prints it, and as other web push tools write it), or a PEM. Its public half goes to the browser when it subscribes;
   a new key makes every browser's subscription stop working, so it is set once.
 - A subscription's endpoint comes from the browser, so it is only ever posted to when it is one of the browsers' own
-  push services (push_service()): never an address someone typed, an internal host or another port."""
+  push services (push_service()): never an address someone typed, an internal host or another port.
+- An endpoint is as good as a password for that browser (anyone holding it can have its push service drop the
+  subscription), so it is never logged: httpx and httpcore log every request's URL, and are kept to warnings."""
 
 from __future__ import annotations
 
 import base64
+import logging
 import os
 import struct
 from dataclasses import dataclass
@@ -27,6 +30,10 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 from app.core.time import utcnow
+
+# httpx logs "HTTP Request: POST <url>" at INFO and httpcore the connection at DEBUG: a push's URL is the endpoint.
+for _name in ("httpx", "httpcore"):
+    logging.getLogger(_name).setLevel(logging.WARNING)
 
 RECORD_SIZE = 4096  # one record holds the whole message; push services take at most 4096 bytes of body
 _HEADER = 16 + 4 + 1 + 65  # salt, record size, key length, the sender's public key
@@ -139,9 +146,9 @@ def new_vapid_key() -> str:
 def vapid_header(key: VapidKey, endpoint: str, subject: str, *, now: datetime | None = None) -> str:
     """The Authorization header for a message to `endpoint`: a token signed by this hub for that push service's
     origin, and the public key it checks it with. `subject` is a mailto: or https: contact for the push service."""
-    parts = urlsplit(endpoint)
+    host = (urlsplit(endpoint).hostname or "").lower()  # push_service() holds it to https on 443: the origin is this
     expires = (now or utcnow()) + TOKEN_LIFETIME
-    claims = {"aud": f"{parts.scheme}://{parts.netloc}", "exp": int(expires.timestamp()), "sub": subject}
+    claims = {"aud": f"https://{host}", "exp": int(expires.timestamp()), "sub": subject}
     token = jwt.encode(claims, key.private, algorithm="ES256")
     return f"vapid t={token}, k={key.public_b64}"
 

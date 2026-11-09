@@ -805,7 +805,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
         )
         for e in db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == uid).order_by(EmailOutbox.created_at))
     ]
-    from app.services import bugs
+    from app.services import bugs, push
     from app.services.board.export import board_export
     from app.services.board.scores import scores_of
     from app.services.question_marks import marks_of
@@ -911,6 +911,7 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
     return AccountExport(
         user=me_out(user),
         sessions=[sessions.info(s, current) for s in sessions.live(db, uid)],
+        push_devices=push.export(db, uid),
         threads=threads,
         replies=replies,
         library_items=library_items,

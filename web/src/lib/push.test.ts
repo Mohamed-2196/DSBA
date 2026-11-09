@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { keyBytes, pushSupport, subscriptionBody } from './push';
+import { keyBytes, pushSupport, sameKey, subscriptionBody } from './push';
 
 const IPHONE =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile Safari/604.1';
@@ -50,5 +50,21 @@ describe('subscriptionBody', () => {
 
   it('refuses a subscription with no keys', () => {
     expect(() => subscriptionBody({ endpoint: 'https://fcm.googleapis.com/x' })).toThrow();
+  });
+});
+
+describe('sameKey', () => {
+  const key = keyBytes('BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4');
+
+  it('keeps a subscription made with the current key', () => {
+    expect(sameKey(key.slice().buffer, key)).toBe(true);
+  });
+
+  it('makes it again when the key changed, or the browser does not say', () => {
+    const other = key.slice();
+    other[10] ^= 1;
+    expect(sameKey(other.buffer, key)).toBe(false);
+    expect(sameKey(key.slice(1).buffer, key)).toBe(false);
+    expect(sameKey(null, key)).toBe(false);
   });
 });

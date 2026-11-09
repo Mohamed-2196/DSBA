@@ -15,7 +15,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 from app.services import webpush
-from app.services.webpush import b64decode, b64encode
+from app.services.webpush import VapidKey, b64decode, b64encode, vapid_header
 
 # RFC 8291, section 5 and appendix A: the example message and the keys it was encrypted with.
 RFC_PLAINTEXT = b"When I grow up, I want to be a watermelon"
@@ -185,3 +185,10 @@ def test_the_browsers_push_services_are_accepted(endpoint: str) -> None:
 )
 def test_anything_else_is_refused(endpoint: str) -> None:
     assert not webpush.push_service(endpoint)
+
+
+def test_the_token_is_for_the_push_services_origin_even_with_its_port_written_out() -> None:
+    key = VapidKey.parse(RFC_AS_PRIVATE)
+    for endpoint in ("https://fcm.googleapis.com:443/fcm/send/x", "https://FCM.googleapis.com/fcm/send/x"):
+        token = vapid_header(key, endpoint, "mailto:hub@example.com").removeprefix("vapid t=").split(", k=")[0]
+        assert jwt.decode(token, options={"verify_signature": False})["aud"] == "https://fcm.googleapis.com"

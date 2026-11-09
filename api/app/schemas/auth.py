@@ -571,11 +571,21 @@ class ExportDailyPlay(ApiModel):
     kept_ip: str | None  # the address it was kept from, for a day (the sweep forgets it)
 
 
+class ExportPushDevice(ApiModel):
+    """A browser that gets this person's notifications on their phone or computer. Its address and keys are left
+    out: they would let anyone holding the export send to it or switch it off."""
+
+    service: str  # the browser's push service, e.g. fcm.googleapis.com (Chrome) or web.push.apple.com (Safari)
+    created_at: datetime
+    last_success_at: datetime | None
+
+
 class AccountExport(ApiModel):
     """Everything the Hub stores about the signed-in user (GET /me/export)."""
 
     user: Me
     sessions: list[SessionInfo]
+    push_devices: list[ExportPushDevice]  # browsers that get notifications
     threads: list[ExportThread]
     replies: list[ExportReply]
     library_items: list[ExportLibraryItem]

@@ -7,7 +7,8 @@ made, and sending them from the mail worker. How a message is encrypted and sign
 - notify() and notify_all() (app/services/notify.py) call queue() and queue_all() in their transaction: one row in
   push_outbox per browser of each person whose push choice for that kind is on (PUSH_SWITCHES; only replies to your
   own posts start on), at most PUSH_MAX_PER_HOUR an hour per browser. Nothing is queued while the hub has no VAPID
-  key (DSBA_VAPID_PRIVATE_KEY).
+  key (DSBA_VAPID_PRIVATE_KEY), or for a person push is off for.
+- A sign-in or step-up on the same browser moves its subscription to the new session (sessions.renew()).
 - The worker sends each row as the emails are sent (app/services/outbox.py: FOR UPDATE SKIP LOCKED, retries with
   backoff, given up after MAX_ATTEMPTS). When its turn comes a push is cancelled if it is no longer wanted: the
   session ended, push or the feature it is about is off for the person, its choice was turned off, or the
@@ -25,9 +26,10 @@ from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
 from functools import lru_cache
 from typing import Any
+from urllib.parse import urlsplit
 
 import httpx
-from sqlalchemy import ColumnElement, and_, delete, func, insert, not_, select
+from sqlalchemy import ColumnElement, and_, delete, func, insert, not_, select, update
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -36,6 +38,7 @@ from app.core.errors import invalid
 from app.core.text import clip
 from app.core.time import utcnow
 from app.models import Notification, OutboxStatus, PushOutbox, PushSubscription, User, UserSession
+from app.schemas.auth import ExportPushDevice
 from app.services import access, webpush
 from app.services.outbox import EMAIL_FEATURES, backoff
 
@@ -78,12 +81,17 @@ BODY_MAX = 180
 
 
 @lru_cache(maxsize=4)
-def _key(value: str) -> webpush.VapidKey:
-    return webpush.VapidKey.parse(value)
+def _key(value: str) -> webpush.VapidKey | None:
+    try:
+        return webpush.VapidKey.parse(value)
+    except ValueError as e:  # production refuses to start with it (settings_problems); elsewhere push is just off
+        log.warning("push is off: %s", e)
+        return None
 
 
 def vapid_key() -> webpush.VapidKey | None:
-    """The hub's VAPID key, or None when push isn't set up (no DSBA_VAPID_PRIVATE_KEY, or no subject)."""
+    """The hub's VAPID key, or None when push isn't set up (no DSBA_VAPID_PRIVATE_KEY, no subject, or a key that
+    doesn't parse: a notification must never fail over push)."""
     s = get_settings()
     if s.vapid_private_key is None or not s.vapid_private_key.get_secret_value().strip() or not s.vapid_subject:
         return None
@@ -172,15 +180,22 @@ def unsubscribe(db: Session, user: User, endpoint: str) -> bool:
     return bool(gone)
 
 
-def devices(db: Session, user: User) -> list[PushSubscription]:
-    """`user`'s browsers that get pushes, newest first (the account export)."""
-    return list(
-        db.scalars(
-            select(PushSubscription)
-            .where(PushSubscription.user_id == user.id)
-            .order_by(PushSubscription.created_at.desc(), PushSubscription.id)
-        )
+def export(db: Session, user_id: uuid.UUID) -> list[ExportPushDevice]:
+    """The person's browsers that get pushes, newest first, for the account export: when each was turned on, its last
+    push and its push service, never its endpoint or keys."""
+    subs = db.scalars(
+        select(PushSubscription)
+        .where(PushSubscription.user_id == user_id)
+        .order_by(PushSubscription.created_at.desc(), PushSubscription.id)
     )
+    return [
+        ExportPushDevice(
+            service=(urlsplit(sub.endpoint).hostname or "").lower(),
+            created_at=sub.created_at,
+            last_success_at=sub.last_success_at,
+        )
+        for sub in subs
+    ]
 
 
 # ── queuing ──────────────────────────────────────────────────────────────────────────────────
@@ -220,10 +235,12 @@ def _due_browsers(now: datetime) -> Any:
 
 
 def queue(db: Session, n: Notification, person: User) -> int:
-    """Queues `n`'s push for each of `person`'s browsers, when push is set up and their choice for its kind is on
-    (in the caller's transaction). -> how many."""
+    """Queues `n`'s push for each of `person`'s browsers, when push is set up and on for them and their choice for
+    its kind is on (in the caller's transaction). -> how many."""
     switch = PUSH_SWITCHES.get(n.kind)
     if switch is None or not configured() or not wants_push(person, switch):
+        return 0
+    if not access.feature_on(db, person, Feature.push):
         return 0
     now = utcnow()
     browsers = db.execute(_due_browsers(now).where(PushSubscription.user_id == person.id)).all()
@@ -261,15 +278,18 @@ def queue_all(
     url: str | None,
 ) -> int:
     """Queues one notification made for many people (`notified`: person -> their notification) to the browsers of
-    those whose choice for `kind` is on (in the caller's transaction). -> how many."""
+    those push is on for and whose choice for `kind` is on (in the caller's transaction). -> how many."""
     switch = PUSH_SWITCHES.get(kind)
     if switch is None or not notified or not configured():
+        return 0
+    readers = access.audience(db, Feature.push)
+    if readers is None:
         return 0
     now = utcnow()
     browsers = db.execute(
         _due_browsers(now)
         .join(User, User.id == PushSubscription.user_id)
-        .where(PushSubscription.user_id.in_(list(notified)), _wanted_by(switch))
+        .where(PushSubscription.user_id.in_(list(notified)), _wanted_by(switch), readers)
     ).all()
     rows = [
         {
@@ -336,7 +356,7 @@ def _retry_after(response: httpx.Response) -> timedelta | None:
 
 def send_one(db: Session, http: httpx.Client, now: datetime | None = None) -> bool:
     """Claims the oldest due push, sends it and records the result, in one transaction. -> False when nothing is
-    due (or push isn't set up)."""
+    due (or push isn't set up). Whatever goes wrong with one push fails that push alone: the next one still goes."""
     key = vapid_key()
     subject = get_settings().vapid_subject
     if key is None or not subject:
@@ -352,6 +372,25 @@ def send_one(db: Session, http: httpx.Client, now: datetime | None = None) -> bo
     if row is None:
         db.rollback()
         return False
+    row_id, kind = row.id, row.kind
+    try:
+        _send(db, http, row, key, subject, now)
+        db.commit()
+    except Exception as e:  # never left pending: it would be the oldest due row again, ahead of every other push
+        log.exception("a %s push failed", kind)
+        db.rollback()
+        db.execute(
+            update(PushOutbox)
+            .where(PushOutbox.id == row_id, PushOutbox.status == OutboxStatus.pending)
+            .values(status=OutboxStatus.failed, last_error=f"failed ({type(e).__name__})")
+        )
+        db.commit()
+    return True
+
+
+def _send(db: Session, http: httpx.Client, row: PushOutbox, key: webpush.VapidKey, subject: str, now: datetime) -> None:
+    """Sends one claimed push, or cancels it when it's no longer wanted, and records how it went (the caller
+    commits)."""
     sub = db.get(PushSubscription, row.subscription_id) if row.subscription_id is not None else None
     reason = _cancel_reason(db, row, sub, now)
     if reason is not None:
@@ -359,8 +398,7 @@ def send_one(db: Session, http: httpx.Client, now: datetime | None = None) -> bo
         row.last_error = reason
         if reason == "signed out" and sub is not None:
             db.delete(sub)
-        db.commit()
-        return True
+        return
     assert sub is not None
     row.attempts += 1
     message = json.dumps({**row.payload, "badge": _unread(db, row.user_id)}, separators=(",", ":")).encode()
@@ -370,18 +408,10 @@ def send_one(db: Session, http: httpx.Client, now: datetime | None = None) -> bo
     except ValueError as e:  # a message too long, or keys that stopped being valid: no retry helps
         row.status = OutboxStatus.failed
         row.last_error = f"couldn't encrypt: {e}"[:200]
-        db.commit()
-        return True
+        return
     except httpx.HTTPError as e:
         _retry(row, now, f"couldn't reach the push service ({type(e).__name__})")
-        db.commit()
-        return True
-    except Exception as e:  # anything else is this row's trouble: it must never stop the worker
-        log.exception("a %s push failed", row.kind)
-        row.status = OutboxStatus.failed
-        row.last_error = f"failed ({type(e).__name__})"
-        db.commit()
-        return True
+        return
     code = response.status_code
     if 200 <= code < 300:
         row.status, row.sent_at, row.last_error = OutboxStatus.sent, utcnow(), None
@@ -394,8 +424,6 @@ def send_one(db: Session, http: httpx.Client, now: datetime | None = None) -> bo
     else:  # 400, 401, 403 (the VAPID key), 413: sending it again won't help
         row.status, row.last_error = OutboxStatus.failed, f"refused ({code})"
         log.warning("a %s push was refused by its push service (%d)", row.kind, code)
-    db.commit()
-    return True
 
 
 def _retry(row: PushOutbox, now: datetime, error: str, after: timedelta | None = None) -> None:

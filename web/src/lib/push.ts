@@ -127,6 +127,27 @@ function setOwner(userId: string | null): void {
   }
 }
 
+/** Whether a subscription was made with this VAPID key. A new key on the API makes every older subscription useless
+ * (its push service refuses the hub's messages), so such a browser subscribes again. */
+export function sameKey(subscribedWith: ArrayBuffer | null, key: Uint8Array): boolean {
+  if (!subscribedWith || subscribedWith.byteLength !== key.byteLength) return false;
+  const bytes = new Uint8Array(subscribedWith);
+  return bytes.every((b, i) => b === key[i]);
+}
+
+/** This browser's subscription for `userId` with the API's current key: kept, or made again when it was someone
+ * else's or made with an older key. */
+async function subscription(reg: ServiceWorkerRegistration, userId: string): Promise<PushSubscription> {
+  const { publicKey } = await call(api.GET('/api/v1/push/key'));
+  const key = keyBytes(publicKey);
+  let sub = await reg.pushManager.getSubscription();
+  if (sub && (owner() !== userId || !sameKey(sub.options.applicationServerKey, key))) {
+    await sub.unsubscribe().catch(() => undefined);
+    sub = null;
+  }
+  return sub ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }));
+}
+
 async function send(sub: PushSubscription): Promise<void> {
   await call(api.POST('/api/v1/push/subscriptions', { body: subscriptionBody(sub.toJSON()) }));
 }
@@ -135,13 +156,7 @@ export async function turnPushOn(userId: string): Promise<void> {
   if (pushPermission() === 'denied') throw new PushRefused(true);
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') throw new PushRefused(permission === 'denied');
-  const [{ publicKey }, reg] = await Promise.all([call(api.GET('/api/v1/push/key')), registration()]);
-  let sub = await reg.pushManager.getSubscription();
-  if (sub && owner() !== userId) {
-    await sub.unsubscribe().catch(() => undefined); // someone else's on this browser
-    sub = null;
-  }
-  sub ??= await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(publicKey) });
+  const sub = await subscription(await registration(), userId);
   await send(sub);
   setOwner(userId);
 }
@@ -172,7 +187,7 @@ export async function resyncPush(userId: string): Promise<void> {
     setOwner(null);
     return;
   }
-  await send(sub);
+  await send(await subscription(await registration(), userId)); // a new subscription when the API's key changed
 }
 
 /** The app icon's badge: the unread count, or none at 0. Badges are a nicety: a browser without them is fine. */

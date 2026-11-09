@@ -706,6 +706,7 @@ def test_export(client_for: ClientFor, make_user: MakeUser, db: Session, module:
     assert set(data) == {  # code quality review CQ-4: a typed export, every section on purpose
         "user",
         "sessions",
+        "pushDevices",
         "threads",
         "replies",
         "libraryItems",

@@ -31523,6 +31523,13 @@
             "type": "array",
             "title": "Sessions"
           },
+          "pushDevices": {
+            "items": {
+              "$ref": "#/components/schemas/ExportPushDevice"
+            },
+            "type": "array",
+            "title": "Pushdevices"
+          },
           "threads": {
             "items": {
               "$ref": "#/components/schemas/ExportThread"
@@ -31769,6 +31776,7 @@
         "required": [
           "user",
           "sessions",
+          "pushDevices",
           "threads",
           "replies",
           "libraryItems",
@@ -39031,6 +39039,39 @@
           "createdAt"
         ],
         "title": "ExportPollVote"
+      },
+      "ExportPushDevice": {
+        "properties": {
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "lastSuccessAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastsuccessat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service",
+          "createdAt",
+          "lastSuccessAt"
+        ],
+        "title": "ExportPushDevice",
+        "description": "A browser that gets this person's notifications on their phone or computer. Its address and keys are left\nout: they would let anyone holding the export send to it or switch it off."
       },
       "ExportQuestionTag": {
         "properties": {
