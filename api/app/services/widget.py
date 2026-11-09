@@ -84,9 +84,22 @@ def _starts(time: str | None) -> dt.time | None:
     m = STARTS_AT.match(time or "")
     if m is None:
         return None
-    hour, minute, meridiem = int(m[1]), int(m[2]), (m[3] or "").lower()
+    start = _clock(int(m[1]), int(m[2]), m[3])
+    if m[3] is None and start is not None:
+        # A range with its one meridiem at the end ('1:00 to 3:00 PM'): it counts for the start too, unless the
+        # start would then come after the end ('11:00 to 1:00 PM' starts at 11:00).
+        end = next((e for e in STARTS_AT.finditer(time or "", m.end()) if e[3]), None)
+        if end is not None:
+            borrowed, until = _clock(int(m[1]), int(m[2]), end[3]), _clock(int(end[1]), int(end[2]), end[3])
+            if borrowed is not None and until is not None and borrowed <= until:
+                start = borrowed
+    return start
+
+
+def _clock(hour: int, minute: int, meridiem: str | None) -> dt.time | None:
+    """hour:minute with an optional 'a' or 'p', or None for a time that isn't one."""
     if meridiem and 1 <= hour <= 12:  # '12:30 AM' is just after midnight, '12:30 PM' just after noon
-        hour = hour % 12 + (12 if meridiem == "p" else 0)
+        hour = hour % 12 + (12 if meridiem.lower() == "p" else 0)
     if hour > 23 or minute > 59:
         return None
     return dt.time(hour, minute)

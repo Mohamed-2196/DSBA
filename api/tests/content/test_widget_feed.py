@@ -256,6 +256,11 @@ def test_export_says_whether_it_is_on(client_for: Clients, make_user: MakeUser) 
         ("9:00 a.m. to 11:00 a.m.", dt.time(9, 0)),
         ("10:00 AM", dt.time(10, 0)),
         ("13:00 PM", dt.time(13, 0)),  # a 24-hour time with a stray PM stays as it is
+        ("1:00 to 3:00 PM", dt.time(13, 0)),  # a range's one meridiem, at its end, counts for its start too
+        ("1:00-3:00pm", dt.time(13, 0)),
+        ("11:00 to 1:00 PM", dt.time(11, 0)),  # but not when it would start after it ends
+        ("11:30 to 12:30 PM", dt.time(11, 30)),
+        ("9:00 AM to 1:00 PM", dt.time(9, 0)),
         ("All day", None),
         ("25:00", None),
         ("", None),
