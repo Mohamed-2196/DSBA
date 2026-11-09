@@ -11,6 +11,20 @@ export function mcpAddress(origin: string = window.location.origin): string {
   return `${origin}/api/mcp`;
 }
 
+const SCRIPT_PROTOCOLS = new Set(['javascript:', 'data:', 'vbscript:', 'blob:', 'file:', 'about:']);
+
+/**
+ * Whether the page may send the student to the app's return address. The API only accepts safe ones; this is the
+ * second lock, so an address that would run as script on the Hub is never opened.
+ */
+export function safeReturn(url: string): boolean {
+  try {
+    return !SCRIPT_PROTOCOLS.has(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+}
+
 export function useConnectedApps(enabled: boolean) {
   return useQuery({
     queryKey: AI_APPS_KEY,

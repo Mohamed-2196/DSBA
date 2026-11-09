@@ -106,9 +106,13 @@ stored off, so only admins see it until then.
   revoke) over the Hub's store (`store.py`: apps, connections, codes and tokens as hashes). `/authorize` sends the
   student to the web app's `/connect-ai` page, which asks them while they are signed in with the Hub's cookie
   (`consent.py`, `POST /api/v1/ai-apps/consent`). The five read-only tools (`tools.py`) call the services the site's
-  routers use, so they follow the same visibility rules, and every answer has a `hub_url` back to its page.
-- **The rules.** Without a token `/api/mcp` answers 401 and nothing else. Tokens are scope `hub:read`; access
-  tokens last an hour and refresh tokens 30 days, rotated on use. Removing the app in Your account › AI apps, the
+  routers use, so they follow the same visibility rules, and every answer has a `hub_url` back to its page. Staff
+  accounts get the student view too (`student_view` in `library.py`): no pending, removed or hidden-module files.
+- **The rules.** Without a token `/api/mcp` answers 401 and nothing else. An app may register only https return
+  addresses, http to the student's own computer, or an app link named for its maker (`com.example.app:`), never
+  `javascript:` and the like (`store.redirect_uri_allowed`, checked again on the consent page and in the web app).
+  Tokens are scope `hub:read`; access tokens last an hour and refresh tokens 30 days, rotated on use. Codes and
+  refresh tokens are spent in one statement, and a spent refresh token coming back signs the app out. Removing the app in Your account › AI apps, the
   switch going off, or a suspended account stops them at once. A student's calls are limited (60 per 10 minutes,
   500 a day), and only each call's time is kept for that (`ai_app_calls`), never what was asked.
 - **Discovery.** Apps find the sign-in at `/.well-known/oauth-protected-resource/api/mcp` and
@@ -122,9 +126,10 @@ stored off, so only admins see it until then.
 - **Tests.** `cd api && uv run --no-sync pytest tests/ai_apps -q` drives the whole OAuth flow and every tool
   in-process; nothing reaches the network.
 - **Known gaps.** The SDK (2.3) has no public handle on the low-level server, so `server.py` reads
-  `MCPServer._lowlevel_server`. Its revocation form requires a `client_secret` field even from a public client, so
+  `MCPServer._lowlevel_server` (`mcp` is pinned to 2.3.x for that). Its revocation form requires a `client_secret` field even from a public client, so
   an app that sends none gets 400 from `/api/mcp/revoke`; removing the app in Your account always works. Apps that
-  register and are never connected are removed after a day, at the next registration.
+  register and are never connected are removed after a day, at the next registration. The SDK doesn't pass the
+  token request's `resource` to the provider, so it isn't checked there; every token is bound to `/api/mcp` anyway.
 
 ## Deploy
 

@@ -1,17 +1,16 @@
 // Your account's "AI apps": the apps reading the Hub as you (each removable), and how to add one.
-import { useState } from 'react';
 import { errorMessage } from '../../api/errors';
 import type { ConnectedApp } from '../../api/types';
-import { copyText } from '../../lib/share';
+import { useCopyLink } from '../../lib/useCopyLink';
 import { useToast } from '../../state';
 import {
   Button,
-  EmptyState,
   Icon,
   Panel,
   QueryError,
   SectionHeader,
   Skeleton,
+  TextField,
   formatDate,
   glyph,
   timeAgo,
@@ -24,7 +23,7 @@ function AppRow({ app, onRemove, busy }: { app: ConnectedApp; onRemove: () => vo
   return (
     <li className="acct-row">
       <span className="acct-row__icon" aria-hidden="true">
-        <Icon glyph={glyph.sparkle} />
+        <Icon glyph={glyph.key} />
       </span>
       <span className="acct-row__text">
         <span className="acct-row__label">{app.appName}</span>
@@ -47,36 +46,33 @@ function AppRow({ app, onRemove, busy }: { app: ConnectedApp; onRemove: () => vo
   );
 }
 
-function HowToAdd() {
-  const { push } = useToast();
-  const [copied, setCopied] = useState(false);
+/** How to add an app: a lead line (none yet, or another), Claude's steps, and the address with Copy. */
+function HowToAdd({ lead }: { lead: string }) {
+  const copyLink = useCopyLink();
   const address = mcpAddress();
-  const copy = async () => {
-    const ok = await copyText(address);
-    setCopied(ok);
-    push(
-      ok
-        ? { tone: 'success', title: 'Address copied' }
-        : { tone: 'alert', title: 'Couldn’t copy. Select it and copy it instead.' },
-    );
-  };
   return (
     <div className="aiapps-how">
+      <p className="aiapps-how__lead">{lead}</p>
       <p className="aiapps-how__text">
         In Claude, open <strong>Settings › Connectors › Add custom connector</strong>, paste this address and sign in
         when it asks.
       </p>
-      <div className="aiapps-how__address">
-        <code className="aiapps-how__url">{address}</code>
-        <Button
-          size="sm"
-          variant="secondary"
-          leadingIcon={<Icon glyph={copied ? glyph.check : glyph.copy} />}
-          onClick={() => void copy()}
-        >
-          {copied ? 'Copied' : 'Copy'}
-        </Button>
-      </div>
+      <TextField
+        label="Hub address for AI apps"
+        value={address}
+        readOnly
+        onFocus={(e) => e.currentTarget.select()}
+        trailing={
+          <Button
+            size="sm"
+            variant="ghost"
+            leadingIcon={<Icon glyph={glyph.copy} />}
+            onClick={() => void copyLink(address, 'Paste it into your AI app to connect it to the Hub.')}
+          >
+            Copy
+          </Button>
+        }
+      />
     </div>
   );
 }
@@ -117,22 +113,17 @@ export function ConnectedApps() {
             size="sm"
             panel={false}
           />
-        ) : list.length === 0 ? (
-          <EmptyState
-            size="sm"
-            icon={<Icon glyph={glyph.sparkle} />}
-            title="No AI apps connected"
-            body={<HowToAdd />}
-          />
         ) : (
           <>
-            <ul role="list" className="acct-list">
-              {list.map((a) => (
-                <AppRow key={a.id} app={a} onRemove={() => onRemove(a)} busy={remove.isPending} />
-              ))}
-            </ul>
+            {list.length > 0 ? (
+              <ul role="list" className="acct-list aiapps-list">
+                {list.map((a) => (
+                  <AppRow key={a.id} app={a} onRemove={() => onRemove(a)} busy={remove.isPending} />
+                ))}
+              </ul>
+            ) : null}
             <div className="aiapps-more">
-              <HowToAdd />
+              <HowToAdd lead={list.length > 0 ? 'Add another AI app' : 'No AI apps connected yet.'} />
             </div>
           </>
         )}

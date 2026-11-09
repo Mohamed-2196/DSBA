@@ -10,26 +10,26 @@
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
-.aiapps-how__address {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-8);
-}
-.aiapps-how__url {
-  flex: 1 1 16ch;
-  min-width: 0;
-  padding: var(--sp-8) var(--sp-12);
-  overflow-wrap: anywhere;
-  border: 1.5px solid var(--line);
-  border-radius: var(--r-control);
-  background: var(--surface-2);
+.aiapps-how__lead {
+  margin: 0;
   color: var(--ink);
   font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
 }
 .aiapps-more {
   padding: var(--sp-16);
+}
+.aiapps-list + .aiapps-more {
   border-top: 1.5px solid var(--line);
+}
+/* the screen-reader commas are absolutely placed: keep them inside the clipped line (no sideways scroll) */
+.aiapps-list .acct-row__value {
+  position: relative;
+}
+@media (max-width: 699px) {
+  .aiapps-list .acct-row__value {
+    white-space: normal;
+  }
 }
 
 .aiapps-consent {
@@ -52,10 +52,13 @@
   color: var(--sec-home-text);
   font-size: 24px;
 }
-.aiapps-consent__title {
+.aiapps-consent__who {
+  min-width: 0;
+}
+.aiapps-consent__name {
   margin: 0;
   color: var(--ink);
-  font-size: var(--fs-20);
+  font-size: var(--fs-16);
   font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
@@ -86,7 +89,7 @@
   padding: 0;
   list-style: none;
   color: var(--ink-2);
-  font-size: var(--fs-14);
+  font-size: var(--fs-16);
 }
 .aiapps-consent__list li {
   display: flex;
@@ -95,7 +98,7 @@
 }
 .aiapps-consent__list svg {
   flex: 0 0 auto;
-  margin-top: 2px;
+  margin-top: 3px;
   color: var(--success);
   font-size: 18px;
 }
@@ -108,7 +111,7 @@
   gap: var(--sp-8);
   margin: 0;
   color: var(--ink-2);
-  font-size: var(--fs-14);
+  font-size: var(--fs-16);
 }
 .aiapps-consent__note svg {
   flex: 0 0 auto;
