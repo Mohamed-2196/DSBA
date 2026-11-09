@@ -143,14 +143,14 @@ def manages(user: User | None) -> bool:
     return access.can(user, Box.library_manage)
 
 
-def can_see(item: LibraryItem, user: User | None) -> bool:
+def can_see(item: LibraryItem, user: User | None, *, student_view: bool = False) -> bool:
     """Published: everyone. Pending and rejected: the uploader and the library's managers. Removed: the library's
-    managers only."""
+    managers only. student_view: as a student sees it, whatever the person's roles (AI apps reading as them)."""
     if item.status == ItemStatus.published:
         return True
     if user is None:
         return False
-    if manages(user):
+    if manages(user) and not student_view:
         return True
     return item.uploaded_by == user.id and item.status != ItemStatus.removed
 
@@ -167,9 +167,11 @@ def in_hidden_module() -> ColumnElement[bool]:
     return exists().where(module.id == LibraryItem.module_id, module.hidden.is_(True))
 
 
-def hidden_from(db: Session, item: LibraryItem, user: User | None) -> bool:
-    """A file of a hidden module, to someone who is neither staff (sees_hidden_modules) nor its uploader."""
-    if item.module_id is None or sees_hidden_modules(user) or (user is not None and item.uploaded_by == user.id):
+def hidden_from(db: Session, item: LibraryItem, user: User | None, *, student_view: bool = False) -> bool:
+    """A file of a hidden module, to someone who is neither staff (sees_hidden_modules; never with student_view)
+    nor its uploader."""
+    staff = sees_hidden_modules(user) and not student_view
+    if item.module_id is None or staff or (user is not None and item.uploaded_by == user.id):
         return False
     module = db.get(Module, item.module_id)
     return module is not None and module.hidden
@@ -214,9 +216,13 @@ def duplicate() -> ColumnElement[bool]:
     )
 
 
-def get_visible(db: Session, ref: str | uuid.UUID, user: User | None) -> LibraryItem:
+def get_visible(db: Session, ref: str | uuid.UUID, user: User | None, *, student_view: bool = False) -> LibraryItem:
     item = find(db, ref)
-    if item is None or not can_see(item, user) or hidden_from(db, item, user):
+    if (
+        item is None
+        or not can_see(item, user, student_view=student_view)
+        or hidden_from(db, item, user, student_view=student_view)
+    ):
         raise not_found("This file doesn't exist or isn't public yet.")
     return item
 

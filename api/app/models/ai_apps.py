@@ -14,7 +14,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, check_in, created_ts, uuid_pk
 
-TOKEN_KINDS = ("access", "refresh")
+TOKEN_KINDS = ("access", "refresh", "spent")  # spent: a refresh token already exchanged
 
 
 class AiAppClient(Base):

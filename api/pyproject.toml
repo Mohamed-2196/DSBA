@@ -21,7 +21,7 @@ dependencies = [
     "pypdf>=6.1,<7",
     "pypdfium2>=4.30,<6",
     "pillow>=11,<13",
-    "mcp>=2.3,<3",
+    "mcp>=2.3,<2.4",  # server.py reads a private attribute of 2.3 (_PerRequest)
 ]
 
 [dependency-groups]

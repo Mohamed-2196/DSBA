@@ -9,12 +9,14 @@ from datetime import timedelta
 from typing import Any
 
 import pytest
-from sqlalchemy import inspect, select, update
+from mcp.server.auth.provider import AuthorizationParams
+from pydantic import AnyUrl
+from sqlalchemy import event, inspect, select, update
 from sqlalchemy.orm import Session
 
 from app.core.time import utcnow
-from app.models import AiAppCall, AiAppCode, AiAppConnection, AiAppToken, UserStatus
-from app.services.ai_apps import store
+from app.models import AiAppCall, AiAppClient, AiAppCode, AiAppConnection, AiAppToken, User, UserStatus
+from app.services.ai_apps import consent, store
 from tests.ai_apps.conftest import API, MCP, RESOURCE, AiApp, ClientFor, Connect, MakeUser, query
 
 
@@ -245,3 +247,184 @@ def test_registering_is_limited_per_address(ai_app: Callable[[], AiApp], monkeyp
     r = app.register()
     assert r.status_code == 400
     assert "Too many" in r.json()["error_description"]
+
+
+# ── where an app may send the student back ───────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "uri",
+    [
+        "javascript:alert(document.domain)//",
+        "JavaScript:alert(1)//",
+        "data:text/html,<script>alert(1)</script>",
+        "vbscript:msgbox(1)",
+        "file:///etc/passwd",
+        "blob:https://claude.ai/x",
+        "about:blank",
+        "http://claude.ai/callback",  # plain http only to the student's own computer
+        "myapp:/callback",  # an app's own link names its maker: com.example.app
+    ],
+)
+def test_an_app_cant_register_a_return_address_that_runs_script_or_leaves_https(
+    ai_app: Callable[[], AiApp], uri: str
+) -> None:
+    r = ai_app().register(redirect_uris=[uri])
+    assert r.status_code == 400, r.text
+    assert r.json()["error"] == "invalid_client_metadata"
+
+
+@pytest.mark.parametrize(
+    "uri",
+    [
+        "https://claude.ai/api/mcp/auth_callback",
+        "http://localhost:6274/oauth/callback",
+        "http://127.0.0.1:33418/callback",
+        "http://[::1]:8080/cb",
+        "com.cursor.app:/oauth/callback",
+    ],
+)
+def test_https_the_student_s_own_computer_and_app_links_are_fine(ai_app: Callable[[], AiApp], uri: str) -> None:
+    assert ai_app().register(redirect_uris=[uri]).status_code == 201
+
+
+def test_an_app_registered_before_the_rule_still_cant_send_the_student_to_a_script(
+    ai_app: Callable[[], AiApp], client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    app = ai_app()
+    app.register()
+    request = query(app.authorize().headers["location"])["request"]
+    asked = consent.read(request)
+    params = AuthorizationParams(
+        state=asked.state,
+        scopes=asked.scopes,
+        code_challenge=asked.code_challenge,
+        redirect_uri=AnyUrl("javascript:alert(1)//"),
+        redirect_uri_provided_explicitly=True,
+    )
+    client = store.get_client(db, app.client_id)
+    assert client is not None
+    forged = consent.sign(client, params)  # a request whose address the app never registered
+    student = client_for(make_user())
+    assert student.get(f"{API}/ai-apps/consent", params={"request": forged}).status_code == 422
+    for allow in (False, True):
+        assert student.post(f"{API}/ai-apps/consent", json={"request": forged, "allow": allow}).status_code == 422
+    # as if the app had registered a javascript: address before the rule existed: it can't be used at all
+    row = db.get(AiAppClient, app.client_id)
+    assert row is not None
+    row.info = {**row.info, "redirect_uris": ["javascript:alert(1)//"]}
+    db.commit()
+    assert store.get_client(db, app.client_id) is None
+    assert student.post(f"{API}/ai-apps/consent", json={"request": request, "allow": False}).status_code == 422
+    assert db.scalar(select(AiAppConnection)) is None
+
+
+def test_registrations_are_kept_small(ai_app: Callable[[], AiApp]) -> None:
+    app = ai_app()
+    many = [f"https://claude.ai/cb/{n}" for n in range(store.REDIRECT_URIS_MAX + 1)]
+    assert app.register(redirect_uris=many).status_code == 400
+    long = "https://claude.ai/" + "x" * store.REDIRECT_URI_CHARS
+    assert app.register(redirect_uris=[long]).status_code == 400
+    assert app.register(client_name="C" * store.INFO_BYTES).status_code == 400
+    assert app.register().status_code == 201
+
+
+# ── one-time codes and refresh tokens ────────────────────────────────────────────────────────
+
+
+def test_saying_yes_again_replaces_the_app_s_earlier_code(
+    ai_app: Callable[[], AiApp], client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    app = ai_app()
+    app.register()
+    student = client_for(make_user())
+    codes = []
+    for _ in range(3):
+        request = query(app.authorize().headers["location"])["request"]
+        answer = student.post(f"{API}/ai-apps/consent", json={"request": request, "allow": True})
+        codes.append(query(answer.json()["redirectUrl"])["code"])
+    assert len(db.scalars(select(AiAppCode)).all()) == 1
+    assert app.token(codes[0]).status_code == 400  # replaced
+    assert app.token(codes[-1]).status_code == 200
+
+
+def test_a_code_is_spent_by_one_statement(db: Session, connect: Connect, make_user: MakeUser) -> None:
+    """Spending reads and deletes in one DELETE … RETURNING, so two requests at once can't both get the row."""
+    app, _ = connect(make_user())
+    conn = db.scalar(select(AiAppConnection))
+    assert conn is not None
+    client = store.get_client(db, app.client_id)
+    assert client is not None
+    user = db.get(User, conn.user_id)
+    assert user is not None
+    code = store.connect(
+        db,
+        user,
+        client,
+        redirect_uri="https://claude.ai/cb",
+        redirect_uri_explicit=True,
+        code_challenge="c",
+        scopes=[store.SCOPE],
+    )
+    statements: list[str] = []
+
+    def seen(_conn: Any, _cursor: Any, statement: str, *_: Any) -> None:
+        statements.append(statement)
+
+    event.listen(db.get_bind(), "before_cursor_execute", seen)
+    try:
+        assert store.take_code(db, app.client_id, code) is not None
+    finally:
+        event.remove(db.get_bind(), "before_cursor_execute", seen)
+    spend = [s for s in statements if "ai_app_codes" in s and "DELETE" in s]
+    assert spend
+    assert "RETURNING" in spend[0]
+    assert not [s for s in statements if s.lstrip().startswith("SELECT") and "FROM ai_app_codes" in s]
+    assert store.take_code(db, app.client_id, code) is None
+
+
+def test_a_refresh_token_used_twice_signs_the_app_out(connect: Connect, make_user: MakeUser, db: Session) -> None:
+    """Rotation catches a stolen refresh token: when a spent one comes back, every token of the connection goes."""
+    app, tokens = connect(make_user())
+    fresh = app.refresh(tokens["refresh_token"]).json()
+    again = app.refresh(tokens["refresh_token"])
+    assert again.status_code == 400
+    assert again.json()["error"] == "invalid_grant"
+    assert app.rpc(fresh["access_token"], "tools/list").status_code == 401
+    assert app.refresh(fresh["refresh_token"]).status_code == 400
+    assert db.scalar(select(AiAppConnection)) is not None  # still listed in Settings, to remove or connect again
+
+
+def test_a_token_asked_for_another_server_still_only_opens_this_one(
+    ai_app: Callable[[], AiApp], client_for: ClientFor, make_user: MakeUser
+) -> None:
+    """RFC 8707: the token endpoint's `resource` isn't passed to the provider by the SDK; every token is bound to
+    this server's address whatever the app asks for, so a token can't be aimed at another server."""
+    app = ai_app()
+    app.register()
+    request = query(app.authorize().headers["location"])["request"]
+    answer = client_for(make_user()).post(f"{API}/ai-apps/consent", json={"request": request, "allow": True})
+    code = query(answer.json()["redirectUrl"])["code"]
+    data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": "https://claude.ai/api/mcp/auth_callback",
+        "code_verifier": app.verifier,
+        "resource": "https://elsewhere.example/mcp",
+        "client_id": app.client_id,
+    }
+    tokens = app.c.post(f"{MCP}/token", data=data).json()
+    assert app.rpc(tokens["access_token"], "tools/list").status_code == 200
+    assert tokens["scope"] == store.SCOPE
+
+
+def test_already_connected_knows_an_app_that_registered_again(
+    connect: Connect, ai_app: Callable[[], AiApp], client_for: ClientFor, make_user: MakeUser
+) -> None:
+    student = make_user()
+    connect(student)
+    again = ai_app()  # Claude registering anew when the student reconnects
+    again.register()
+    request = query(again.authorize().headers["location"])["request"]
+    asked = client_for(student).get(f"{API}/ai-apps/consent", params={"request": request}).json()
+    assert asked["alreadyConnected"] is True

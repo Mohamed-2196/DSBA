@@ -6,6 +6,7 @@ used, and removing a connection removes everything it holds, so its app is signe
 
 from __future__ import annotations
 
+import json
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -15,17 +16,18 @@ from urllib.parse import urlsplit
 from mcp.server.auth.provider import AccessToken, AuthorizationCode, RefreshToken, TokenError
 from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
 from pydantic import AnyUrl
-from sqlalchemy import delete, exists, select
+from sqlalchemy import delete, exists, select, update
 from sqlalchemy.orm import Session
 
 from app.core.access import Feature
-from app.core.errors import not_found, rate_limited
+from app.core.errors import invalid, not_found, rate_limited
 from app.core.security import hash_token, new_token
 from app.core.time import utcnow
 from app.models import AiAppCall, AiAppClient, AiAppCode, AiAppConnection, AiAppToken, User, UserStatus
 from app.services import access, ratelimit
 
 SCOPE = "hub:read"  # the only scope: every tool reads, none writes
+SPENT = "spent"  # a refresh token already exchanged
 ACCESS_TTL = timedelta(hours=1)
 REFRESH_TTL = timedelta(days=30)
 CODE_TTL = timedelta(minutes=5)
@@ -35,16 +37,56 @@ CALLS_PER_WINDOW = 60
 CALL_WINDOW = timedelta(minutes=10)
 CALLS_PER_DAY = 500
 TOUCH_EVERY = timedelta(minutes=5)  # how often a connection's last_used_at is written
-APP_NAME_MAX = 100
+APP_NAME_MAX = 40  # the app picks its own name: shown short, the host beside it says who it is
 UNNAMED_APP = "An AI app"
+REDIRECT_URIS_MAX = 10
+REDIRECT_URI_CHARS = 2000
+INFO_BYTES = 8000  # a registration as stored
+LOOPBACK = frozenset({"localhost", "127.0.0.1", "::1"})
+SCRIPT_SCHEMES = frozenset({"javascript", "data", "vbscript", "file", "blob", "about"})
+BAD_REDIRECT = (
+    "Each redirect URI must be https, http to this computer (localhost, 127.0.0.1 or [::1]), or an app's own link "
+    "named for its maker (com.example.app:/callback)."
+)
 
 
 # ── apps ─────────────────────────────────────────────────────────────────────────────────────
 
 
+def redirect_uri_allowed(uri: str) -> bool:
+    """Where an app may send the student back with their answer (RFC 8252): https; plain http only to the student's
+    own computer; or an app's own link whose scheme names its maker (`com.example.app:`). Never a scheme that runs
+    script or opens a local file (javascript:, data:, ...), which would run on the Hub's page."""
+    parts = urlsplit(uri)
+    scheme = parts.scheme.lower()
+    if scheme == "https":
+        return bool(parts.hostname)
+    if scheme == "http":
+        return parts.hostname in LOOPBACK
+    return scheme not in SCRIPT_SCHEMES and "." in scheme
+
+
+def _uris_allowed(info: OAuthClientInformationFull) -> bool:
+    uris = [str(u) for u in info.redirect_uris or []]
+    return bool(uris) and all(redirect_uri_allowed(u) for u in uris)
+
+
+def check_registration(info: OAuthClientInformationFull) -> None:
+    """422 invalid_input unless every redirect URI is one an app may use (redirect_uri_allowed), and the
+    registration is small: at most REDIRECT_URIS_MAX URIs of REDIRECT_URI_CHARS, INFO_BYTES in all."""
+    uris = [str(u) for u in info.redirect_uris or []]
+    if len(uris) > REDIRECT_URIS_MAX or any(len(u) > REDIRECT_URI_CHARS for u in uris):
+        raise invalid("redirect_uris", f"At most {REDIRECT_URIS_MAX} redirect URIs of {REDIRECT_URI_CHARS} characters.")
+    if not _uris_allowed(info):
+        raise invalid("redirect_uris", BAD_REDIRECT)
+    if len(json.dumps(info.model_dump(mode="json"))) > INFO_BYTES:
+        raise invalid("client_metadata", f"An app's registration can be at most {INFO_BYTES} characters.")
+
+
 def register_client(db: Session, info: OAuthClientInformationFull, ip: str | None) -> None:
-    """Keeps an app that registered itself: at most REGISTRATIONS_PER_HOUR per address (429 rate_limited), and
-    apps registered over a day ago that no student connected are removed first."""
+    """Keeps an app that registered itself, once check_registration passes: at most REGISTRATIONS_PER_HOUR per
+    address (429 rate_limited), and apps registered over a day ago that no student connected are removed first."""
+    check_registration(info)
     ratelimit.enforce(
         db,
         f"ai-apps:register:{ratelimit.ip_bucket(ip)}",
@@ -61,13 +103,21 @@ def register_client(db: Session, info: OAuthClientInformationFull, ip: str | Non
 
 
 def get_client(db: Session, client_id: str) -> OAuthClientInformationFull | None:
+    """The app, or None when it isn't registered or a redirect URI of its fails today's rule (an app registered
+    before it can't be used)."""
     row = db.get(AiAppClient, client_id) if len(client_id) <= 64 else None
-    return OAuthClientInformationFull.model_validate(row.info) if row is not None else None
+    if row is None:
+        return None
+    client = OAuthClientInformationFull.model_validate(row.info)
+    return client if _uris_allowed(client) else None
 
 
 def app_name(client: OAuthClientInformationFull) -> str:
-    """The name the app gave itself, on one line and short; UNNAMED_APP when it gave none."""
-    name = " ".join((client.client_name or "").split())[:APP_NAME_MAX]
+    """The name the app gave itself, on one line and at most APP_NAME_MAX characters (an ellipsis when cut);
+    UNNAMED_APP when it gave none."""
+    name = " ".join((client.client_name or "").split())
+    if len(name) > APP_NAME_MAX:
+        name = name[: APP_NAME_MAX - 1].rstrip() + "\u2026"
     return name or UNNAMED_APP
 
 
@@ -92,7 +142,7 @@ def connect(
     scopes: list[str],
 ) -> str:
     """The student said yes: their connection to the app (one per app; a second yes keeps it, with its tokens) and
-    a one-time code for it, returned once."""
+    a one-time code for it, returned once. It replaces the connection's earlier codes, so they don't pile up."""
     conn = db.scalar(
         select(AiAppConnection).where(AiAppConnection.user_id == user.id, AiAppConnection.client_id == client.client_id)
     )
@@ -105,6 +155,8 @@ def connect(
         )
         db.add(conn)
         db.flush()
+    else:
+        db.execute(delete(AiAppCode).where(AiAppCode.connection_id == conn.id))
     code = new_token()
     db.add(
         AiAppCode(
@@ -144,12 +196,14 @@ def _stamp(at: datetime) -> int:
 
 
 def take_code(db: Session, client_id: str, code: str) -> AuthorizationCode | None:
-    """The code, spent: it can't be read a second time, even when the token request then fails."""
-    row = db.get(AiAppCode, hash_token(code)) if len(code) <= 200 else None
+    """The code, spent: it can't be read a second time, even when the token request then fails. Read and deleted in
+    one statement, so two requests with the same code at once can't both get it."""
+    if len(code) > 200:
+        return None
+    row = db.scalar(delete(AiAppCode).where(AiAppCode.code_hash == hash_token(code)).returning(AiAppCode))
+    db.commit()
     if row is None:
         return None
-    db.delete(row)
-    db.commit()
     owner = _owner(db, row.connection_id, client_id)
     if owner is None:
         return None
@@ -207,8 +261,16 @@ def _token(db: Session, token: str, kind: str) -> AiAppToken | None:
 
 
 def load_refresh(db: Session, client_id: str, token: str) -> RefreshToken | None:
+    """The live refresh token. A spent one coming back means it was copied (the app and someone else both hold it),
+    so every token of its connection goes: the app signs in again, the copy is useless."""
     row = _token(db, token, "refresh")
-    if row is None or _owner(db, row.connection_id, client_id) is None:
+    if row is None:
+        spent = _token(db, token, SPENT)
+        if spent is not None:
+            db.execute(delete(AiAppToken).where(AiAppToken.connection_id == spent.connection_id))
+            db.commit()
+        return None
+    if _owner(db, row.connection_id, client_id) is None:
         return None
     return RefreshToken(
         token=token,
@@ -220,13 +282,21 @@ def load_refresh(db: Session, client_id: str, token: str) -> RefreshToken | None
 
 
 def rotate(db: Session, refresh: RefreshToken, scopes: list[str]) -> OAuthToken:
-    """A new pair for a refresh token, which is spent."""
-    row = _token(db, refresh.token, "refresh")
-    if row is None:
+    """A new pair for a refresh token, which is marked spent (kept until it would have expired, so load_refresh
+    knows it if it comes back). Marked in one statement, so two refreshes at once can't both get a pair."""
+    connection_id = db.scalar(
+        update(AiAppToken)
+        .where(
+            AiAppToken.token_hash == hash_token(refresh.token),
+            AiAppToken.kind == "refresh",
+            AiAppToken.expires_at > utcnow(),
+        )
+        .values(kind=SPENT)
+        .returning(AiAppToken.connection_id)
+    )
+    if connection_id is None:
+        db.rollback()
         raise TokenError("invalid_grant", "This refresh token was used or removed.")
-    connection_id = row.connection_id
-    db.delete(row)
-    db.flush()
     return issue(db, connection_id, scopes)
 
 

@@ -88,10 +88,11 @@ class Asking:
 
 
 def asking(db: Session, token: str) -> Asking:
-    """The request and the app behind it (422 when the app is gone)."""
+    """The request and the app behind it (422 when the app is gone, or the request would send the student to an
+    address no app may use: store.redirect_uri_allowed)."""
     req = read(token)
     client = store.get_client(db, req.client_id)
-    if client is None:
+    if client is None or not store.redirect_uri_allowed(req.redirect_uri):
         raise invalid("request", OUT_OF_DATE)
     return Asking(req, client)
 

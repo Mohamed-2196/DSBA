@@ -194,3 +194,35 @@ def test_the_modules_with_links(connect: Connect, make_user: MakeUser, db: Sessi
     year_two = ok(app.call(tokens["access_token"], "list_modules", year=2))["result"]
     assert year_two
     assert all(x["year"] == 2 for x in year_two)
+
+
+def test_staff_accounts_give_their_ai_app_the_student_view(
+    connect: Connect, make_user: MakeUser, db: Session, modules: dict[str, Module], set_feature: Callable[..., None]
+) -> None:
+    """A library manager's or content editor's app reads what a student reads: no pending, rejected or removed
+    files (takedowns stay down), nothing of a hidden module, no hidden chapter's tags; their own uploads as usual."""
+    set_feature("library.questions", "everyone")
+    m = a_module(modules)
+    staff, someone = make_user(roles=("student", "admin")), make_user()
+    pending = a_file(db, m, status=ItemStatus.pending, uploaded_by=someone, text=PAGES)
+    removed = a_file(db, m, status=ItemStatus.removed, uploaded_by=someone, text=PAGES)
+    mine = a_file(db, m, status=ItemStatus.pending, uploaded_by=staff, text=PAGES)
+    hidden_module = next(x for x in modules.values() if x.id != m.id and x.unit_code)
+    in_hidden = a_file(db, hidden_module, text=PAGES)
+    [chapter, hidden_chapter] = chapters(m.id, [{"title": "Elasticity"}, {"title": "Draft", "hidden": True}])
+    db.add_all([chapter, hidden_chapter])
+    published = a_file(db, m, text=PAGES)
+    secret = PaperQuestion(item_id=published.id, chapter_id=hidden_chapter.id, question=5, page=5)
+    db.add(secret)
+    hidden_module.hidden = True
+    db.commit()
+    app, tokens = connect(staff)
+    t = tokens["access_token"]
+    for f in (pending, removed, in_hidden):
+        assert "doesn't exist" in refused(app.call(t, "get_file", file=f.slug))
+        assert "doesn't exist" in refused(app.call(t, "get_passage", file=f.slug, page=1))
+    assert "isn't tagged" in refused(app.call(t, "get_question", question_id=str(secret.id)))
+    assert ok(app.call(t, "get_file", file=mine.slug))["pages_total"] == 8
+    assert ok(app.call(t, "get_file", file=published.slug))["pages_total"] == 8
+    modules_seen = {x["id"] for x in ok(app.call(t, "list_modules"))["result"]}
+    assert hidden_module.id not in modules_seen

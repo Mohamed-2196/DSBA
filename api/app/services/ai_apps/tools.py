@@ -1,5 +1,6 @@
 """What an AI app may ask the Hub as a student. Each answer is what the site shows that student, through the same
 services and visibility rules as the site's routers, and carries a link back to its page in the Hub (`hub_url`).
+Staff accounts get the student view too (`student_view`): an app never reads pending, removed or hidden files.
 
 Files' words come from the text worker (LibraryText, services/paper_text.py), a few pages at a time: an app reads
 what it needs to answer, never a whole library at once (and the student's calls are limited, store.count_call)."""
@@ -162,12 +163,12 @@ def _page(item: LibraryItem, pages: list[str], n: int) -> Page:
 
 def _visible_file(db: Session, user: User, ref: str) -> LibraryItem:
     access.require_feature(db, user, Feature.library)
-    return library.get_visible(db, ref.strip()[:200], user)
+    return library.get_visible(db, ref.strip()[:200], user, student_view=True)
 
 
 def _report(db: Session, user: User, paper: LibraryItem, question: str) -> ReportPart | None:
     report = report_for(db, paper) if paper.kind == PAST_PAPER else None
-    if report is None or library.hidden_from(db, report, user):
+    if report is None or library.hidden_from(db, report, user, student_view=True):
         return None
     body = read_text(db, report.id)
     if not body:
@@ -231,12 +232,12 @@ def get_passage(db: Session, user: User, file: str, page: int, question: str | N
 def get_question(db: Session, user: User, question_id: uuid.UUID) -> QuestionOut:
     access.require_feature(db, user, Feature.library)
     access.require_feature(db, user, Feature.library_questions)
-    q = past_questions.published_tags(select(PaperQuestion), None, staff=library.sees_hidden_modules(user))
+    q = past_questions.published_tags(select(PaperQuestion), None, staff=False)
     row = db.scalar(q.where(PaperQuestion.id == question_id))
     if row is None:
         raise not_found("This question isn't tagged in the Hub.")
     out = past_questions.to_out(db, [row], user)[0]
-    paper = library.get_visible(db, row.item_id, user)
+    paper = library.get_visible(db, row.item_id, user, student_view=True)
     label = past_questions.label(row.section, row.question)
     pages = _pages(db, paper)
     shown = []

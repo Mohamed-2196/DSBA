@@ -81,7 +81,7 @@ def upgrade() -> None:
         sa.Column("scopes", sa.String(length=200), nullable=False),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.CheckConstraint("kind IN ('access', 'refresh')", name=op.f("ck_ai_app_tokens_kind")),
+        sa.CheckConstraint("kind IN ('access', 'refresh', 'spent')", name=op.f("ck_ai_app_tokens_kind")),
         sa.ForeignKeyConstraint(
             ["connection_id"],
             ["ai_app_connections.id"],

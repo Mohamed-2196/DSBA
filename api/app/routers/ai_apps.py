@@ -8,7 +8,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import Query, Response, status
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 
 from app.core.access import Feature
 from app.core.security import DB, ActiveUser, CurrentUser, needs_feature
@@ -28,16 +28,14 @@ def ask(
 
     Errors: invalid_input (422: the request is out of date, or not the Hub's)."""
     a = consent.asking(db, request)
-    connected = db.scalar(
-        select(AiAppConnection.id).where(
-            AiAppConnection.user_id == user.id, AiAppConnection.client_id == a.client.client_id
-        )
+    name, host = store.app_name(a.client), store.host_of(a.request.redirect_uri)
+    # the same app, or one with its name and host: apps like Claude register again when they reconnect
+    same = or_(
+        AiAppConnection.client_id == a.client.client_id,
+        and_(AiAppConnection.app_name == name, AiAppConnection.redirect_host == host),
     )
-    return ConsentAsk(
-        app_name=store.app_name(a.client),
-        redirect_host=store.host_of(a.request.redirect_uri),
-        already_connected=connected is not None,
-    )
+    connected = db.scalar(select(AiAppConnection.id).where(AiAppConnection.user_id == user.id, same).limit(1))
+    return ConsentAsk(app_name=name, redirect_host=host, already_connected=connected is not None)
 
 
 @router.post("/ai-apps/consent", response_model=ConsentRedirect)
