@@ -418,3 +418,28 @@ def test_an_email_into_a_switched_off_feature_is_cancelled(
 
 def test_every_emailed_kind_names_its_feature() -> None:
     assert set(mail_outbox.EMAIL_FEATURES) == set(mail_outbox.EMAIL_SWITCHES)
+
+
+def test_cancel_queued_emails(make_user: MakeUser, db: Session, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Before a mail worker first runs where emails were queued with none (Railway dev), `cancel-queued-emails`
+    cancels what waited, so no backlog goes out; --older-than keeps the recent ones."""
+    person = make_user(email="backlog@example.com")
+    for title in ("Old", "New"):
+        notify(db, person.id, "thread_reply", title, url="/forum/a", actor=make_user())
+    db.commit()
+    old, _ = _queued(db, person)
+    old.created_at = utcnow() - timedelta(hours=30)
+    db.commit()
+
+    @contextmanager
+    def _session() -> Iterator[Session]:
+        yield db
+
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: _session)
+    assert cli.main(["cancel-queued-emails", "--older-than", "24"]) == 0
+    assert [(r.status, r.last_error) for r in _queued(db, person)] == [
+        (OutboxStatus.cancelled, "cancelled before a mail worker ran"),
+        (OutboxStatus.pending, None),
+    ]
+    assert cli.main(["cancel-queued-emails"]) == 0
+    assert [r.status for r in _queued(db, person)] == [OutboxStatus.cancelled, OutboxStatus.cancelled]

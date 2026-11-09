@@ -458,12 +458,17 @@ to the Home Screen (iOS 16.4 or later). To turn it on:
    new key stops every device's notifications until each student turns them on again.
 2. Set `DSBA_VAPID_PRIVATE_KEY` and `DSBA_VAPID_SUBJECT` (`mailto:` an address you read, or the hub's `https://`
    address: the push services write there if the hub misbehaves) on the API and on the worker that sends them:
-   - the `mail` worker (`python -m app.cli mail-worker`), which sends the emails, reminders and summaries too; or
+   - the `mail` worker (`python -m app.cli mail-worker`), which sends the emails and summaries too; or
    - where pushes should go out but emails shouldn't yet, a push worker instead (`python -m app.cli push-worker`,
-     the API's image): it sends only the pushes, and the emails stay queued, unsent. Never run both: the mail
-     worker sends the pushes as well.
+     the API's image): it sends the pushes and turns the reminders that have come into notifications, as the mail
+     worker does, and sends no email. Run one or the other: the mail worker sends the pushes too, and the emails.
+     Both at once is safe (each push is claimed by one worker) but pointless.
 
-   The Railway dev environment runs the push worker as its `push-worker` service, and no mail worker, so dev sends
+   With the push worker, the emails the notifications queue wait, unsent, and are never purged. **Before a mail
+   worker first runs there**, cancel them, or the whole backlog goes out at once: `python -m app.cli
+   cancel-queued-emails` (`--older-than 24` keeps the last day's).
+
+   The Railway dev environment runs the push worker as its `push-worker` service and no mail worker, so dev sends
    notifications to devices and no emails.
 3. Turn on `push` in Access ("Notifications on phones and computers"); it arrives off, for admins too.
 

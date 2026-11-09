@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -24,12 +25,13 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app import cli
-from app.core.time import utcnow
-from app.models import EmailOutbox, Notification, OutboxStatus, PushOutbox, PushSubscription, User
+from app.core.time import bahrain_today, utcnow
+from app.models import BoardCard, EmailOutbox, Notification, OutboxStatus, PushOutbox, PushSubscription, User
 from app.services import push
 from app.services.notify import notify, notify_all
 from app.services.webpush import b64encode, settings_problems
 from tests.accounts.conftest import API, PASSWORD, logout, sync_csrf
+from tests.board.conftest import add
 from tests.core.helpers import new_reply, new_thread
 from tests.core.test_webpush import RFC_AS_PRIVATE, RFC_AS_PUBLIC, _decrypt
 
@@ -704,7 +706,7 @@ def test_the_push_worker_sends_the_pushes_and_leaves_the_emails_waiting(
         yield db
 
     http = httpx.Client(transport=httpx.MockTransport(service.handler))
-    assert push.run_worker(_session, once=True, http=http) == 0
+    assert push.run_worker(_session, once=True, http=http, stop=threading.Event()) == 0
     assert [str(r.url) for r in service.posted] == [browser.endpoint]
     assert [r.status for r in _queued(db, person)] == [OutboxStatus.sent]
     db.expire_all()
@@ -726,3 +728,52 @@ def test_the_push_worker_command(db: Session, monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setattr(push, "run_worker", fake)
     assert cli.main(["push-worker", "--once", "--poll", "2"]) == 0
     assert seen == {"sessions": marker, "once": True, "poll": 2.0}
+
+
+@pytest.mark.usefixtures("push_on")
+def test_the_push_worker_turns_due_reminders_into_pushes(
+    client_for: ClientFor,
+    make_user: MakeUser,
+    db: Session,
+    service: PushService,
+    set_feature: Callable[..., None],
+) -> None:
+    """As the mail worker does, the push worker turns the reminders that have come into notifications, so a board
+    card's reminder reaches the device; its email still waits, unsent."""
+    set_feature("board", "everyone")
+    person = make_user()
+    person.preferences = {"push_reminders": True}
+    db.commit()
+    c = client_for(person)
+    browser = Browser()
+    _on(c, browser)
+    card = add(c, title="Hand in the essay", dueDate=(bahrain_today() + timedelta(days=1)).isoformat(), dueTime="10:00")
+    assert c.patch(f"{API}/board-cards/{card['id']}", json={"remindBefore": 60}).status_code == 200
+    db.execute(update(BoardCard).where(BoardCard.id == card["id"]).values(remind_at=utcnow() - timedelta(minutes=1)))
+    db.commit()
+
+    @contextmanager
+    def _session() -> Iterator[Session]:
+        yield db
+
+    http = httpx.Client(transport=httpx.MockTransport(service.handler))
+    assert push.run_worker(_session, once=True, http=http, stop=threading.Event()) == 0
+    assert [browser.read(r.content)["title"] for r in service.posted] == ["Due tomorrow at 10:00: Hand in the essay"]
+    db.expire_all()
+    emails = db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == person.id)).all()
+    assert all(e.status == OutboxStatus.pending for e in emails)
+
+
+def test_the_push_worker_leaves_the_signal_handlers_alone_when_given_its_own_stop(
+    db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Called with its own stop event (tests, a host process), it doesn't take over Ctrl-C."""
+    installed: list[int] = []
+    monkeypatch.setattr("signal.signal", lambda signum, _handler: installed.append(signum))
+
+    @contextmanager
+    def _session() -> Iterator[Session]:
+        yield db
+
+    push.run_worker(_session, once=True, stop=threading.Event())
+    assert installed == []

@@ -27,7 +27,7 @@ from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
 from types import FrameType
 
-from sqlalchemy import ColumnElement, and_, delete, not_, or_, select
+from sqlalchemy import ColumnElement, and_, delete, not_, or_, select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -260,6 +260,19 @@ def _send_pushes(sessions: Callable[[], AbstractContextManager[Session]]) -> int
     except Exception:  # pushes must never stop the mail
         log.exception("mail worker: sending pushes failed")
         return 0
+
+
+def cancel_pending(db: Session, older_than: timedelta = timedelta(0), now: datetime | None = None) -> int:
+    """Cancels the emails still waiting that were queued more than `older_than` ago, so a mail worker that starts
+    where none ran (Railway dev) doesn't send a backlog. -> how many. The caller commits."""
+    cutoff = (now or utcnow()) - older_than
+    done = db.execute(
+        update(EmailOutbox)
+        .where(EmailOutbox.status == OutboxStatus.pending, EmailOutbox.created_at <= cutoff)
+        .values(status=OutboxStatus.cancelled, last_error="cancelled before a mail worker ran")
+        .returning(EmailOutbox.id)
+    ).all()
+    return len(done)
 
 
 def run_worker(

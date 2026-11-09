@@ -318,8 +318,9 @@ Docker". Either way:
 - **The mail worker** (`python -m app.cli mail-worker`; Docker starts one) sends notification emails and pushes,
   queues the Sunday summaries at the time set in Manage → Sunday summary, and turns board cards' and personal
   events' reminders into notifications.
-- **The push worker** (`python -m app.cli push-worker`) sends only the queued pushes, for where emails shouldn't go out
-  yet (Railway dev); it runs instead of the mail worker, never beside it.
+- **The push worker** (`python -m app.cli push-worker`) sends the queued pushes and turns reminders into notifications,
+  and sends no email, for where emails shouldn't go out yet (Railway dev); it runs instead of the mail worker.
+  `cancel-queued-emails` drops the emails that waited before a mail worker first runs there.
 - **The text worker:** `python -m app.cli text-worker` reads the words and makes the cover of each published PDF and
   Word file, for search inside papers. `extract-texts` does the files already there.
 - **Mini Noora AI:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (default: `claude-haiku-5-5`) power

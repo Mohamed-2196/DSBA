@@ -44,7 +44,7 @@ from app.core.time import utcnow
 from app.models import Notification, OutboxStatus, PushOutbox, PushSubscription, User, UserSession
 from app.schemas.auth import ExportPushDevice
 from app.services import access, webpush
-from app.services.outbox import EMAIL_FEATURES, PURGE_EVERY, backoff
+from app.services.outbox import EMAIL_FEATURES, PURGE_EVERY, REMINDERS_EVERY, backoff
 
 log = logging.getLogger("dsba.push")
 
@@ -479,26 +479,38 @@ def run_worker(
     stop: threading.Event | None = None,
     http: httpx.Client | None = None,
 ) -> int:
-    """The push worker (`python -m app.cli push-worker`): sends the queued pushes and purges old ones hourly, and
-    nothing else, so no email, reminder or summary goes out. For where pushes should go out but emails shouldn't
-    yet; where the mail worker runs it sends the pushes too, so the two never run in the same place. Waits
-    `poll_seconds` when nothing is due; SIGTERM and SIGINT stop it after the push in hand. With `once`, it stops
-    when nothing is due."""
-    stop = stop or threading.Event()
+    """The push worker (`python -m app.cli push-worker`), for where pushes should go out but emails shouldn't yet:
+    sends the queued pushes, turns the reminders that have come (board cards', students' own events') into
+    notifications as the mail worker does, and purges old pushes hourly. It sends no email: what the notifications
+    queue for email waits, unsent (`cancel-queued-emails` before a mail worker first runs there). Run it or the mail
+    worker, which sends the pushes too, and the emails; both at once is safe (each push is claimed by one) but
+    pointless. Waits `poll_seconds` when nothing is due; SIGTERM and SIGINT stop it after the push in hand, unless
+    the caller passes its own `stop`. With `once`, it stops when nothing is due."""
+    from app.services import my_calendar
+    from app.services.board import reminders
 
-    def _stop(signum: int, _frame: FrameType | None) -> None:
-        log.info("push worker stopping (signal %d)", signum)
-        stop.set()
+    if stop is None:
+        stop = threading.Event()
+        event = stop
 
-    if threading.current_thread() is threading.main_thread():
-        signal.signal(signal.SIGTERM, _stop)
-        signal.signal(signal.SIGINT, _stop)
+        def _stop(signum: int, _frame: FrameType | None) -> None:
+            log.info("push worker stopping (signal %d)", signum)
+            event.set()
+
+        if threading.current_thread() is threading.main_thread():
+            signal.signal(signal.SIGTERM, _stop)
+            signal.signal(signal.SIGINT, _stop)
     if not configured():
         log.warning("push worker: no VAPID key set, so nothing is sent (DSBA_VAPID_PRIVATE_KEY, DSBA_VAPID_SUBJECT)")
     log.info("push worker started")
     last_purge: datetime | None = None
+    last_reminders: datetime | None = None
     while not stop.is_set():
         try:
+            if last_reminders is None or utcnow() - last_reminders > REMINDERS_EVERY:
+                my_calendar.send_due(sessions)
+                last_reminders = utcnow()
+            reminders.send_due(sessions)
             if last_purge is None or utcnow() - last_purge > PURGE_EVERY:
                 with sessions() as db:
                     purged = purge(db)
