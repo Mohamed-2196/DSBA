@@ -42,67 +42,67 @@ export default function WidgetsPage() {
       <PageHeader
         section="calendar"
         title="Add a widget"
-        description="Your next exam, today and the lesson to carry on with, on your home screen, through apps you may already have."
+        description="Your dates on your phone’s home screen, through apps you already have."
         actions={
           <Button to="/calendar" leadingIcon={<Icon glyph={glyph.back} />}>
             Calendar
           </Button>
         }
       />
-      <PageSection aria-labelledby="widgets-calendar">
-        <SectionHeader
-          id="widgets-calendar"
-          title="The simplest: your calendar app’s own widget"
-          description="Works on every phone, tablet and Mac, with nothing new to install."
-        />
-        <Panel className="widgets-page__panel">
-          <ol className="widgets-page__steps">
-            <li>
-              Subscribe to your calendar from the Hub. Your exams, your year’s dates and your own events go into your
-              calendar app, and stay up to date there.
-              <div className="widgets-page__action">
-                <Button
-                  variant="primary"
-                  leadingIcon={<Icon glyph={glyph.calendarAdd} />}
-                  onClick={() => setSubscribing(true)}
-                  data-hub="widgets-subscribe"
-                >
-                  Subscribe to my calendar
-                </Button>
-              </div>
-            </li>
-            <li>
-              Add your calendar app’s widget to your home screen.
-              <ul role="list" className="widgets-page__how">
-                <li>
-                  <b>iPhone and iPad:</b> the Calendar widget. Subscribe in Settings, Calendar, Calendar Accounts, so
-                  your link stays on your phone.
-                </li>
-                <li>
-                  <b>Android:</b> Google Calendar’s widget (subscribe on calendar.google.com, under Other calendars,
-                  From URL: Google keeps your link, and updates can take a day), or the free{' '}
-                  <a href={ICSX5} target="_blank" rel="noreferrer">
-                    ICSx⁵
-                  </a>{' '}
-                  app, which keeps it on your phone.
-                </li>
-                <li>
-                  <b>Mac:</b> the Calendar widget, from the desktop’s Edit Widgets.
-                </li>
-              </ul>
-            </li>
-          </ol>
-        </Panel>
-      </PageSection>
-      <PageSection aria-labelledby="widgets-hub">
-        <SectionHeader
-          id="widgets-hub"
-          title="A Hub widget"
-          description="Your next exam, today and the lesson to carry on with, in a free widget app."
-        />
-        {my.signedIn ? <HubWidget /> : <SignInFirst />}
-      </PageSection>
-      <SubscribeDialog open={subscribing} year={null} my={my} onClose={() => setSubscribing(false)} />
+      <div className="widgets-page__routes">
+        <PageSection aria-labelledby="widgets-calendar">
+          <SectionHeader
+            id="widgets-calendar"
+            title="Your calendar app’s widget"
+            description="The simplest way. Works on every phone, tablet and Mac, with nothing new to install."
+          />
+          <Panel className="widgets-page__panel">
+            <ol className="widgets-page__steps">
+              <li>
+                Subscribe to your calendar from the Hub. Your exams, your year’s dates and your own events go into your
+                calendar app, and stay up to date there.
+                <div className="widgets-page__action">
+                  <Button
+                    variant="primary"
+                    leadingIcon={<Icon glyph={glyph.calendarAdd} />}
+                    onClick={() => setSubscribing(true)}
+                    data-hub="widgets-subscribe"
+                  >
+                    Subscribe to the calendar
+                  </Button>
+                </div>
+              </li>
+              <li>
+                Add your calendar app’s widget to your home screen.
+                <ul role="list" className="widgets-page__how">
+                  <li>
+                    <b>iPhone and iPad:</b> the Calendar widget.
+                  </li>
+                  <li>
+                    <b>Android:</b> Google Calendar’s widget, or the widget of the free{' '}
+                    <a href={ICSX5} target="_blank" rel="noreferrer">
+                      ICSx⁵
+                    </a>{' '}
+                    app.
+                  </li>
+                  <li>
+                    <b>Mac:</b> the Calendar widget. Right-click the desktop and choose <i>Edit Widgets</i>.
+                  </li>
+                </ul>
+              </li>
+            </ol>
+          </Panel>
+        </PageSection>
+        <PageSection aria-labelledby="widgets-hub">
+          <SectionHeader
+            id="widgets-hub"
+            title="A Hub widget"
+            description="Your next exam, today and the lesson to carry on with, in a free widget app."
+          />
+          {my.signedIn ? <HubWidget /> : <SignInFirst />}
+        </PageSection>
+      </div>
+      <SubscribeDialog open={subscribing} year={null} my={my} fromWidgets onClose={() => setSubscribing(false)} />
     </Page>
   );
 }
@@ -137,7 +137,12 @@ function HubWidget() {
   const copyScript = async () => {
     if (await copyText(SCRIPTABLE_SCRIPT))
       push({ tone: 'success', title: 'Script copied', body: 'Paste it into a new script in Scriptable.' });
-    else push({ tone: 'alert', title: 'Couldn’t copy the script', body: 'Try again, or copy it from the box.' });
+    else
+      push({
+        tone: 'alert',
+        title: 'Couldn’t copy the script',
+        body: 'Try again, or open Show the script and copy it.',
+      });
   };
 
   const replace = (action: 'new' | 'off') =>
@@ -211,6 +216,7 @@ function HubWidget() {
       </div>
 
       <SegmentedControl
+        className="widgets-page__devices"
         label="Your device"
         size="sm"
         value={device}
@@ -226,11 +232,16 @@ function HubWidget() {
         <div className="widgets-page__device" data-hub="widgets-apple">
           <ol className="widgets-page__steps">
             <li>
-              Get{' '}
-              <a href={SCRIPTABLE} target="_blank" rel="noreferrer">
-                Scriptable
-              </a>
-              , free from the App Store.
+              Get Scriptable, free from the App Store.
+              <div className="widgets-page__action">
+                <Button
+                  href={SCRIPTABLE}
+                  trailingIcon={<Icon glyph={glyph.external} />}
+                  data-hub="widgets-get-scriptable"
+                >
+                  Get Scriptable
+                </Button>
+              </div>
             </li>
             <li>
               Copy the Hub’s script. In Scriptable, tap <b>+</b>, paste it, and name it <i>DSBA Hub</i>.
@@ -243,6 +254,17 @@ function HubWidget() {
                   Copy the script
                 </Button>
               </div>
+              <details className="widgets-page__script">
+                <summary>Show the script</summary>
+                <textarea
+                  readOnly
+                  aria-label="The Hub’s script for Scriptable"
+                  value={SCRIPTABLE_SCRIPT}
+                  rows={10}
+                  spellCheck={false}
+                  onFocus={(e) => e.currentTarget.select()}
+                />
+              </details>
             </li>
             <li>
               On your home screen, add a Scriptable widget, small or medium. Hold it, tap <i>Edit Widget</i>, choose{' '}
@@ -250,8 +272,8 @@ function HubWidget() {
             </li>
           </ol>
           <p className="widgets-page__note">
-            Your link goes in the widget, not the script, so the script never holds it. Scriptable hasn’t had an update
-            since September 2024: if a new iOS stops it, your calendar’s widget still works.
+            Scriptable hasn’t had an update since September 2024. If a new iOS stops it, your calendar’s widget still
+            works.
           </p>
         </div>
       ) : device === 'mac' ? (
@@ -275,11 +297,12 @@ function HubWidget() {
         <div className="widgets-page__device" data-hub="widgets-android">
           <ol className="widgets-page__steps">
             <li>
-              Get{' '}
-              <a href={KWGT} target="_blank" rel="noreferrer">
-                KWGT
-              </a>
-              , free from Google Play. It shows ads; you don’t need to buy anything for this.
+              Get KWGT, free from Google Play. It shows ads; you don’t need to buy anything for this.
+              <div className="widgets-page__action">
+                <Button href={KWGT} trailingIcon={<Icon glyph={glyph.external} />} data-hub="widgets-get-kwgt">
+                  Get KWGT
+                </Button>
+              </div>
             </li>
             <li>
               On your home screen, add a KWGT widget, tap it, and choose <i>Create</i>.

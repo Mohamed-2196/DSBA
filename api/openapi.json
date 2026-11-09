@@ -56704,10 +56704,6 @@
             "type": "string",
             "title": "Chapter"
           },
-          "position": {
-            "type": "string",
-            "title": "Position"
-          },
           "text": {
             "type": "string",
             "title": "Text"
@@ -56721,7 +56717,6 @@
         "required": [
           "module",
           "chapter",
-          "position",
           "text",
           "url"
         ],

@@ -123,19 +123,19 @@ def test_the_widget_feed(
         "text": "Year 2 exam in 5 days",
         "url": web(f"/calendar?date={(bahrain_today() + dt.timedelta(days=5)).isoformat()}&event=y2-exam"),
     }
+    # timed ones by their start, whoever's they are, then the all-day ones: a widget shows the first two or three
     assert [e["text"] for e in body["todayEvents"]] == [
-        "Reading week",
-        "10:00 Careers talk",
-        "Mum's birthday",
         "09:30 Dentist",
+        "10:00 Careers talk",
         "18:00 Gym",
+        "Reading week",
+        "Mum's birthday",
     ]
-    assert body["todayText"] == "Reading week\n10:00 Careers talk\nMum's birthday\n09:30 Dentist\n18:00 Gym"
+    assert body["todayText"] == "09:30 Dentist\n10:00 Careers talk\n18:00 Gym\nReading week\nMum's birthday"
     assert all(e["url"].startswith(web("/calendar?")) for e in body["todayEvents"])
     assert body["carryOn"] == {
         "module": "TS1000",
         "chapter": "Basics",
-        "position": "Chapter 1, video 2 of 2",
         "text": "TS1000: Basics",
         "url": web(f"/modules/{course.id}/lessons/{second}"),
     }
@@ -152,6 +152,14 @@ def test_the_days_left_read_plainly(client_for: Clients, make_user: MakeUser, cl
     db.query(CalendarEvent).filter_by(id="soon").update({"date": today})
     db.commit()
     assert client.get(widget_of(c)).json()["nextExam"]["text"] == "Statistics mock today"
+
+
+def test_a_student_without_a_year_gets_every_date_as_their_calendar_does(
+    client_for: Clients, make_user: MakeUser, client: TestClient, dates: dict[str, CalendarEvent]
+) -> None:
+    body = client.get(widget_of(client_for(make_user(year=None)))).json()
+    assert body["nextExam"]["title"] == "Year 1 exam"  # the first confirmed one, of any year
+    assert [e["text"] for e in body["todayEvents"]] == ["10:00 Careers talk", "Reading week", "Year 1 talk"]
 
 
 def test_a_quiet_day(client_for: Clients, make_user: MakeUser, client: TestClient, course: Module) -> None:
@@ -182,7 +190,6 @@ def test_the_next_unwatched_lesson_after_the_last_one_opened(
     c.put(f"{API}/me/progress/resume", json={"lessonId": last})
     carry = client.get(widget_of(c)).json()["carryOn"]
     assert carry["chapter"] == "Regression"
-    assert carry["position"] == "Chapter 2"
     assert carry["url"] == web(f"/modules/{course.id}/lessons/{lesson_id(course, 1, 0)}")
 
 

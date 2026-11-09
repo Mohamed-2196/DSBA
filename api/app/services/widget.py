@@ -2,12 +2,15 @@
 on their own phone reads without a session (routers/feeds.py). The address is kept like the private calendar feed's
 (my_calendar.feed_token), with its own secret, and works while the calendar is on for the student.
 
-The parts follow the Hub's own pages: their dates as Home counts them (home.dates_for), and the lesson to pick up as
-Home's Continue learning works it out (the web app's computeResumePoint and chapterPosition): keep them in step."""
+The parts follow the Hub's own pages: their dates as Home counts them (home.dates_for; a student with no year gets
+every year's, as their calendar feed does), and the lesson to pick up as Home's Continue learning works it out (the web
+app's computeResumePoint): keep them in step. Today holds programme dates and the student's own events only, not
+their plan's cards: a widget has room for two or three lines."""
 
 from __future__ import annotations
 
 import datetime as dt
+import re
 from collections.abc import Sequence
 from datetime import timedelta
 
@@ -23,6 +26,7 @@ from app.services.modules import visible_chapters, visible_lessons
 
 MAX_EVENTS = 8  # more than a widget has room for
 NOTHING_TODAY = "Nothing on today."
+STARTS_AT = re.compile(r"(\d{1,2}):(\d{2})")  # a programme date's published time: '9:00 to 12:00', '14:30'
 
 
 def widget_feed(db: Session, token: str) -> WidgetFeed:
@@ -31,9 +35,11 @@ def widget_feed(db: Session, token: str) -> WidgetFeed:
     today = bahrain_today()
     base = get_settings().web_base_url.rstrip("/")
     catalogue = list(db.scalars(select(Module).where(Module.hidden.is_(False))))
-    dates = home.dates_for(db, user, user.year, (), catalogue, today) if user.year is not None else []
-    events = [*_programme_today(dates, today, base), *_own_today(my_calendar.list_events(db, user), today, base)]
-    events = events[:MAX_EVENTS]
+    dates = home.dates_for(db, user, user.year, (), catalogue, today)
+    timed = [*_programme_today(dates, today, base), *_own_today(my_calendar.list_events(db, user), today, base)]
+    # The timed ones by their start, then the all-day ones (programme dates first): the order is stable.
+    timed.sort(key=lambda x: (x[0] is None, x[0] or dt.time()))
+    events = [e for _, e in timed][:MAX_EVENTS]
     return WidgetFeed(
         today=today,
         updated_at=utcnow(),
@@ -72,18 +78,28 @@ def _line(time: str | None, title: str) -> str:
     return f"{time} {title}" if time else title
 
 
-def _programme_today(dates: Sequence[CalendarEventOut], today: dt.date, base: str) -> list[WidgetEvent]:
-    """The programme dates on today (several-day ones included), in the calendar's order."""
+def _starts(time: str | None) -> dt.time | None:
+    """When a programme date's published time starts, or None (all day, or a time that isn't one)."""
+    m = STARTS_AT.match(time or "")
+    if m is None or int(m[1]) > 23 or int(m[2]) > 59:
+        return None
+    return dt.time(int(m[1]), int(m[2]))
+
+
+def _programme_today(
+    dates: Sequence[CalendarEventOut], today: dt.date, base: str
+) -> list[tuple[dt.time | None, WidgetEvent]]:
+    """The programme dates on today (several-day ones included), in the calendar's order, with when they start."""
     return [
-        WidgetEvent(title=e.title, time=e.time, text=_line(e.time, e.title), url=_event_url(base, e))
+        (_starts(e.time), WidgetEvent(title=e.title, time=e.time, text=_line(e.time, e.title), url=_event_url(base, e)))
         for e in dates
         if e.date <= today <= (e.end_date or e.date)
     ]
 
 
-def _own_today(events: Sequence[PersonalEvent], today: dt.date, base: str) -> list[WidgetEvent]:
-    """The student's own events on today (an occurrence that started earlier and runs over today included): all-day
-    ones first, then by time."""
+def _own_today(events: Sequence[PersonalEvent], today: dt.date, base: str) -> list[tuple[dt.time | None, WidgetEvent]]:
+    """The student's own events on today (an occurrence that started earlier and runs over today included), by title,
+    with when they start."""
     out: list[tuple[dt.time | None, WidgetEvent]] = []
     for e in events:
         span = (e.end_date - e.date).days if e.end_date else 0
@@ -93,30 +109,19 @@ def _own_today(events: Sequence[PersonalEvent], today: dt.date, base: str) -> li
         time = e.start_time.strftime("%H:%M") if e.start_time else None
         url = f"{base}{my_calendar.occurrence_url(e, day)}"
         out.append((e.start_time, WidgetEvent(title=e.title, time=time, text=_line(time, e.title), url=url)))
-    out.sort(key=lambda x: (x[0] is not None, x[0] or dt.time(), x[1].title))
-    return [w for _, w in out]
+    out.sort(key=lambda x: x[1].title)
+    return out
 
 
-def _position(c: int, lesson: Lesson, v: int, count: int) -> str:
-    """'Chapter 2, video 1 of 13' / 'Chapter 13, playlist' / 'Chapter 4' (one video): the web app's chapterPosition."""
-    if lesson.kind == "youtube-playlist":
-        return f"Chapter {c + 1}, playlist"
-    return f"Chapter {c + 1}, video {v + 1} of {count}" if count > 1 else f"Chapter {c + 1}"
-
-
-def _resume_at(m: Module, last_lesson: str, watched: set[str]) -> tuple[int, Chapter, int, Lesson] | None:
+def _resume_at(m: Module, last_lesson: str, watched: set[str]) -> tuple[Chapter, Lesson] | None:
     """Where to pick `m` up: the last lesson opened while it isn't watched, else the next one not watched after it
     (then from the start); None when every lesson is watched. The web app's computeResumePoint."""
-    lessons = [
-        (c, chapter, v, lesson)
-        for c, chapter in enumerate(visible_chapters(m))
-        for v, lesson in enumerate(visible_lessons(chapter))
-    ]
-    i = next((n for n, x in enumerate(lessons) if x[3].id == last_lesson), None)
-    if i is not None and lessons[i][3].id not in watched:
+    lessons = [(chapter, lesson) for chapter in visible_chapters(m) for lesson in visible_lessons(chapter)]
+    i = next((n for n, x in enumerate(lessons) if x[1].id == last_lesson), None)
+    if i is not None and lessons[i][1].id not in watched:
         return lessons[i]
     order = lessons[i + 1 :] + lessons[:i] if i is not None else lessons
-    return next((x for x in order if x[3].id not in watched), None)
+    return next((x for x in order if x[1].id not in watched), None)
 
 
 def _carry_on(db: Session, user: User, base: str) -> WidgetLesson | None:
@@ -131,12 +136,11 @@ def _carry_on(db: Session, user: User, base: str) -> WidgetLesson | None:
         at = _resume_at(m, row.lesson_id, watched)
         if at is None:
             continue
-        c, chapter, v, lesson = at
+        chapter, lesson = at
         name = m.unit_code or m.short_name
         return WidgetLesson(
             module=name,
             chapter=chapter.title,
-            position=_position(c, lesson, v, len(visible_lessons(chapter))),
             text=f"{name}: {chapter.title}",
             url=f"{base}/modules/{m.id}/lessons/{lesson.id}",
         )

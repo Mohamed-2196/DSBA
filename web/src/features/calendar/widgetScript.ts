@@ -17,6 +17,10 @@ const w = new ListWidget();
 w.backgroundColor = Color.dynamic(new Color("#ffffff"), new Color("#111e3e"));
 w.setPadding(14, 14, 14, 14);
 const small = config.widgetFamily === "small";
+// The Hub counts days in Bahrain (UTC+3, no summer time).
+const hubNow = new Date(Date.now() + 3 * 3600 * 1000);
+const hubToday = hubNow.toISOString().slice(0, 10);
+const toMidnight = 86400 * 1000 - (hubNow.getTime() % (86400 * 1000));
 
 function line(text, size, color, bold) {
   const t = w.addText(text);
@@ -27,16 +31,24 @@ function line(text, size, color, bold) {
 }
 
 function label(text) {
-  const t = line(text.toUpperCase(), 10, accent, true);
+  const t = line(text, 11, accent, true);
   t.lineLimit = 1;
+}
+
+function daysLeft(n) {
+  return n === 0 ? "Today" : n === 1 ? "Tomorrow" : n + " days";
 }
 
 async function load() {
   if (!link) return "Add your widget link as this widget's Parameter.";
+  if (link.includes("/feeds/calendar/")) return "That's your calendar link. Paste your widget link from the Hub.";
+  if (!link.includes("/feeds/widget/")) return "That isn't a widget link. Copy yours from the Hub.";
   try {
     const req = new Request(link);
     const data = await req.loadJSON();
-    if (req.response.statusCode !== 200) return "This link doesn't work any more. Copy your new one from the Hub.";
+    const status = req.response.statusCode;
+    if (status === 404) return "This link doesn't work any more. Copy your new one from the Hub.";
+    if (status !== 200) return "Couldn't reach the Hub. It tries again soon.";
     return data;
   } catch (e) {
     return "Couldn't reach the Hub. It tries again soon.";
@@ -50,13 +62,26 @@ if (typeof data === "string") {
   line(data, 13, ink, false);
 } else {
   w.url = data.url;
-  label("Next exam");
-  line(data.nextExam ? data.nextExam.text : "No exam in the next 4 months", small ? 14 : 15, ink, true);
-  w.addSpacer(8);
-  label("Today");
-  const today = data.todayEvents.slice(0, small ? 2 : 3);
-  if (today.length === 0) line(data.todayText, 13, soft, false);
-  for (const e of today) line(e.text, 13, soft, false);
+  if (data.today !== hubToday) {
+    label("DSBA Hub");
+    w.addSpacer(4);
+    line("Updating…", 13, soft, false);
+  } else {
+    label("Next exam");
+    if (!data.nextExam) line("No exam in the next 4 months", small ? 14 : 15, ink, true);
+    else if (small) {
+      line(daysLeft(data.nextExam.daysLeft), 28, ink, true).lineLimit = 1;
+      line(data.nextExam.title, 13, ink, false);
+    } else line(data.nextExam.text, 15, ink, true);
+    w.addSpacer(8);
+    label("Today");
+    const room = small ? 2 : 3;
+    const all = data.todayEvents;
+    const today = all.length > room ? all.slice(0, room - 1) : all;
+    if (all.length === 0) line(data.todayText, 13, soft, false);
+    for (const e of today) line(e.text, 13, soft, false);
+    if (all.length > today.length) line("+" + (all.length - today.length) + " more", 13, soft, false);
+  }
   if (!small && data.carryOn) {
     w.addSpacer(8);
     label("Carry on");
@@ -64,7 +89,8 @@ if (typeof data === "string") {
   }
 }
 w.addSpacer();
-w.refreshAfterDate = new Date(Date.now() + 30 * 60 * 1000);
+// Every 30 minutes, and just after midnight so "Today" and the days left move on. iOS treats it as a hint.
+w.refreshAfterDate = new Date(Date.now() + Math.min(30 * 60 * 1000, toMidnight + 60 * 1000));
 if (config.runsInWidget) Script.setWidget(w);
 else await w.presentMedium();
 Script.complete();

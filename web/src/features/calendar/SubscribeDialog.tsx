@@ -16,6 +16,8 @@ export interface SubscribeDialogProps {
   papers?: ReadonlySet<string> | null;
   /** signed in: their own calendar, as a private link, comes first */
   my?: MyCalendar;
+  /** opened from Add a widget: no line pointing back to it */
+  fromWidgets?: boolean;
   onClose: () => void;
 }
 
@@ -27,7 +29,7 @@ type Choice = 'mine' | 'all' | `${CohortYear}`;
  * what they hid, and their own events. The shared feeds (/api/v1/calendar/feed.ics, one cohort or every cohort)
  * hold programme dates only. A copy button, a webcal link for calendar apps and a one-off download.
  */
-export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDialogProps) {
+export function SubscribeDialog({ open, year, papers, my, fromWidgets = false, onClose }: SubscribeDialogProps) {
   const { resits } = usePapers();
   const copyLink = useCopyLink();
   const { push } = useToast();
@@ -197,9 +199,11 @@ export function SubscribeDialog({ open, year, papers, my, onClose }: SubscribeDi
         <p className="cal-subscribe__note">
           Each date’s notes say whether it’s confirmed, with its time and place once they’re published.
         </p>
-        <p className="cal-subscribe__note">
-          Want it on your home screen? <Link to="/calendar/widgets">Add a widget</Link>.
-        </p>
+        {fromWidgets ? null : (
+          <p className="cal-subscribe__note">
+            Want it on your home screen? <Link to="/calendar/widgets">Add a widget</Link>.
+          </p>
+        )}
       </div>
       <ConfirmDialog
         open={!!confirming}

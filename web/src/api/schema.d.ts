@@ -13604,8 +13604,6 @@ export interface components {
             module: string;
             /** Chapter */
             chapter: string;
-            /** Position */
-            position: string;
             /** Text */
             text: string;
             /** Url */

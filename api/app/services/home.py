@@ -54,7 +54,12 @@ def home(db: Session, user: User | None, year: int, picks: Collection[str]) -> H
 
 
 def dates_for(
-    db: Session, user: User | None, year: int, picks: Collection[str], catalogue: Sequence[Module], today: dt.date
+    db: Session,
+    user: User | None,
+    year: int | None,
+    picks: Collection[str],
+    catalogue: Sequence[Module],
+    today: dt.date,
 ) -> list[CalendarEventOut]:
     """The dates from today to DATES_AHEAD that count for the student (my_calendar.counts_for: a module's own year
     never has its resit; the next year and those resitting it do), less the hidden modules'."""

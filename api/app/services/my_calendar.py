@@ -358,7 +358,7 @@ def _prefs_for_update(db: Session, user: User) -> CalendarPrefs:
 FeedKind = Literal["calendar", "widget"]
 
 
-def feed_token(user_id: uuid.UUID, salt: str, kind: FeedKind = "calendar") -> str:
+def feed_token(user_id: uuid.UUID, salt: str, kind: FeedKind) -> str:
     """A private feed's secret: an HMAC of the account, the feed and its salt under the server's key, so the address
     can be shown again without being stored. 43 URL-safe characters (256 bits)."""
     key = get_settings().secret_key.get_secret_value().encode()
@@ -372,7 +372,7 @@ def _feed_hash(token: str) -> str:
 
 def feed_path(user_id: uuid.UUID, salt: str) -> str:
     """The private calendar feed's path under the API's origin."""
-    return f"/api/v1/feeds/calendar/{feed_token(user_id, salt)}.ics"
+    return f"/api/v1/feeds/calendar/{feed_token(user_id, salt, 'calendar')}.ics"
 
 
 def widget_path(user_id: uuid.UUID, salt: str) -> str:
@@ -416,7 +416,7 @@ def new_feed(db: Session, user: User) -> CalendarPrefs:
     """Turns the private feed on at a new address: the old address, if any, stops working."""
     prefs = _prefs_for_update(db, user)
     prefs.feed_salt = secrets.token_hex(16)
-    prefs.feed_hash = _feed_hash(feed_token(user.id, prefs.feed_salt))
+    prefs.feed_hash = _feed_hash(feed_token(user.id, prefs.feed_salt, "calendar"))
     prefs.updated_at = utcnow()
     return prefs
 
@@ -497,7 +497,7 @@ def counts_for(
     return year is None or e.year is None or e.year == year
 
 
-def owner_of_feed(db: Session, token: str, kind: FeedKind = "calendar") -> tuple[User, CalendarPrefs]:
+def owner_of_feed(db: Session, token: str, kind: FeedKind) -> tuple[User, CalendarPrefs]:
     """The account whose private feed of `kind` `token` opens, while the calendar is on for it; else 404 not_found
     (an old, wrong or switched-off address all look the same)."""
     gone = not_found(
@@ -635,7 +635,7 @@ def plan_of(db: Session, user: User) -> list[AgendaCard]:
 def private_feed(db: Session, token: str) -> str:
     """The private feed: the student's programme dates (their year, papers and resits, less what they hid), their own
     events, and their plan when they show it on their calendar. 404 not_found for an address that doesn't work."""
-    user, prefs = owner_of_feed(db, token)
+    user, prefs = owner_of_feed(db, token, "calendar")
     catalogue = db.scalars(select(Module)).all()
     papers = papers_of(user, catalogue, grades.choice_ids(db))
     modules = {m.id: m for m in catalogue}

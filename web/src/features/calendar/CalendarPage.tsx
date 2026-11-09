@@ -129,9 +129,6 @@ export default function CalendarPage() {
       >
         Subscribe
       </Button>
-      <Button leadingIcon={<Icon glyph={glyph.mobile} />} to="/calendar/widgets" data-hub="calendar-widgets">
-        Add a widget
-      </Button>
       {manages ? (
         <Button
           leadingIcon={<Icon glyph={glyph.plus} />}

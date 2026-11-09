@@ -1,8 +1,30 @@
-/* Add a widget (/calendar/widgets): numbered steps in two panels, the copy buttons beside what they copy. */
+/* Add a widget (/calendar/widgets): numbered steps in two panels, the copy buttons beside what they copy. The two
+   routes sit side by side once the page is wide enough for both; in one column the 14 px text sets the measure. */
+.widgets-page {
+  container-type: inline-size;
+}
+.widgets-page__routes {
+  display: grid;
+  gap: var(--sp-32);
+  align-items: start;
+}
+@container (min-width: 1100px) {
+  .widgets-page__routes {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@container (max-width: 1099.98px) {
+  .widgets-page__steps,
+  .widgets-page__note {
+    max-width: 68ch;
+  }
+}
 .widgets-page__panel {
   display: grid;
   gap: var(--sp-16);
-  max-width: 75ch;
+}
+.widgets-page__devices {
+  justify-self: start;
 }
 .widgets-page__steps {
   display: grid;
@@ -71,12 +93,39 @@
   color: var(--ink-2);
   font-size: var(--fs-14);
 }
-.widgets-page__panel a {
+.widgets-page__panel a:not(.ui-button) {
   color: var(--accent);
+}
+.widgets-page__script {
+  margin-top: var(--sp-8);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+}
+.widgets-page__script summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+.widgets-page__script textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: var(--sp-8);
+  padding: var(--sp-8);
+  border: 1px solid var(--line);
+  border-radius: var(--r-input);
+  background: var(--surface-2);
+  color: var(--ink);
+  font:
+    var(--fs-12) / 1.45 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  resize: vertical;
 }
 @media (pointer: coarse) {
   .widgets-page__manage .ui-button,
-  .widgets-page__formulas .ui-button {
+  .widgets-page__formulas .ui-button,
+  .widgets-page__action .ui-button {
     min-height: 44px;
   }
 }

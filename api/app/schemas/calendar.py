@@ -291,7 +291,6 @@ class WidgetEvent(ApiModel):
 class WidgetLesson(ApiModel):
     module: str  # its unit code, else its short name
     chapter: str
-    position: str  # 'Chapter 2, video 1 of 13', as the Hub's lesson list says it
     text: str  # 'EC1002: Supply and demand'
     url: str
 
@@ -303,6 +302,6 @@ class WidgetFeed(ApiModel):
     updated_at: datetime
     url: str  # the Hub
     next_exam: WidgetExam | None  # the next exam or mock on their calendar, within 120 days
-    today_events: list[WidgetEvent]  # their programme dates, then their own events, today (at most 8)
+    today_events: list[WidgetEvent]  # today's programme dates and own events: timed by start, then all-day (8 at most)
     today_text: str  # today_events' lines, one per line, or 'Nothing on today.'
     carry_on: WidgetLesson | None  # the lesson to pick up in the module opened last; None while they keep no progress
