@@ -1,7 +1,7 @@
 """Web push: the browsers that asked for notifications, and the pushes waiting for them
 
-Revision ID: 0063
-Revises: 0062
+Revision ID: 0064
+Revises: 0063
 Create Date: 2026-11-08 20:00:00
 
 One row per browser that turned on "Notifications on this device", tied to the signed-in session that did it (gone
@@ -17,8 +17,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0063"
-down_revision: str | None = "0062"
+revision: str = "0064"
+down_revision: str | None = "0063"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
