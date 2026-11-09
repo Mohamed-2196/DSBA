@@ -20,16 +20,20 @@ from __future__ import annotations
 
 import json
 import logging
+import signal
+import threading
 import uuid
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
 from functools import lru_cache
+from types import FrameType
 from typing import Any
 from urllib.parse import urlsplit
 
 import httpx
 from sqlalchemy import ColumnElement, and_, delete, func, insert, not_, select, update
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -40,7 +44,7 @@ from app.core.time import utcnow
 from app.models import Notification, OutboxStatus, PushOutbox, PushSubscription, User, UserSession
 from app.schemas.auth import ExportPushDevice
 from app.services import access, webpush
-from app.services.outbox import EMAIL_FEATURES, backoff
+from app.services.outbox import EMAIL_FEATURES, PURGE_EVERY, backoff
 
 log = logging.getLogger("dsba.push")
 
@@ -465,3 +469,51 @@ def drain(
         if http is None:
             client.close()
     return handled
+
+
+def run_worker(
+    sessions: Callable[[], AbstractContextManager[Session]],
+    *,
+    once: bool = False,
+    poll_seconds: float = 5.0,
+    stop: threading.Event | None = None,
+    http: httpx.Client | None = None,
+) -> int:
+    """The push worker (`python -m app.cli push-worker`): sends the queued pushes and purges old ones hourly, and
+    nothing else, so no email, reminder or summary goes out. For where pushes should go out but emails shouldn't
+    yet; where the mail worker runs it sends the pushes too, so the two never run in the same place. Waits
+    `poll_seconds` when nothing is due; SIGTERM and SIGINT stop it after the push in hand. With `once`, it stops
+    when nothing is due."""
+    stop = stop or threading.Event()
+
+    def _stop(signum: int, _frame: FrameType | None) -> None:
+        log.info("push worker stopping (signal %d)", signum)
+        stop.set()
+
+    if threading.current_thread() is threading.main_thread():
+        signal.signal(signal.SIGTERM, _stop)
+        signal.signal(signal.SIGINT, _stop)
+    if not configured():
+        log.warning("push worker: no VAPID key set, so nothing is sent (DSBA_VAPID_PRIVATE_KEY, DSBA_VAPID_SUBJECT)")
+    log.info("push worker started")
+    last_purge: datetime | None = None
+    while not stop.is_set():
+        try:
+            if last_purge is None or utcnow() - last_purge > PURGE_EVERY:
+                with sessions() as db:
+                    purged = purge(db)
+                if purged:
+                    log.info("purged %d old push(es)", purged)
+                last_purge = utcnow()
+            handled = drain(sessions, http=http)
+        except SQLAlchemyError:
+            log.exception("push worker: database error; trying again in %.0f s", poll_seconds)
+            handled = 0
+        if handled:
+            log.info("push worker handled %d push(es)", handled)
+            continue
+        if once:
+            break
+        stop.wait(poll_seconds)
+    log.info("push worker stopped")
+    return 0

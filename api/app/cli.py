@@ -16,6 +16,9 @@ setup-bucket       create the bucket if needed and set its CORS and lifecycle ru
 mail-worker        send the queued emails (notifications, account notices, Sunday summaries) with retries; runs
                    until stopped (--once: until nothing is due). Several can run side by side. On Sunday from
                    08:00 Bahrain time it queues the week's summaries itself
+push-worker        send only the queued pushes to phones and computers, with retries: no emails, reminders or
+                   summaries (for where those shouldn't go out yet; the mail worker sends pushes too, so never run
+                   both). Runs until stopped (--once: until nothing is due)
 weekly-summary     queue this week's Sunday summary now, for everyone who has it on and hasn't had it this week
                    (--preview YEAR: print that year's text and send nothing)
 import-drive       copy the files of the modules' Google Drive folders into the library: prints the plan, asks,
@@ -416,6 +419,14 @@ def cmd_mail_worker(args: argparse.Namespace) -> int:
     return run_worker(get_sessionmaker(), once=args.once, poll_seconds=args.poll)
 
 
+def cmd_push_worker(args: argparse.Namespace) -> int:
+    """Sends only the queued pushes until stopped (SIGTERM or Ctrl-C), or with --once until nothing is due."""
+    from app.services import push
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    return push.run_worker(get_sessionmaker(), once=args.once, poll_seconds=args.poll)
+
+
 def texts_worker() -> tuple[sessionmaker[Session], Storage]:
     """The text worker's database sessions and bucket, from its own settings: in production it is given only those
     (compose.prod.yaml), so the API's checks of everything else don't apply (config.texts_settings())."""
@@ -786,6 +797,10 @@ def main(argv: list[str] | None = None) -> int:
     mw.add_argument("--once", action="store_true", help="stop when nothing is due")
     mw.add_argument("--poll", type=float, default=5.0, help="seconds to wait when nothing is due (default 5)")
     mw.set_defaults(fn=cmd_mail_worker)
+    pw = sub.add_parser("push-worker")
+    pw.add_argument("--once", action="store_true", help="stop when nothing is due")
+    pw.add_argument("--poll", type=float, default=5.0, help="seconds to wait when nothing is due (default 5)")
+    pw.set_defaults(fn=cmd_push_worker)
     sub.add_parser("vapid-key").set_defaults(fn=cmd_vapid_key)
     ws = sub.add_parser("weekly-summary")
     ws.add_argument("--preview", type=int, choices=[1, 2, 3], default=None, metavar="YEAR", help="print, don't send")

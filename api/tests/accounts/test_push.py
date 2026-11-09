@@ -23,8 +23,9 @@ from pydantic import SecretStr
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
+from app import cli
 from app.core.time import utcnow
-from app.models import Notification, OutboxStatus, PushOutbox, PushSubscription, User
+from app.models import EmailOutbox, Notification, OutboxStatus, PushOutbox, PushSubscription, User
 from app.services import push
 from app.services.notify import notify, notify_all
 from app.services.webpush import b64encode, settings_problems
@@ -683,3 +684,45 @@ def test_the_export_lists_this_persons_browsers_without_their_addresses(
     assert device["service"] == "fcm.googleapis.com"
     assert set(device) == {"service", "createdAt", "lastSuccessAt"}
     assert browser.endpoint not in r.text
+
+
+# ── the push worker: pushes only, no emails ─────────────────────────────────────────────────────
+
+
+@pytest.mark.usefixtures("push_on")
+def test_the_push_worker_sends_the_pushes_and_leaves_the_emails_waiting(
+    client_for: ClientFor, make_user: MakeUser, db: Session, service: PushService
+) -> None:
+    """Where pushes go out but emails shouldn't yet (dev), the push worker runs instead of the mail worker: it sends
+    a notification's push, and the same notification's email stays queued, unsent."""
+    person, _, browser = _one_waiting(client_for, make_user, db)
+    emails = list(db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == person.id)))
+    assert [e.status for e in emails] == [OutboxStatus.pending]
+
+    @contextmanager
+    def _session() -> Iterator[Session]:
+        yield db
+
+    http = httpx.Client(transport=httpx.MockTransport(service.handler))
+    assert push.run_worker(_session, once=True, http=http) == 0
+    assert [str(r.url) for r in service.posted] == [browser.endpoint]
+    assert [r.status for r in _queued(db, person)] == [OutboxStatus.sent]
+    db.expire_all()
+    assert [e.status for e in db.scalars(select(EmailOutbox).where(EmailOutbox.user_id == person.id))] == [
+        OutboxStatus.pending
+    ]
+
+
+def test_the_push_worker_command(db: Session, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`python -m app.cli push-worker` runs push.run_worker with the app's sessions; --once and --poll pass through."""
+    seen: dict[str, Any] = {}
+
+    def fake(sessions: Any, *, once: bool, poll_seconds: float) -> int:
+        seen.update(sessions=sessions, once=once, poll=poll_seconds)
+        return 0
+
+    marker = object()
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: marker)
+    monkeypatch.setattr(push, "run_worker", fake)
+    assert cli.main(["push-worker", "--once", "--poll", "2"]) == 0
+    assert seen == {"sessions": marker, "once": True, "poll": 2.0}

@@ -75,7 +75,7 @@ api/                          Python backend
                               daily/ (plays, today, rules, content, editor, bundle, streaks, badges, sudoku_engine, games/)
   app/seed/                   the seed loader and the starting content (data/*.json; data/daily: the Daily themes
                               and the word game's guess list)
-  app/cli.py                  openapi, seed, set-role, backup, sweep, setup-bucket, mail-worker, weekly-summary,
+  app/cli.py                  openapi, seed, set-role, backup, sweep, setup-bucket, mail-worker, push-worker, weekly-summary,
                               import-drive, exam-meta, text-worker, extract-texts, report-answers, texts-role,
                               daily-content, tag-questions, export-question-tags, dev-login, enable-features (`python -m app.cli --help` says what each does)
   tests/conftest.py           shared harness (each run makes its own database)
@@ -318,6 +318,8 @@ Docker". Either way:
 - **The mail worker** (`python -m app.cli mail-worker`; Docker starts one) sends notification emails and pushes,
   queues the Sunday summaries at the time set in Manage → Sunday summary, and turns board cards' and personal
   events' reminders into notifications.
+- **The push worker** (`python -m app.cli push-worker`) sends only the queued pushes, for where emails shouldn't go out
+  yet (Railway dev); it runs instead of the mail worker, never beside it.
 - **The text worker:** `python -m app.cli text-worker` reads the words and makes the cover of each published PDF and
   Word file, for search inside papers. `extract-texts` does the files already there.
 - **Mini Noora AI:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` (default: `claude-haiku-5-5`) power

@@ -457,15 +457,19 @@ to the Home Screen (iOS 16.4 or later). To turn it on:
    it secret, and never make a new one for a running hub: browsers subscribed with the old key's public half, so a
    new key stops every device's notifications until each student turns them on again.
 2. Set `DSBA_VAPID_PRIVATE_KEY` and `DSBA_VAPID_SUBJECT` (`mailto:` an address you read, or the hub's `https://`
-   address: the push services write there if the hub misbehaves) on the API and on the `mail` worker, which sends
-   them. On Railway, set both on the API service and on a service running `python -m app.cli mail-worker` from the
-   API's image: the dev environment has no such service yet (web, api and Postgres only), so nothing queued there,
-   pushes or emails, is sent until one is added.
+   address: the push services write there if the hub misbehaves) on the API and on the worker that sends them:
+   - the `mail` worker (`python -m app.cli mail-worker`), which sends the emails, reminders and summaries too; or
+   - where pushes should go out but emails shouldn't yet, a push worker instead (`python -m app.cli push-worker`,
+     the API's image): it sends only the pushes, and the emails stay queued, unsent. Never run both: the mail
+     worker sends the pushes as well.
+
+   The Railway dev environment runs the push worker as its `push-worker` service, and no mail worker, so dev sends
+   notifications to devices and no emails.
 3. Turn on `push` in Access ("Notifications on phones and computers"); it arrives off, for admins too.
 
 Each device's subscription belongs to the signed-in session that made it: signing out (or out of every device)
-stops that device's notifications. A push waits in `push_outbox` and the mail worker sends it with retries, as the
-emails; a device its push service no longer knows (404, 410) is forgotten. Turning `push` off drops what waits and
+stops that device's notifications. A push waits in `push_outbox` and the mail worker (or the push worker) sends it with
+retries, as the emails; a device its push service no longer knows (404, 410) is forgotten. Turning `push` off drops what waits and
 keeps the devices.
 
 **Bug reports.** Anyone, guests included, can send one ("Report a bug" in the account menu, the More drawer, the
