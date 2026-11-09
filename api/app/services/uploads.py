@@ -16,6 +16,7 @@ from __future__ import annotations
 import re
 import unicodedata
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import timedelta
 
@@ -371,8 +372,15 @@ def require_box(user: User, purpose: UploadPurpose) -> None:
         access.require(user, box)
 
 
-def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Storage | None = None) -> UploadOut:
-    """Checks what arrived and moves it to its final key. The caller commits.
+def complete_upload(
+    db: Session,
+    user: User,
+    upload_id: uuid.UUID,
+    storage: Storage | None = None,
+    then: Callable[[Upload], None] | None = None,
+) -> UploadOut:
+    """Checks what arrived and moves it to its final key, then calls `then` with it (only the call that completed it,
+    under the row's lock: the forum's automatic check queues it). The caller commits.
 
     The row is locked until the transaction ends, so parallel calls for one upload run one after the other: the
     second waits, then sees the stored result instead of copying the file again (SEC-49)."""
@@ -414,6 +422,8 @@ def complete_upload(db: Session, user: User, upload_id: uuid.UUID, storage: Stor
     up.size_bytes = stored.size
     up.status = UploadStatus.uploaded
     up.completed_at = utcnow()
+    if then is not None:
+        then(up)
     return to_out(up)
 
 

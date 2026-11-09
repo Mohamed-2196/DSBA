@@ -98,6 +98,7 @@ def summary_dict(
     viewer: User | None,
     image: dict[str, str] | None,
     unread: bool,
+    held: bool = False,
 ) -> dict[str, Any]:
     text = _text(t)
     return {
@@ -124,6 +125,7 @@ def summary_dict(
         "image": image,
         "is_mine": viewer is not None and t.author_id == viewer.id,
         "unread": unread,
+        "held_by_check": held,
     }
 
 
@@ -132,8 +134,11 @@ def summaries(db: Session, rows: Sequence[Row[Any]], viewer: User | None) -> lis
     threads = [row[0] for row in rows]
     images = first_pictures(db, threads, viewer)
     unread = unread_threads(db, viewer, [t.id for t in threads])
+    held = held_by_check(db, [t.id for t in threads if t.status == PostStatus.hidden])
     return [
-        ThreadSummary.model_validate(summary_dict(t, author, year, bool(voted), viewer, images[t.id], t.id in unread))
+        ThreadSummary.model_validate(
+            summary_dict(t, author, year, bool(voted), viewer, images[t.id], t.id in unread, t.id in held)
+        )
         for t, author, year, voted in rows
     ]
 
@@ -254,7 +259,7 @@ def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDet
     held = held_by_check(db, hidden)
     image = first_pictures(db, [t], viewer)[t.id]
     unread = t.id in unread_threads(db, viewer, [t.id])
-    data = summary_dict(t, author, thread_year(db, t), voted, viewer, image, unread)
+    data = summary_dict(t, author, thread_year(db, t), voted, viewer, image, unread, t.id in held)
     data.update(
         body=_text(t),
         edited_at=t.edited_at,
@@ -264,7 +269,6 @@ def thread_detail(db: Session, t: ForumThread, viewer: User | None) -> ThreadDet
         can_accept=(mine or mod) and t.status == PostStatus.visible,
         can_moderate=mod,
         following=follows.level_of(db, t, viewer),
-        held_by_check=t.id in held,
         held_images=held_images(db, [_text(t), *(r.body for r, _ in rows)], viewer),
     )
     return ThreadDetail.model_validate(data)

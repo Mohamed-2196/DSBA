@@ -11,6 +11,7 @@ import { VoteButton } from './VoteButton';
 import {
   AnsweredBadge,
   AuthorFlair,
+  HiddenBadge,
   HighlightedText,
   ModuleChip,
   PlaceBadge,
@@ -91,11 +92,7 @@ export function ThreadRow({
               Locked
             </Badge>
           ) : null}
-          {hidden ? (
-            <Badge tone="alert" size="sm" icon={<Icon glyph={glyph.eyeOff} />}>
-              Hidden
-            </Badge>
-          ) : null}
+          {hidden ? <HiddenBadge held={thread.heldByCheck} size="sm" /> : null}
           {deleted ? (
             <Badge tone="outline" size="sm">
               Deleted

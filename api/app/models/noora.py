@@ -7,7 +7,7 @@ import datetime as dt
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, CheckConstraint, Date, ForeignKey, Index, Integer, SmallInteger
+from sqlalchemy import BigInteger, CheckConstraint, Date, ForeignKey, Index, Integer, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, uuid_pk
@@ -55,3 +55,5 @@ class NooraUsage(Base):
     cost_microusd: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")  # millionths of a dollar
     last_asked_at: Mapped[datetime | None]
     answering_since: Mapped[datetime | None]  # an answer is streaming to the student (cleared when it ends)
+    # a row without a person: what the hub paid for ('forum_check', 'paper_tagging'; ask.record_cost)
+    source: Mapped[str | None] = mapped_column(String(20))

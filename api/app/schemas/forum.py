@@ -110,6 +110,7 @@ class ThreadSummary(ApiModel):
     image: PostImage | None  # the first picture in the post, shown as a thumbnail
     is_mine: bool
     unread: bool  # the signed-in user has unread notifications about it (a reply, an answer); false for guests
+    held_by_check: bool  # hidden by the automatic check until a student rep looks (status 'hidden')
 
 
 class ThreadPage(Page[ThreadSummary]):
@@ -165,7 +166,6 @@ class ThreadDetail(ThreadSummary):
     can_accept: bool
     can_moderate: bool
     following: FollowLevel  # the signed-in person's follow ('off' for guests and when following is switched off)
-    held_by_check: bool  # hidden by the automatic check until a student rep looks (status 'hidden')
     held_images: list[HeldImage]  # pictures in the thread and the replies listed that the automatic check holds
 
 

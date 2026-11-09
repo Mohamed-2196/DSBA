@@ -30,6 +30,9 @@ describe('reports from the Hub', () => {
     expect(hubDecision(report({ targetType: 'image' }))?.resolve.label).toBe('Remove picture');
     expect(hubDecision(report({ targetType: 'image' }))?.dismiss.label).toBe('Show to everyone');
     expect(hubDecision(report({}))?.resolve.label).toBe('Keep hidden');
+    expect(hubDecision(report({}))?.dismiss.label).toBe('Show to everyone');
+    // a post a rep hid, that the check only couldn't read: closing it leaves the rep's hide alone
+    expect(hubDecision(report({ reason: 'hub_unchecked' }))?.dismiss.label).toBe('Close report');
     expect(hubDecision(report({ targetStatus: 'visible', reason: 'hub_unchecked' }))?.resolve.label).toBe('Hide it');
     expect(hubDecision(report({ fromHub: false }))).toBeNull();
   });

@@ -178,7 +178,6 @@ class ContentCheck(Base):
     __table_args__ = (
         Index("uq_content_checks_target", "target_type", "target_id", unique=True),
         Index("ix_content_checks_status_queued", "status", "queued_at"),
-        Index("ix_content_checks_finished", "finished_at"),  # today's spend
         check_in("target_type", ["image", "thread", "reply"]),
         check_in("status", [s.value for s in CheckStatus]),
         check_in("verdict", [v.value for v in CheckVerdict]),
@@ -197,3 +196,6 @@ class ContentCheck(Base):
     queued_at: Mapped[datetime] = created_ts()
     started_at: Mapped[datetime | None]
     finished_at: Mapped[datetime | None]
+    # checks.RECHECKS_PER_HOUR: when the current hour of checks began, and how many Claude was asked for in it
+    recent_since: Mapped[datetime | None]
+    recent_runs: Mapped[int] = mapped_column(Integer, default=0, server_default="0")

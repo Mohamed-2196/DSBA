@@ -1,11 +1,13 @@
 """the forum's automatic check
 
-Revision ID: 0062
-Revises: 0061
-Create Date: 2026-11-08 12:00:00
+Revision ID: 0063
+Revises: 0062
+Create Date: 2026-11-09 10:00:00
 
 - `content_checks`: Claude's check of each new forum picture, thread and reply (app/services/forum/checks.py): one row
-  per target, with its verdict, category, short reason and cost.
+  per target, with its verdict, category, short reason and cost, and how often it was checked in the last hour.
+- `noora_usage.source`: what a row without a person paid for ('forum_check', 'paper_tagging'), so the check's daily
+  cap counts every request it made today.
 - `uploads.check_state`: a forum picture the check holds ('checking', 'held' or 'removed').
 - `reports`: the Hub reports forum pictures (target 'image') and has two reasons of its own ('hub_flagged',
   'hub_unchecked'), with no reporter.
@@ -20,8 +22,8 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "0062"
-down_revision: str | None = "0061"
+revision: str = "0063"
+down_revision: str | None = "0062"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -46,6 +48,8 @@ def upgrade() -> None:
         sa.Column("queued_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("started_at", sa.DateTime(timezone=True)),
         sa.Column("finished_at", sa.DateTime(timezone=True)),
+        sa.Column("recent_since", sa.DateTime(timezone=True)),
+        sa.Column("recent_runs", sa.Integer(), server_default="0", nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_content_checks")),
         sa.CheckConstraint("target_type IN ('image', 'thread', 'reply')", name=op.f("ck_content_checks_target_type")),
         sa.CheckConstraint("status IN ('queued', 'working', 'done')", name=op.f("ck_content_checks_status")),
@@ -53,7 +57,7 @@ def upgrade() -> None:
     )
     op.create_index("uq_content_checks_target", "content_checks", ["target_type", "target_id"], unique=True)
     op.create_index("ix_content_checks_status_queued", "content_checks", ["status", "queued_at"])
-    op.create_index("ix_content_checks_finished", "content_checks", ["finished_at"])
+    op.add_column("noora_usage", sa.Column("source", sa.String(20)))
 
     op.add_column("uploads", sa.Column("check_state", sa.String(10)))
 
@@ -81,7 +85,7 @@ def downgrade() -> None:
     op.drop_constraint(op.f("ck_reports_target_type"), "reports", type_="check")
     op.create_check_constraint(op.f("ck_reports_target_type"), "reports", f"target_type IN ({TARGETS})")
     op.drop_column("uploads", "check_state")
-    op.drop_index("ix_content_checks_finished", table_name="content_checks")
+    op.drop_column("noora_usage", "source")
     op.drop_index("ix_content_checks_status_queued", table_name="content_checks")
     op.drop_index("uq_content_checks_target", table_name="content_checks")
     op.drop_table("content_checks")

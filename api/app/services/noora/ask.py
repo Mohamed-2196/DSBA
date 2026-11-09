@@ -207,10 +207,11 @@ def cost_microusd(u: Usage, s: Settings) -> int:
     return math.ceil(total)
 
 
-def record_cost(db: Session, u: Usage, s: Settings) -> int:
+def record_cost(db: Session, u: Usage, s: Settings, source: str) -> int:
     """Counts a request made for the hub rather than a student (tagging a paper, checking a forum post) toward the
-    monthly budget: a row of noora_usage without a person or questions, which Noora's numbers leave out. Returns its
-    cost in micro-dollars. The caller commits."""
+    monthly budget: a row of noora_usage without a person or questions, which Noora's numbers leave out, tagged with
+    what it paid for (`source`: 'forum_check', 'paper_tagging'). Returns its cost in micro-dollars. The caller
+    commits."""
     cost = cost_microusd(u, s)
     db.add(
         NooraUsage(
@@ -222,6 +223,7 @@ def record_cost(db: Session, u: Usage, s: Settings) -> int:
             cache_read_tokens=u.cache_read_input_tokens or 0,
             cache_write_tokens=u.cache_creation_input_tokens or 0,
             cost_microusd=cost,
+            source=source,
         )
     )
     return cost

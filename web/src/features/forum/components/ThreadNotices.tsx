@@ -18,22 +18,28 @@ export interface HiddenBannerProps {
 /** Above a hidden thread: for the reps, what it means and Unhide; for its author, that a rep hid it (decision D3). */
 export function HiddenBanner({ thread, onUnhide, unhiding }: HiddenBannerProps) {
   if (thread.status !== 'hidden') return null;
+  if (readOnlyFor(thread) && thread.heldByCheck) {
+    // held, not judged: the plain notice, not the red of a rep's decision (design check COM-202)
+    return (
+      <div className="forum-notice" role="note" data-hub="thread-hidden-note">
+        <Icon glyph={glyph.clock} className="forum-notice__icon" />
+        <span className="forum-notice__text">
+          <strong>Waiting for a student rep.</strong> The Hub’s automatic check hid this thread until a rep looks at it.
+          Until then only you and the reps can see it, and it can’t take replies or votes. You’ll get a notification
+          when they decide.
+        </span>
+      </div>
+    );
+  }
   if (readOnlyFor(thread)) {
     return (
       <div className="forum-notice is-alert" role="note" data-hub="thread-hidden-note">
         <Icon glyph={glyph.eyeOff} className="forum-notice__icon" />
-        {thread.heldByCheck ? (
-          <span className="forum-notice__text">
-            <strong>The Hub’s automatic check hid this thread.</strong> Only you and the student reps can see it until a
-            rep looks at it, and it can’t take replies or votes meanwhile.
-          </span>
-        ) : (
-          <span className="forum-notice__text">
-            <strong>A student rep hid this thread.</strong> Only you and the student reps can see it, and it can’t take
-            replies or votes. If the rep gave a reason, it’s in your notifications. Contact a student rep if you think
-            this is a mistake.
-          </span>
-        )}
+        <span className="forum-notice__text">
+          <strong>A student rep hid this thread.</strong> Only you and the student reps can see it, and it can’t take
+          replies or votes. If the rep gave a reason, it’s in your notifications. Contact a student rep if you think
+          this is a mistake.
+        </span>
       </div>
     );
   }

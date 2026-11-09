@@ -129,7 +129,6 @@ export function ReportCard({
           ) : null}
           {/* Who reported is only shown to admins: student reps are classmates. */}
           {report.reporter ? <span>Reported by {authorName(report.reporter)}</span> : null}
-          {report.fromHub ? <span>From the Hub’s automatic check</span> : null}
         </div>
         {report.note ? (
           <blockquote className="forum-reports__note" dir="auto">

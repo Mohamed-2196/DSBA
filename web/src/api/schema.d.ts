@@ -12717,6 +12717,8 @@ export interface components {
             isMine: boolean;
             /** Unread */
             unread: boolean;
+            /** Heldbycheck */
+            heldByCheck: boolean;
             /** Body */
             body: string;
             /** Editedat */
@@ -12736,8 +12738,6 @@ export interface components {
              * @enum {string}
              */
             following: "answers" | "replies" | "off";
-            /** Heldbycheck */
-            heldByCheck: boolean;
             /** Heldimages */
             heldImages: components["schemas"]["HeldImage"][];
         };
@@ -12821,6 +12821,8 @@ export interface components {
             isMine: boolean;
             /** Unread */
             unread: boolean;
+            /** Heldbycheck */
+            heldByCheck: boolean;
         };
         /** ThreadUpdate */
         ThreadUpdate: {

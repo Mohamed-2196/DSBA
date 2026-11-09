@@ -1,7 +1,7 @@
 import type { Reply } from '../../../api/types';
-import { Badge, CohortBadge, Icon, glyph, timeAgo } from '../../../ui';
+import { Badge, CohortBadge, timeAgo } from '../../../ui';
 import { postAuthorName, postYear, roleFlair } from '../lib/authors';
-import { AnsweredBadge, AuthorFlair } from './ThreadBits';
+import { AnsweredBadge, AuthorFlair, HiddenBadge } from './ThreadBits';
 
 export interface ReplyBylineProps {
   reply: Reply;
@@ -50,11 +50,7 @@ export function ReplyByline({ reply, isOp, accepted, fresh, gone }: ReplyBylineP
           New
         </Badge>
       ) : null}
-      {reply.status === 'hidden' ? (
-        <Badge tone="alert" size="sm" icon={<Icon glyph={glyph.eyeOff} />}>
-          Hidden
-        </Badge>
-      ) : null}
+      {reply.status === 'hidden' ? <HiddenBadge held={reply.heldByCheck} size="sm" /> : null}
       {accepted ? (
         <span className="forum-reply__accepted">
           <AnsweredBadge label="Accepted answer" />

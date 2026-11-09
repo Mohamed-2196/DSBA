@@ -216,7 +216,7 @@ def run_one(db: Session, connect: Connect = qt.connect, settings: Settings | Non
         log.warning("tagging %s (%s): %s", item.title, item.id, job.reason)
         return True
 
-    job.cost_microusd += ask.record_cost(db, message.usage, s)
+    job.cost_microusd += ask.record_cost(db, message.usage, s, "paper_tagging")
     job.model = message.model[:40]
     try:
         tags = qt.tags_from_message(message, paper)

@@ -53774,6 +53774,10 @@
             "type": "boolean",
             "title": "Unread"
           },
+          "heldByCheck": {
+            "type": "boolean",
+            "title": "Heldbycheck"
+          },
           "body": {
             "type": "string",
             "title": "Body"
@@ -53830,10 +53834,6 @@
             ],
             "title": "Following"
           },
-          "heldByCheck": {
-            "type": "boolean",
-            "title": "Heldbycheck"
-          },
           "heldImages": {
             "items": {
               "$ref": "#/components/schemas/HeldImage"
@@ -53867,6 +53867,7 @@
           "image",
           "isMine",
           "unread",
+          "heldByCheck",
           "body",
           "editedAt",
           "acceptedReplyId",
@@ -53875,7 +53876,6 @@
           "canAccept",
           "canModerate",
           "following",
-          "heldByCheck",
           "heldImages"
         ],
         "title": "ThreadDetail"
@@ -54113,6 +54113,10 @@
           "unread": {
             "type": "boolean",
             "title": "Unread"
+          },
+          "heldByCheck": {
+            "type": "boolean",
+            "title": "Heldbycheck"
           }
         },
         "type": "object",
@@ -54139,7 +54143,8 @@
           "status",
           "image",
           "isMine",
-          "unread"
+          "unread",
+          "heldByCheck"
         ],
         "title": "ThreadSummary"
       },

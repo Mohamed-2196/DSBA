@@ -86,6 +86,22 @@ export function AnsweredBadge({ label = 'Answered' }: { label?: string }) {
   );
 }
 
+/**
+ * A hidden thread or reply's pill: "Waiting for a rep" (outline, a clock) while the Hub's automatic check holds it
+ * until a student rep looks, so it doesn't read as a rep's decision; "Hidden" (red) once a rep hid it.
+ */
+export function HiddenBadge({ held, size }: { held: boolean; size?: 'sm' }) {
+  return held ? (
+    <Badge tone="outline" size={size} icon={<Icon glyph={glyph.clock} />}>
+      Waiting for a rep
+    </Badge>
+  ) : (
+    <Badge tone="alert" size={size} icon={<Icon glyph={glyph.eyeOff} />}>
+      Hidden
+    </Badge>
+  );
+}
+
 /** 'Student rep' (moderators) or 'Admin' as a small neutral pill. It goes where a year badge would go, and replaces it. */
 export function AuthorFlair({
   author,

@@ -25,6 +25,7 @@ DEV_EMAIL_FROM = "DSBA Hub <no-reply@dsba-hub.local>"
 HOST_PREFIX = "__Host-"  # a cookie only its own host can set: Secure, Path=/ and no Domain
 MIN_SECRET_LENGTH = 32
 MAX_SESSION_DAYS = 30
+FORUM_CHECK_MAX_TIMEOUT_SECONDS = 90  # a forum check's request (app/services/forum/checks.py STALE)
 SMTPS_PORT = 465  # SMTP with TLS from the start (no STARTTLS)
 # Limits production keeps at their defaults or lower, unless DSBA_ALLOW_RAISED_LIMITS says otherwise.
 # What `private_ranges` means in DSBA_TRUSTED_PROXIES: Caddy's own list for the same word.
@@ -186,7 +187,8 @@ class Settings(BaseSettings):
     # monthly budget above, and the check also stops for the day at forum_check_daily_cents (US cents, Bahrain day).
     forum_check_model: str = "claude-haiku-5-5"
     forum_check_daily_cents: int = Field(default=50, ge=0)
-    forum_check_timeout_seconds: float = Field(default=30.0, gt=0, le=300)
+    # at most FORUM_CHECK_MAX_TIMEOUT_SECONDS: three tries must end before checks.STALE queues the check again
+    forum_check_timeout_seconds: float = Field(default=30.0, gt=0, le=FORUM_CHECK_MAX_TIMEOUT_SECONDS)
 
     # The commit this API runs (`commit`), which /health reports so a deploy can be checked against the push that made
     # it: DSBA_COMMIT_SHA, else the RAILWAY_GIT_COMMIT_SHA Railway sets for a deploy from GitHub. Anything but a

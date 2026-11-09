@@ -529,32 +529,42 @@ re-chains them at merge.
   `forum.auto-check`, stored off). With the switch on, Claude Haiku 5.5 checks each new forum picture before anyone but
   its uploader and the moderators sees it, and each thread and reply just after it is posted or edited, so typing
   never waits. Moderators' own pictures and posts aren't checked. The check runs as a background task in the API
-  right after the request; the mail worker also runs any still due (a run that died is retried, up to 3 times).
+  right after the request (one check per request, and at most 2 requests running one at once, so a slow Anthropic
+  can't take the thread pool every plain endpoint shares); the mail worker runs the rest and any still due (a run
+  that died is retried, up to 3 times). A request's timeout is at most 90 seconds, so three tries end before a run
+  counts as dead (5½ minutes).
   - **Sent to Anthropic:** the rules (`checks.SYSTEM`), and either the picture (each frame, up to 4 of an animated
     GIF, shrunk to 1568 pixels a side and re-encoded as JPEG, so its metadata stays behind) or the post's text (a
-    thread's title and body, a reply's body; picture links in it are `/api/v1/media/<upload id>`). Never the
+    thread's title and body, a reply's body, with `<`, `>` and `&` escaped so it can't close the prompt's tags;
+    picture links in it are `/api/v1/media/<upload id>`). A picture over 40 million pixels (or its frames together
+    over 160 million) isn't decoded at all: it counts as "couldn't be checked". Never the
     author's name, email or account id, the file's name, or the thread's other posts.
   - **Its answer:** a fixed JSON shape, `{verdict: clear | flag, category, reason}`; categories `sexual`,
     `violence`, `self_harm`, `harassment`, `personal_data`, `exam_leak`, `other`.
   - **Stored:** a `content_checks` row per picture, thread or reply: verdict, category, Claude's short reason (300
     characters at most), the model, the cost and the times. The reason is also the note of the Hub's report. The
-    request's tokens count toward Claude's monthly budget (`noora_usage`, without a person). Neither the picture
+    request's tokens count toward Claude's monthly budget (`noora_usage`, without a person, `source = 'forum_check'`;
+    the daily cap adds up these rows, so every request counts, a run an edit replaced too). Neither the picture
     nor the text is copied anywhere.
   - **Logged:** the target's type and id, the verdict and the category. Never the text, the picture or the reason.
   - **Flagged:** a picture stays hidden (`uploads.check_state = 'held'`); a post is hidden (status `hidden`). Either way
     the author is told in a notification, and a report from the Hub (no reporter, reason `hub_flagged`) goes to
-    Reports. A moderator closing it decides: dismissed shows it again, resolved removes the picture (its uploader
-    is told) or keeps the post hidden. Claude's safeguards declining to read it (stop reason `refusal`) counts as
+    Reports. A moderator closing it decides, and the author is told how it ended: dismissed shows the picture, or the
+    post when the check was the last to hide it ("Your thread is back up"); a post a rep hid since stays hidden.
+    Resolved removes the picture or keeps the post hidden, with the rep's note as the reason. A post its author
+    deleted is left as it is and the report just closes. Claude's safeguards declining to read it (stop reason `refusal`) counts as
     flagged: the decline is itself a sign of what it holds.
   - **The check fails** (no API key, the daily cap `DSBA_FORUM_CHECK_DAILY_CENTS` or the monthly budget reached, a
     timeout after `DSBA_FORUM_CHECK_TIMEOUT_SECONDS` and two retries, an API error, an answer cut off or not the
     JSON, a picture that can't be read): a picture **stays hidden** (fail closed: a picture can't be unseen) and its
     uploader is told; a post **stays up** (fail open: an outage mustn't hide the forum). Either way the Hub reports
-    it as "couldn't be checked" (`hub_unchecked`), so a moderator looks.
+    it as "couldn't be checked" (`hub_unchecked`), so a moderator looks. Dismissing that report only closes it: the
+    check never hid the post, so there is nothing to undo.
   - **Edits:** an edit queues the post's check again; one landing while Claude reads the older text makes that run
-    stand down (its cost still counts), so the newest text is what decides. Known gap: edits have no rate limit, so
-    one account editing a post hundreds of times can use up the day's cap; the cap bounds the cost, and after it
-    every post still goes to Reports as "couldn't be checked".
+    stand down (its cost still counts), so the newest text is what decides. A post is sent to Claude at most 5 times
+    an hour (`checks.RECHECKS_PER_HOUR`); edits past that aren't sent, and the post goes to Reports as "couldn't be
+    checked", so one account can't spend the day's cap or Noora's monthly budget by editing. A clear check after an
+    edit closes the post's open report from the Hub.
   - **Privacy notice line:** "Pictures and posts in the forum are checked by an outside service, Anthropic (the
     maker of Claude), for content against the forum's rules. It sees the picture or the text only, never your name
     or account."

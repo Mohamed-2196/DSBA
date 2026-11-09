@@ -3,7 +3,7 @@ import type { ThreadDetail } from '../../../api/types';
 import { Badge, Icon, PageHeader, glyph, timeAgo } from '../../../ui';
 import { useModules } from '../../../state/modules';
 import { useTaxonomy } from '../lib/taxonomy';
-import { AnsweredBadge, ModuleChip, TagBadges } from './ThreadBits';
+import { AnsweredBadge, HiddenBadge, ModuleChip, TagBadges } from './ThreadBits';
 
 /** The thread page's breadcrumb (also while it loads): back to the forum, then the thread's category and module. */
 export function ThreadCrumbs({
@@ -71,11 +71,7 @@ export function ThreadHeader({ thread, unavailable = false }: { thread: ThreadDe
                 Locked
               </Badge>
             ) : null}
-            {thread.status === 'hidden' ? (
-              <Badge tone="alert" icon={<Icon glyph={glyph.eyeOff} />}>
-                Hidden
-              </Badge>
-            ) : null}
+            {thread.status === 'hidden' ? <HiddenBadge held={thread.heldByCheck} /> : null}
             {deleted ? <Badge tone="outline">Deleted</Badge> : null}
             <ModuleChip module={module} />
             <TagBadges tags={thread.tags} />

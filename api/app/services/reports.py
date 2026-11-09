@@ -370,7 +370,7 @@ def resolve_report(db: Session, user: User, report_id: uuid.UUID, data: ReportRe
     for key, value in values.items():
         set_committed_value(report, key, value)
     if checks.from_hub(report):  # closing the Hub's report decides: dismissed shows it, resolved removes it
-        checks.decide(db, user, report, report.status == ReportStatus.dismissed, ip)
+        checks.decide(db, user, report, report.status == ReportStatus.dismissed, ip, note or None)
     target = _targets(db, [(report.target_type, report.target_id)]).get((report.target_type, report.target_id))
     if report.reporter_id is not None:
         what = _TARGET_WORDS.get(report.target_type, "the post")
