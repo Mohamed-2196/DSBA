@@ -1,8 +1,8 @@
 """AI apps: the MCP server's clients, students' connections, codes, tokens and call times; the switch stored off
 
-Revision ID: 0062
-Revises: 0061
-Create Date: 2026-11-08 20:00:00
+Revision ID: 0063
+Revises: 0062
+Create Date: 2026-11-09 13:00:00
 
 The mcp switch is stored off on every install: admins see the feature (and can try it), students don't until an
 admin switches it on in Manage, Access.
@@ -16,8 +16,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0062"
-down_revision: str | None = "0061"
+revision: str = "0063"
+down_revision: str | None = "0062"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

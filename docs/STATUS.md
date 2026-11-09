@@ -28,7 +28,7 @@ order Study, Assignment, Personal, Blank, Weekly planner; the New board dialog s
 AI apps (Claude first) can read the Hub as a signed-in student through its MCP server at `/api/mcp`: search, a
 file's pages, a quoted page with its citation, a tagged question and the modules, all read-only, each linking back
 to the Hub. Students connect an app on `/connect-ai` and remove it in Your account. The `mcp` switch is stored off
-(migration 0062), so only admins see it until it's switched on. See the README's "AI apps (MCP)".
+(migration 0063), so only admins see it until it's switched on. See the README's "AI apps (MCP)".
 
 - **Rounds 1 to 4.** The API and the web app for accounts, the forum, the library on S3, the newsletter, the
   calendar, Career Navigator, search, notifications and Manage; roles and feature switches (R-1, R-10), notes,
