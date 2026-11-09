@@ -663,7 +663,7 @@ def test_a_run_an_edit_replaced_still_counts_toward_the_daily_cap(
     assert check_of(db, thread["id"]).cost_microusd == sum(r.cost_microusd for r in rows)
 
 
-def test_a_post_edited_too_often_waits_in_reports_without_asking_claude(
+def test_a_post_edited_too_often_is_held_for_a_rep_without_asking_claude(
     harness: Harness, client_for: Clients, student: User, db: Session
 ) -> None:
     me = client_for(student)
@@ -673,9 +673,13 @@ def test_a_post_edited_too_often_waits_in_reports_without_asking_claude(
     assert len(harness.stub.sent) == checks.RECHECKS_PER_HOUR
     me.patch(f"{API}/forum/threads/{thread['id']}", json={"body": "One edit too many"})
     assert len(harness.stub.sent) == checks.RECHECKS_PER_HOUR
-    assert thread_row(db, thread["id"]).status == PostStatus.visible  # fail open, as for any post not checked
-    assert check_of(db, thread["id"]).verdict == "unchecked"
-    assert [r.reason for r in hub_reports(db)] == ["hub_unchecked"]
+    # fail closed: harmless edits mustn't buy an unchecked one a place in the forum
+    assert thread_row(db, thread["id"]).status == PostStatus.hidden
+    job = check_of(db, thread["id"])
+    assert (job.verdict, job.category) == ("flagged", "edits")
+    [report] = hub_reports(db)
+    assert report.reason == "hub_flagged"
+    assert (report.note or "").startswith("Edited too often to check: ")
 
 
 @pytest.mark.filterwarnings("ignore::PIL.Image.DecompressionBombWarning")  # Image.open() warns; nothing is decoded

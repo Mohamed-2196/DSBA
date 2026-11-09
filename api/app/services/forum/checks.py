@@ -8,7 +8,8 @@ queue_post() (when a thread or reply is written or edited), then run by run_due(
 background task in the API (runner(): one check, by at most REQUEST_RUNNERS requests at once), and by the mail worker
 each round where it runs, which also picks up the rest and a check whose run died. Nothing is queued while the switch
 is off, and nothing for people who moderate the forum. A post is sent to Claude at most RECHECKS_PER_HOUR times an
-hour, however often it is edited; past that it waits in Reports as "couldn't be checked".
+hour, however often it is edited; past that it is hidden as flagged ('edits') until a rep looks, so a run of harmless
+edits can't end with an unchecked one left up.
 
 What goes to Claude (decision D20 in docs/backend/ARCHITECTURE.md): the rules (SYSTEM) and either the picture (shrunk
 to fit in 1568 pixels a side, as JPEG; up to MAX_FRAMES frames of an animated GIF) or the post's text (a thread's
@@ -81,7 +82,7 @@ log = logging.getLogger("dsba.forum.checks")
 
 Target = Literal["image", "thread", "reply"]
 # What Claude may flag, and how Reports and the uploader's message name it. 'declined' is Claude's safeguards
-# refusing to read it; it isn't in SCHEMA.
+# refusing to read it, and 'edits' a post edited past RECHECKS_PER_HOUR; neither is in SCHEMA.
 CATEGORIES: Final = ("none", "sexual", "violence", "self_harm", "harassment", "personal_data", "exam_leak", "other")
 LABELS: Final = {
     "sexual": "sexual content",
@@ -92,6 +93,7 @@ LABELS: Final = {
     "exam_leak": "answers to a live exam",
     "other": "something against the forum's rules",
     "declined": "something Claude's safeguards wouldn't read",
+    "edits": "edited too often to check",
 }
 MAX_TOKENS: Final = 2_000  # thinking included; the answer itself is a few dozen tokens
 EFFORT: Final = "low"
@@ -475,8 +477,9 @@ def run_one(db: Session, connect: Connect = connect, settings: Settings | None =
         return True
     if job.recent_since is None or job.recent_since <= now - RECHECK_WINDOW:
         job.recent_since, job.recent_runs = now, 0
-    if job.recent_runs >= RECHECKS_PER_HOUR:  # edited again and again: not sent to Claude until the hour is up
-        finish(db, job, subject, Verdict(CheckVerdict.unchecked, None, "It was edited too often to check again yet."))
+    if job.recent_runs >= RECHECKS_PER_HOUR:  # edited again and again: held for a rep, not sent to Claude again
+        why = f"It was edited more than {RECHECKS_PER_HOUR} times in an hour, so the newest text wasn't checked."
+        finish(db, job, subject, Verdict(CheckVerdict.flagged, "edits", why))
         db.commit()
         return True
     job.recent_runs += 1

@@ -562,8 +562,9 @@ re-chains them at merge.
     check never hid the post, so there is nothing to undo.
   - **Edits:** an edit queues the post's check again; one landing while Claude reads the older text makes that run
     stand down (its cost still counts), so the newest text is what decides. A post is sent to Claude at most 5 times
-    an hour (`checks.RECHECKS_PER_HOUR`); edits past that aren't sent, and the post goes to Reports as "couldn't be
-    checked", so one account can't spend the day's cap or Noora's monthly budget by editing. A clear check after an
+    an hour (`checks.RECHECKS_PER_HOUR`), so one account can't spend the day's cap or Noora's monthly budget by
+    editing. An edit past that isn't sent: the post is hidden as flagged (category `edits`) until a rep looks. This
+    fails closed, unlike an outage, because a run of harmless edits mustn't leave an unchecked last one up. A clear check after an
     edit closes the post's open report from the Hub.
   - **Privacy notice line:** "Pictures and posts in the forum are checked by an outside service, Anthropic (the
     maker of Claude), for content against the forum's rules. It sees the picture or the text only, never your name
