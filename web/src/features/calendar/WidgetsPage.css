@@ -131,4 +131,9 @@
   .widgets-page__action .ui-button {
     min-height: 44px;
   }
+  .widgets-page__script summary {
+    box-sizing: border-box;
+    min-height: 44px;
+    padding-block: 13px;
+  }
 }

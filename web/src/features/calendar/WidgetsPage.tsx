@@ -79,11 +79,12 @@ export default function WidgetsPage() {
                     <b>iPhone and iPad:</b> the Calendar widget.
                   </li>
                   <li>
-                    <b>Android:</b> Google Calendar’s widget, or the widget of the free{' '}
+                    <b>Android:</b> Google Calendar’s widget (Google keeps a copy of your link), or the widget of the
+                    free{' '}
                     <a href={ICSX5} target="_blank" rel="noreferrer">
                       ICSx⁵
                     </a>{' '}
-                    app.
+                    app, which keeps it on your phone.
                   </li>
                   <li>
                     <b>Mac:</b> the Calendar widget. Right-click the desktop and choose <i>Edit Widgets</i>.

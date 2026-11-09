@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.core.time import bahrain_today
 from app.models import CalendarEvent, Module, User
+from app.services import widget
 from tests.content.conftest import API
 from tests.lessons import chapters, lesson_id
 
@@ -241,3 +242,59 @@ def test_export_says_whether_it_is_on(client_for: Clients, make_user: MakeUser) 
     assert c.get(f"{API}/me/export").json()["calendarSettings"]["widgetFeed"] is True
     c.delete(WIDGET)
     assert c.get(f"{API}/me/export").json()["calendarSettings"]["widgetFeed"] is False
+
+
+@pytest.mark.parametrize(
+    ("published", "starts"),
+    [
+        ("14:30", dt.time(14, 30)),
+        ("9:00 to 12:00", dt.time(9, 0)),
+        ("1:30 PM", dt.time(13, 30)),
+        ("1:30pm", dt.time(13, 30)),
+        ("12:30 PM", dt.time(12, 30)),
+        ("12:30 AM", dt.time(0, 30)),
+        ("9:00 a.m. to 11:00 a.m.", dt.time(9, 0)),
+        ("10:00 AM", dt.time(10, 0)),
+        ("13:00 PM", dt.time(13, 0)),  # a 24-hour time with a stray PM stays as it is
+        ("All day", None),
+        ("25:00", None),
+        ("", None),
+        (None, None),
+    ],
+)
+def test_when_a_published_time_starts(published: str | None, starts: dt.time | None) -> None:
+    assert widget._starts(published) == starts
+
+
+def test_twelve_hour_times_sort_by_when_they_start(
+    client_for: Clients, make_user: MakeUser, client: TestClient, db: Session
+) -> None:
+    today = bahrain_today()
+    db.add_all(
+        [
+            CalendarEvent(id="pm", date=today, time="1:30 PM", title="Afternoon talk", type="event"),
+            CalendarEvent(id="noon", date=today, time="12:30 PM", title="Lunch talk", type="event"),
+        ]
+    )
+    db.commit()
+    c = client_for(make_user(year=2))
+    add(c, title="Dentist", startTime="09:30")
+    add(c, title="Gym", startTime="13:00")
+    body = client.get(widget_of(c)).json()
+    assert [e["text"] for e in body["todayEvents"]] == [
+        "09:30 Dentist",
+        "12:30 PM Lunch talk",
+        "13:00 Gym",
+        "1:30 PM Afternoon talk",
+    ]
+
+
+def test_a_busy_day_keeps_every_event_for_the_count(
+    client_for: Clients, make_user: MakeUser, client: TestClient
+) -> None:
+    c = client_for(make_user(year=2))
+    for n in range(11):
+        add(c, title=f"Thing {n:02}", startTime=f"{8 + n:02}:00")
+    body = client.get(widget_of(c)).json()
+    assert len(body["todayEvents"]) == 11  # so a widget's "+N more" counts them all
+    assert body["todayText"].splitlines() == [f"{8 + n:02}:00 Thing {n:02}" for n in range(8)]  # a text has room for 8

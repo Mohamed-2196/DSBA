@@ -24,9 +24,10 @@ from app.schemas.calendar import CalendarEventOut, WidgetEvent, WidgetExam, Widg
 from app.services import accounts, home, my_calendar
 from app.services.modules import visible_chapters, visible_lessons
 
-MAX_EVENTS = 8  # more than a widget has room for
+MAX_LINES = 8  # today_text's lines: more than a widget has room for
 NOTHING_TODAY = "Nothing on today."
-STARTS_AT = re.compile(r"(\d{1,2}):(\d{2})")  # a programme date's published time: '9:00 to 12:00', '14:30'
+# A programme date's published time, free text: '9:00 to 12:00', '14:30', '1:30 PM', '9:00 a.m.'
+STARTS_AT = re.compile(r"(\d{1,2}):(\d{2})(?:\s*([ap])\.?\s*m\b\.?)?", re.IGNORECASE)
 
 
 def widget_feed(db: Session, token: str) -> WidgetFeed:
@@ -39,14 +40,14 @@ def widget_feed(db: Session, token: str) -> WidgetFeed:
     timed = [*_programme_today(dates, today, base), *_own_today(my_calendar.list_events(db, user), today, base)]
     # The timed ones by their start, then the all-day ones (programme dates first): the order is stable.
     timed.sort(key=lambda x: (x[0] is None, x[0] or dt.time()))
-    events = [e for _, e in timed][:MAX_EVENTS]
+    events = [e for _, e in timed]  # all of them, so a widget's "+N more" counts right
     return WidgetFeed(
         today=today,
         updated_at=utcnow(),
         url=f"{base}/",
         next_exam=_next_exam(dates, today, base),
         today_events=events,
-        today_text="\n".join(e.text for e in events) or NOTHING_TODAY,
+        today_text="\n".join(e.text for e in events[:MAX_LINES]) or NOTHING_TODAY,
         carry_on=_carry_on(db, user, base) if accounts.tracks_progress(user) else None,
     )
 
@@ -81,9 +82,14 @@ def _line(time: str | None, title: str) -> str:
 def _starts(time: str | None) -> dt.time | None:
     """When a programme date's published time starts, or None (all day, or a time that isn't one)."""
     m = STARTS_AT.match(time or "")
-    if m is None or int(m[1]) > 23 or int(m[2]) > 59:
+    if m is None:
         return None
-    return dt.time(int(m[1]), int(m[2]))
+    hour, minute, meridiem = int(m[1]), int(m[2]), (m[3] or "").lower()
+    if meridiem and 1 <= hour <= 12:  # '12:30 AM' is just after midnight, '12:30 PM' just after noon
+        hour = hour % 12 + (12 if meridiem == "p" else 0)
+    if hour > 23 or minute > 59:
+        return None
+    return dt.time(hour, minute)
 
 
 def _programme_today(

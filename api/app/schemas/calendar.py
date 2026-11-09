@@ -302,6 +302,6 @@ class WidgetFeed(ApiModel):
     updated_at: datetime
     url: str  # the Hub
     next_exam: WidgetExam | None  # the next exam or mock on their calendar, within 120 days
-    today_events: list[WidgetEvent]  # today's programme dates and own events: timed by start, then all-day (8 at most)
-    today_text: str  # today_events' lines, one per line, or 'Nothing on today.'
+    today_events: list[WidgetEvent]  # today's programme dates and own events: timed by start, then all-day
+    today_text: str  # the first 8 of today_events' lines, one per line, or 'Nothing on today.'
     carry_on: WidgetLesson | None  # the lesson to pick up in the module opened last; None while they keep no progress
