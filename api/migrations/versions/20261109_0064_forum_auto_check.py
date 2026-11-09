@@ -1,7 +1,7 @@
 """the forum's automatic check
 
-Revision ID: 0063
-Revises: 0062
+Revision ID: 0064
+Revises: 0063
 Create Date: 2026-11-09 10:00:00
 
 - `content_checks`: Claude's check of each new forum picture, thread and reply (app/services/forum/checks.py): one row
@@ -22,8 +22,8 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "0063"
-down_revision: str | None = "0062"
+revision: str = "0064"
+down_revision: str | None = "0063"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
