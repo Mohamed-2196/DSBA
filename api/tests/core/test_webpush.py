@@ -3,9 +3,11 @@ network."""
 
 from __future__ import annotations
 
+import logging
 import struct
 from datetime import UTC, datetime
 
+import httpx
 import jwt
 import pytest
 from cryptography.exceptions import InvalidTag
@@ -192,3 +194,16 @@ def test_the_token_is_for_the_push_services_origin_even_with_its_port_written_ou
     for endpoint in ("https://fcm.googleapis.com:443/fcm/send/x", "https://FCM.googleapis.com/fcm/send/x"):
         token = vapid_header(key, endpoint, "mailto:hub@example.com").removeprefix("vapid t=").split(", k=")[0]
         assert jwt.decode(token, options={"verify_signature": False})["aud"] == "https://fcm.googleapis.com"
+
+
+def test_only_a_pushs_own_request_is_kept_out_of_the_logs(caplog: pytest.LogCaptureFixture) -> None:
+    """httpx logs each request's URL, and a push's URL is the browser's endpoint, so post() keeps its own request out
+    of the logs. Every other request in the API (Drive, mail, AI) is still logged as before."""
+    http = httpx.Client(transport=httpx.MockTransport(lambda _: httpx.Response(201)))
+    endpoint = "https://fcm.googleapis.com/fcm/send/the-browsers-secret"
+    caplog.set_level(logging.DEBUG)
+    webpush.post(http, endpoint, b"x", key=VapidKey.parse(webpush.new_vapid_key()), subject="mailto:a@b.c", ttl=60)
+    http.get("https://example.com/elsewhere")
+    lines = [r.getMessage() for r in caplog.records]
+    assert not [line for line in lines if "the-browsers-secret" in line]
+    assert any(r.name == "httpx" and "example.com/elsewhere" in r.getMessage() for r in caplog.records)

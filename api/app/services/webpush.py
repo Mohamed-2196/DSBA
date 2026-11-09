@@ -10,7 +10,7 @@ to send and when is app/services/push.py.
 - A subscription's endpoint comes from the browser, so it is only ever posted to when it is one of the browsers' own
   push services (push_service()): never an address someone typed, an internal host or another port.
 - An endpoint is as good as a password for that browser (anyone holding it can have its push service drop the
-  subscription), so it is never logged: httpx and httpcore log every request's URL, and are kept to warnings."""
+  subscription), so it is never logged: httpx logs every request's URL, and post() keeps its own request out."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ import base64
 import logging
 import os
 import struct
+from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from urllib.parse import urlsplit
@@ -31,9 +32,17 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 from app.core.time import utcnow
 
-# httpx logs "HTTP Request: POST <url>" at INFO and httpcore the connection at DEBUG: a push's URL is the endpoint.
-for _name in ("httpx", "httpcore"):
-    logging.getLogger(_name).setLevel(logging.WARNING)
+# httpx logs "HTTP Request: POST <url>" at INFO, and a push's URL is the endpoint. Only post()'s own request is kept
+# out (httpcore logs the host and port, never the path); every other request in the API is logged as before.
+_POSTING: ContextVar[bool] = ContextVar("webpush_posting", default=False)
+
+
+class _NotWhilePosting(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return not _POSTING.get()
+
+
+logging.getLogger("httpx").addFilter(_NotWhilePosting())
 
 RECORD_SIZE = 4096  # one record holds the whole message; push services take at most 4096 bytes of body
 _HEADER = 16 + 4 + 1 + 65  # salt, record size, key length, the sender's public key
@@ -199,7 +208,11 @@ def post(
     }
     if topic:
         headers["Topic"] = topic
-    return http.post(endpoint, content=body, headers=headers, follow_redirects=False)
+    token = _POSTING.set(True)
+    try:
+        return http.post(endpoint, content=body, headers=headers, follow_redirects=False)
+    finally:
+        _POSTING.reset(token)
 
 
 def settings_problems(value: str | None, subject: str | None) -> list[str]:
