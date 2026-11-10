@@ -157,6 +157,7 @@ FEATURE_FREE: dict[str, str] = {
     "/content/modules": "editing modules and lessons: a manager power, gated by its box",
     "/search": "the hub's search",
     "/features": "which features are on",
+    "/privacy": "the privacy notice's outside services: it must stay readable whatever is switched off",
     "/bug-reports": "reporting a bug: anywhere in the hub, whatever is switched on",
     "/admin/bug-reports": "triaging bug reports: admins only",
     "/admin/uploads": "the hub's and each account's daily upload budgets: admins only",

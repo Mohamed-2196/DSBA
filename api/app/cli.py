@@ -331,13 +331,16 @@ class SweepReport:
     bug_report_ips: int = 0  # guests' addresses on bug reports, forgotten once the rate limit no longer counts them
     bug_screenshots: int = 0  # screenshots of bug reports closed long ago
     kept_play_ips: int = 0  # addresses guests' Daily plays were kept from, forgotten after a day
+    audit_ips: int = 0  # addresses on audit log entries, forgotten after 90 days (the privacy notice)
 
 
 def sweep() -> SweepReport:
     """Deletes uploads never attached to anything, note files no note shows any more (released) and board files off
     their card (objects first, then rows), old sign-in attempts, Google sign-ins and reset links, sessions that ended
-    long ago, the files of library items rejected or removed a week ago, the addresses kept on bug reports and on kept
-    Daily plays, and the screenshots of reports closed long ago. Safe to run at any time and to run again."""
+    long ago, the files of library items rejected or removed a week ago, the addresses kept on bug reports, on kept
+    Daily plays and on old audit log entries, and the screenshots of reports closed long ago. Safe to run at any time
+    and to run again."""
+    from app.services.audit import clear_old_ips as clear_old_audit_ips
     from app.services.bugs import clear_old_ips, sweep_screenshots
     from app.services.daily.plays import clear_old_kept_ips
     from app.services.google import KEEP_LOGINS
@@ -368,6 +371,7 @@ def sweep() -> SweepReport:
         bug_report_ips = clear_old_ips(db)
         bug_screenshots = sweep_screenshots(db, storage, now)
         kept_play_ips = clear_old_kept_ips(db)
+        audit_ips = clear_old_audit_ips(db)
         db.commit()
     return SweepReport(
         uploads=len(stale),
@@ -377,6 +381,7 @@ def sweep() -> SweepReport:
         bug_report_ips=bug_report_ips,
         bug_screenshots=bug_screenshots,
         kept_play_ips=kept_play_ips,
+        audit_ips=audit_ips,
     )
 
 

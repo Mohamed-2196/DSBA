@@ -263,6 +263,25 @@ def test_setup_bucket_sets_cors_and_the_incoming_rule(storage: Storage, capsys: 
     assert set(cors[0]["AllowedMethods"]) == {"GET", "POST", "HEAD"}
 
 
+def test_the_sweep_forgets_the_address_on_audit_entries_after_90_days(
+    same_session: Session, make_user: Callable[..., User]
+) -> None:
+    """The privacy notice says the IP address on moderation and admin records goes after 90 days; the entry stays."""
+    db, admin, now = same_session, make_user(), utcnow()
+
+    def entry(age: timedelta) -> AuditEntry:
+        row = AuditEntry(actor_id=admin.id, action="forum.hide", ip="203.0.113.7", created_at=now - age)
+        db.add(row)
+        return row
+
+    old, recent = entry(timedelta(days=91)), entry(timedelta(days=89))
+    db.commit()
+    assert cli.sweep().audit_ips == 1
+    db.expire_all()
+    assert (old.ip, str(recent.ip)) == (None, "203.0.113.7")
+    assert old.action == "forum.hide"
+
+
 def test_the_sweep_reports_the_library_files_it_deleted(
     same_session: Session, storage: Storage, make_user: Callable[..., User], capsys: pytest.CaptureFixture[str]
 ) -> None:

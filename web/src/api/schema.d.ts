@@ -3315,6 +3315,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/privacy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Privacy Services
+         * @description The outside services that handle people's data right now, for the privacy notice: the same for everyone.
+         */
+        get: operations["privacy_services_api_v1_privacy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/boards": {
         parameters: {
             query?: never;
@@ -11251,6 +11271,18 @@ export interface components {
             /** Answer */
             answer: string;
         };
+        /**
+         * PrivacyOut
+         * @description The outside services the privacy notice names only while they handle people's data.
+         */
+        PrivacyOut: {
+            /** Nooraanswers */
+            nooraAnswers: boolean;
+            /** Forumcheck */
+            forumCheck: boolean;
+            /** Aiapps */
+            aiApps: boolean;
+        };
         /** Progress */
         Progress: {
             /** Watched */
@@ -14000,6 +14032,7 @@ export type PreviewQuestion = components['schemas']['PreviewQuestion'];
 export type PreviewQuiz = components['schemas']['PreviewQuiz'];
 export type PreviewSearch = components['schemas']['PreviewSearch'];
 export type PreviewWord = components['schemas']['PreviewWord'];
+export type PrivacyOut = components['schemas']['PrivacyOut'];
 export type Progress = components['schemas']['Progress'];
 export type ProgressImport = components['schemas']['ProgressImport'];
 export type PublishedIssue = components['schemas']['PublishedIssue'];
@@ -30506,6 +30539,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FeaturesOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    privacy_services_api_v1_privacy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyOut"];
                 };
             };
             /** @description Bad Request */

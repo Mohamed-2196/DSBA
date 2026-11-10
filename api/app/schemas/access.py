@@ -69,6 +69,14 @@ class FeaturesOut(ApiModel):
     features: list[FeatureKey]  # the features on for whoever asks
 
 
+class PrivacyOut(ApiModel):
+    """The outside services the privacy notice names only while they handle people's data."""
+
+    noora_answers: bool  # Anthropic writes Mini Noora's answers
+    forum_check: bool  # Anthropic reads new forum posts and pictures (the forum's automatic check)
+    ai_apps: bool  # students may connect an AI app to their account
+
+
 class RoleSummary(ApiModel):
     id: UUID
     slug: str
