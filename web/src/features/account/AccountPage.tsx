@@ -1,6 +1,7 @@
 // /account: profile, sign-in methods, emails, notifications on this device, signed-in devices, AI apps, data
 // export and account deletion.
 import { useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { ApiError, errorMessage, placeFieldErrors, unplacedMessage } from '../../api/errors';
 import type { Me, SessionInfo } from '../../api/types';
 import { useAuth, useUpdatePreferences, type Feature } from '../../auth';
@@ -30,6 +31,7 @@ import {
 } from '../../ui';
 import { downloadAccountData, useRevokeSessions, useSessions, useUpdateMe } from './api';
 import { ConnectedApps } from '../aiapps/public';
+import { PRIVACY_PATH } from '../privacy/public';
 import { SeniorListing } from '../career/public';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { DevicePush } from './DevicePush';
@@ -609,7 +611,15 @@ export default function AccountPage() {
       ) : null}
 
       <PageSection aria-labelledby="acct-data">
-        <SectionHeader id="acct-data" title="Your data" />
+        <SectionHeader
+          id="acct-data"
+          title="Your data"
+          description={
+            <>
+              What the Hub keeps about you, and why, is in the <Link to={PRIVACY_PATH}>privacy notice</Link>.
+            </>
+          }
+        />
         <YourData />
       </PageSection>
     </Page>

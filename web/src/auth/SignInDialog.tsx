@@ -4,6 +4,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api, call } from '../api/client';
+import { PRIVACY_PATH } from '../features/privacy/public';
 import { ApiError, errorMessage } from '../api/errors';
 import type { Me } from '../api/types';
 import { useToast, useYear, type CohortYear } from '../state';
@@ -322,6 +323,15 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
                 Nobody checks your email address now. Continue with Google later to confirm it.
               </p>
             ) : null}
+            {/* Students are told what the Hub keeps before they sign up (Bahrain's PDPL, Art. 17). A new tab keeps
+                what they've typed here. */}
+            <p className="signin__fine">
+              What the Hub keeps about you, and why:{' '}
+              <a href={PRIVACY_PATH} target="_blank" rel="noopener">
+                privacy notice<span className="visually-hidden"> (opens in a new tab)</span>
+              </a>
+              .
+            </p>
           </form>
         ) : null}
 

@@ -318,7 +318,9 @@ The `sweep` service runs `python -m app.cli sweep` when it starts and every 24 h
 - sessions that expired or were revoked more than 30 days ago;
 - the files of library items rejected or removed more than a week ago (the item stays, without its file);
 - the addresses kept on bug reports and on guests' Daily plays kept at sign-in after a day, and the screenshots of
-  bug reports closed (fixed or won't fix) more than 90 days ago (the report stays, without its screenshot).
+  bug reports closed (fixed or won't fix) more than 90 days ago (the report stays, without its screenshot);
+- the IP address on audit log entries older than 90 days (the entry stays). The privacy notice (`/privacy`) promises
+  this.
 
 It holds only the database and the bucket (`DSBA_ROLE=sweep`). A failed run writes `SWEEP FAILED`, pings
 `DSBA_SWEEP_PING_URL/fail` and is tried again an hour later, as the backup is.

@@ -34,6 +34,9 @@
   font-size: var(--fs-12);
   line-height: 1.5;
 }
+.signin__fine a {
+  color: var(--accent);
+}
 .signin__alert {
   display: flex;
   align-items: flex-start;

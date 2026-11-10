@@ -10,8 +10,9 @@ backup             pg_dump the database into the backup bucket, encrypted at res
 sweep              delete what is no longer needed: uploads never attached to anything or whose board card is gone
                    (after a day), sign-in attempts and Google sign-ins older than two days and one, reset links that
                    ended a day ago, sessions that expired or were revoked more
-                   than 30 days ago, the files of library items rejected or removed more than a week ago, and the
-                   screenshots of bug reports closed more than 90 days ago
+                   than 30 days ago, the files of library items rejected or removed more than a week ago, the
+                   screenshots of bug reports closed more than 90 days ago, and the addresses on audit log entries
+                   older than 90 days
 setup-bucket       create the bucket if needed and set its CORS and lifecycle rules (production: once)
 mail-worker        send the queued emails (notifications, account notices, Sunday summaries) with retries; runs
                    until stopped (--once: until nothing is due). Several can run side by side. On Sunday from

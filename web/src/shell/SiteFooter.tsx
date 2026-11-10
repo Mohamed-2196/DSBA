@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PRIVACY_PATH } from '../features/privacy/public';
 import { PoweredBy, contributorLine, copyrightYears, httpsHref, useSite } from '../features/site/public';
 import { shortVersion } from '../lib/version';
 import { HubLogo } from '../ui';
@@ -19,6 +20,7 @@ export function SiteFooter() {
           </Link>
           <nav aria-label="Footer" className="shell-footer__links">
             <Link to="/about">About</Link>
+            <Link to={PRIVACY_PATH}>Privacy</Link>
             {uploadShown ? (
               <Link
                 to={UPLOAD_PATH}
