@@ -125,7 +125,8 @@ def test_the_mail_worker_still_runs_the_pushes_and_jobs(
     monkeypatch.setattr(cli, "get_sessionmaker", lambda: _session)
     with caplog.at_level(logging.INFO):
         assert cli.main(["mail-worker", "--once"]) == 0
-    assert ran.count("tagging") >= 1 and ran.count("forum") >= 1
+    assert "tagging" in ran
+    assert "forum" in ran
     assert "email is off" in caplog.text
     assert _emails(db) == []
 
