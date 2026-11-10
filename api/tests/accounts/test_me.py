@@ -103,7 +103,7 @@ def test_session_state_never_answers_401(client_for: ClientFor, make_user: MakeU
     """Student test ST-10: GET /auth/session is 200 for guests too, so a guest's page load logs no error."""
     r = client_for().get(f"{API}/auth/session")
     assert r.status_code == 200
-    assert r.json() == {"me": None, "googleSignIn": False}
+    assert r.json() == {"me": None, "googleSignIn": False, "email": True}
     user = make_user(email="session@example.com", name="Noor Session")
     c = client_for(user)
     r = c.get(f"{API}/auth/session")

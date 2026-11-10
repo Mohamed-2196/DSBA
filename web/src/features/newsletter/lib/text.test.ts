@@ -94,11 +94,11 @@ describe('publishedNote', () => {
       title: 'Issue 08 is out',
       body: 'Published. The cohort email goes out once a day; the next one can be sent tomorrow.',
     });
+  });
 
-    it('names no email when the hub sends none', () => {
-      expect(publishedNote('09', false, false).body).toBe(
-        'It’s on the newsletter page, and everyone who wants newsletter notifications has been told.',
-      );
-    });
+  it('names no email when the hub sends none', () => {
+    expect(publishedNote('09', false, false).body).toBe(
+      'It’s on the newsletter page, and everyone who wants newsletter notifications has been told.',
+    );
   });
 });

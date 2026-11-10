@@ -95,8 +95,9 @@ function LatestFeature({ issue }: { issue: IssueCard }) {
   );
 }
 
-/** No issue is out yet: what the newsletter will be, and how to get the first one. */
-function ComingSoon({ manages, hasDrafts }: { manages: boolean; hasDrafts: boolean }) {
+/** No issue is out yet: what the newsletter will be, and how to get the first one (the subscribe box below, or with
+ *  the hub's email off, the notification everyone gets). */
+function ComingSoon({ manages, hasDrafts, emailOn }: { manages: boolean; hasDrafts: boolean; emailOn: boolean }) {
   return (
     <section className="nl-feature nl-feature--soon" data-hub="newsletter-empty" aria-labelledby="nl-soon-title">
       <div className="nl-feature__cover nl-soon__cover">
@@ -124,7 +125,9 @@ function ComingSoon({ manages, hasDrafts }: { manages: boolean; hasDrafts: boole
             ? hasDrafts
               ? 'Nothing is published yet. Check a draft above, then publish it: everyone who wants to hear about new issues gets a notification.'
               : 'Nothing is published yet. Start a new issue above: it stays a draft until you publish it.'
-            : 'There’s no timetable: an issue goes out when there’s news worth your time. Subscribe and you’ll hear the moment the first one is out.'}
+            : emailOn
+              ? 'There’s no timetable: an issue goes out when there’s news worth your time. Subscribe and you’ll hear the moment the first one is out.'
+              : 'There’s no timetable: an issue goes out when there’s news worth your time. Signed in, you’ll get a notification here the moment the first one is out.'}
         </p>
         <div className="nl-feature__contents nl-soon__contents">
           <h3 className="nl-feature__contents-title">What an issue can hold</h3>
@@ -285,7 +288,7 @@ export default function NewsletterPage() {
       ) : latest ? (
         <LatestFeature issue={latest} />
       ) : (
-        <ComingSoon manages={manages} hasDrafts={drafts.length > 0} />
+        <ComingSoon manages={manages} hasDrafts={drafts.length > 0} emailOn={emailOn} />
       )}
 
       {cards.length ? (
