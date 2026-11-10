@@ -10042,11 +10042,107 @@
         "addedIn": "2026-11",
         "videos": [
           {
+            "id": "anmpy241",
+            "kind": "youtube",
+            "videoId": "B1v2-nGXNzs",
+            "title": "Intro to Sets | Examples, Notation & Properties",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "b7u3kcqn",
+            "kind": "youtube",
+            "videoId": "aTlR03t1dTQ",
+            "title": "Set-Roster vs Set-Builder notation",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "z5n5qwmq",
+            "kind": "youtube",
+            "videoId": "GqvX4Fi0jbM",
+            "title": "The Empty Set & Vacuous Truth",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "s4ebq8xt",
+            "kind": "youtube",
+            "videoId": "cYnTXHarstY",
+            "title": "Basic Set Operations as Venn Diagrams | Set Theory, Set Operations, Set Diagrams",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "liopuqmv",
+            "kind": "youtube",
+            "videoId": "3MIMFFifrYU",
+            "title": "Real Analysis - Numbers (a short overview)",
+            "channel": "The Bright Side of Mathematics",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "ie5r5qgy",
+            "kind": "youtube",
+            "videoId": "unb3B70e4b8",
+            "title": "What is Interval Notation? (and How to Use It)",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "v122pdad",
+            "kind": "youtube",
+            "videoId": "H10d0NF-gXU",
+            "title": "Domain, Codomain, and Range",
+            "channel": "Center of Math",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "istl9xba",
+            "kind": "youtube",
+            "videoId": "d6h0qhkOD2I",
+            "title": "(Abstract Algebra 1) Composition of Functions",
+            "channel": "learnifyable",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "oa2fpk2y",
+            "kind": "youtube",
+            "videoId": "GBUi70WCgEE",
+            "title": "Injective Functions (and a Proof!) | Injections, One to One Functions, Injective Proofs",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "si1tfc4q",
+            "kind": "youtube",
+            "videoId": "OZDFIDGcioA",
+            "title": "Surjective Functions (and a Proof!) | Surjections, Onto Functions, Surjective Proofs",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "a6rgzdz0",
+            "kind": "youtube",
+            "videoId": "fcoC7gm4je8",
+            "title": "Bijective Functions and Why They're Important | Bijections, Bijective Proof, Functions and Relations",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
             "id": "98m9ftpr",
             "kind": "youtube",
             "videoId": "GJpezCUMOxA",
             "title": "Universal and Existential Quantifiers,  ∀ \"For All\" and ∃ \"There Exists\"",
             "channel": "Dr. Trefor Bazett"
+          },
+          {
+            "id": "y4vv44wo",
+            "kind": "youtube",
+            "videoId": "q1rKFGSiZE8",
+            "title": "Negating Universal and Existential Quantifiers",
+            "channel": "Dr. Trefor Bazett",
+            "addedIn": "2026-11g"
           },
           {
             "id": "sismvwhy",

@@ -22,7 +22,7 @@ import json
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, get_args
+from typing import Any, TypeVar, get_args
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -180,16 +180,17 @@ def remove_retired_lessons(db: Session) -> int:
 
 # What the audit log calls a batch of the seed's later chapters and lessons reaching a module (load_new_lessons).
 SEED_LESSONS = "module.seed_lessons"
+_Placed = TypeVar("_Placed", Chapter, Lesson)
 
 
-def _insert_chapter(module: Module, chapter: Chapter, before: list[str]) -> None:
-    """A new chapter goes after the last of the chapters the seed file has before it that the module still has (first
-    when it has none of them); the chapters' positions follow."""
-    ids = [c.id for c in module.chapters]
+def _insert(items: list[_Placed], item: _Placed, before: list[str]) -> None:
+    """A new chapter or lesson goes after the last of the ones the seed file has before it that its module or chapter
+    still has (first when it has none of them); the positions follow."""
+    ids = [x.id for x in items]
     at = max((ids.index(i) + 1 for i in before if i in ids), default=0)
-    module.chapters.insert(at, chapter)
-    for position, c in enumerate(module.chapters):
-        c.position = position
+    items.insert(at, item)
+    for position, x in enumerate(items):
+        x.position = position
 
 
 def load_new_lessons(db: Session) -> int:
@@ -199,9 +200,9 @@ def load_new_lessons(db: Session) -> int:
     A batch reaches each module once, the audit log keeps that it did (SEED_LESSONS, the Hub via cli), and after that
     the module is the content managers' again: a chapter or lesson they remove stays removed, and a module they
     removed isn't brought back. A new chapter goes where the seed file has it among the chapters the module still
-    has, and new lessons at the end of their chapter, where the seed file has them too, so a catalogue loaded before
-    them ends up as a new one starts. The module's
-    version goes up, so an editor open on it reloads first. How many lessons it added."""
+    has, and a new lesson where the seed file has it among the lessons its chapter still has, so a catalogue loaded
+    before them ends up as a new one starts. The module's version goes up, so an editor open on it reloads first. How
+    many lessons it added."""
     done = {
         (target, (data or {}).get("batch"))
         for target, data in db.execute(
@@ -224,12 +225,13 @@ def load_new_lessons(db: Session) -> int:
                 if chapter is None:
                     if c.get("addedIn") == batch:
                         chapter = _chapter(module.id, 0, c, batch)
-                        _insert_chapter(module, chapter, [x["id"] for x in chapters[: chapters.index(c)]])
+                        _insert(module.chapters, chapter, [x["id"] for x in chapters[: chapters.index(c)]])
                         added += len(chapter.lessons)
                     continue
-                for v in c.get("videos") or []:
+                videos = c.get("videos") or []
+                for vi, v in enumerate(videos):
                     if v.get("addedIn") == batch and db.get(Lesson, v["id"]) is None:
-                        chapter.lessons.append(_lesson(module.id, len(chapter.lessons), v))
+                        _insert(chapter.lessons, _lesson(module.id, 0, v), [x["id"] for x in videos[:vi]])
                         added += 1
             if added:
                 module.version += 1

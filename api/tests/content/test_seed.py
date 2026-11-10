@@ -446,6 +446,12 @@ def test_the_seeds_later_chapters_and_lessons_reach_a_catalogue_loaded_before_th
     }
     assert later_chapters, "the seed has later chapters to test with"
     assert later_lessons - in_later_chapters, "and later lessons in chapters there were"
+    assert any(  # a later lesson the seed file puts before one an earlier batch brought: it goes there, not last
+        v.get("addedIn") and any((w.get("addedIn") or c.get("addedIn") or "") < v["addedIn"] for w in c["videos"][vi:])
+        for m in files
+        for c in m["chapters"]
+        for vi, v in enumerate(c["videos"])
+    ), "and one that goes before lessons its chapter had"
     first_load(db)
     # a catalogue loaded before them: no later chapters or lessons, and no batch has reached it
     db.execute(delete(Lesson).where(Lesson.id.in_(later_lessons)))
