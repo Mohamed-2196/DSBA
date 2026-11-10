@@ -10,7 +10,7 @@ from collections.abc import Callable
 from typing import Any, get_args
 
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session
 
 from app.models import (
@@ -488,6 +488,49 @@ def test_the_seeds_later_chapters_and_lessons_reach_a_catalogue_loaded_before_th
     db.commit()
     assert db.get(Lesson, gone_lesson) is None
     assert db.get(Chapter, gone_chapter) is None
+
+
+def test_a_later_lesson_follows_the_lesson_before_it_in_a_chapter_a_content_manager_reordered_and_trimmed(
+    db: Session,
+) -> None:
+    """COM-252: a batch's lesson goes right after the last lesson the seed file has before it that the chapter still
+    has, wherever a content manager moved that one, and skips one they removed."""
+    module_id, chapter_id, batch = "further-maths-economists", "mssrt47e", "2026-11g"
+    spec = next(c for m in read("modules") if m["id"] == module_id for c in m["chapters"] if c["id"] == chapter_id)
+    later = [v["id"] for v in spec["videos"] if v.get("addedIn") == batch]
+    first_load(db)
+    # the chapter before this batch, then a content manager moves the quantifiers lesson last and removes the limit one
+    db.execute(delete(Lesson).where(Lesson.id.in_(later)))
+    for e in db.scalars(select(AuditEntry).where(AuditEntry.action == SEED_LESSONS)):
+        if e.target_id == module_id and e.data["batch"] == batch:
+            db.delete(e)
+    db.commit()
+    db.expire_all()
+    chapter = db.get(Chapter, chapter_id)
+    assert chapter is not None
+    order = [v.id for v in chapter.lessons]
+    order.remove("98m9ftpr")
+    order.append("98m9ftpr")
+    order.remove("6veu8ac6")
+    db.execute(delete(Lesson).where(Lesson.id == "6veu8ac6"))
+    for position, lesson_id in enumerate(order):
+        db.execute(update(Lesson).where(Lesson.id == lesson_id).values(position=position))
+    db.commit()
+    db.expire_all()
+
+    assert load_all(db, only="new-lessons") == {"new-lessons": len(later)}
+    db.commit()
+    db.expire_all()
+    chapter = db.get(Chapter, chapter_id)
+    assert chapter is not None
+    ids = [v.id for v in chapter.lessons]
+    assert ids[-2:] == ["98m9ftpr", "y4vv44wo"]  # negating quantifiers follows the quantifiers lesson to the end
+    assert ids[ids.index("a6rgzdz0") + 1] == "rf6ptge1"  # and the lessons after it in the seed stay where they were
+    assert ids[ids.index("h65xyfqg") + 1 :][:2] == ["k0j6lccv", "fgko3q8g"]
+    assert ids[ids.index("ncd8ibt2") + 1] == "qp87lg8l"  # the bounded-sequence lesson skips the removed limit one
+    assert ids[0] == "bs8jmvr3" and "6veu8ac6" not in ids
+    assert [v.position for v in chapter.lessons] == list(range(len(ids)))
+    assert load_all(db, only="new-lessons") == {"new-lessons": 0}  # once
 
 
 def test_the_seed_removes_a_retired_lesson_and_moves_students_notes_to_its_stand_in(

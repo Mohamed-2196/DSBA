@@ -184,10 +184,11 @@ _Placed = TypeVar("_Placed", Chapter, Lesson)
 
 
 def _insert(items: list[_Placed], item: _Placed, before: list[str]) -> None:
-    """A new chapter or lesson goes after the last of the ones the seed file has before it that its module or chapter
-    still has (first when it has none of them); the positions follow."""
+    """A new chapter or lesson goes right after the nearest of the ones the seed file has before it that its module or
+    chapter still has, wherever a content manager moved that one (first when it has none of them); the positions
+    follow."""
     ids = [x.id for x in items]
-    at = max((ids.index(i) + 1 for i in before if i in ids), default=0)
+    at = next((ids.index(i) + 1 for i in reversed(before) if i in ids), 0)
     items.insert(at, item)
     for position, x in enumerate(items):
         x.position = position

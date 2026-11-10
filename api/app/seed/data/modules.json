@@ -10042,6 +10042,14 @@
         "addedIn": "2026-11",
         "videos": [
           {
+            "id": "bs8jmvr3",
+            "kind": "youtube",
+            "videoId": "dxoArRt7lww",
+            "title": "Real Analysis Introduction",
+            "channel": "NPTEL-NOC IITM",
+            "addedIn": "2026-11g"
+          },
+          {
             "id": "anmpy241",
             "kind": "youtube",
             "videoId": "B1v2-nGXNzs",
@@ -10069,7 +10077,23 @@
             "id": "s4ebq8xt",
             "kind": "youtube",
             "videoId": "cYnTXHarstY",
-            "title": "Basic Set Operations as Venn Diagrams | Set Theory, Set Operations, Set Diagrams",
+            "title": "Basic Set Operations as Venn Diagrams",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "5qbgq5fs",
+            "kind": "youtube",
+            "videoId": "ZoR93jR9Ok0",
+            "title": "Indexed Sets",
+            "channel": "Michael Penn",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "crprbix6",
+            "kind": "youtube",
+            "videoId": "lzPDT0VNcRM",
+            "title": "Proof: DeMorgan's Laws for Set Complement | Set Theory",
             "channel": "Wrath of Math",
             "addedIn": "2026-11g"
           },
@@ -10101,7 +10125,7 @@
             "id": "istl9xba",
             "kind": "youtube",
             "videoId": "d6h0qhkOD2I",
-            "title": "(Abstract Algebra 1) Composition of Functions",
+            "title": "Composition of Functions",
             "channel": "learnifyable",
             "addedIn": "2026-11g"
           },
@@ -10109,7 +10133,7 @@
             "id": "oa2fpk2y",
             "kind": "youtube",
             "videoId": "GBUi70WCgEE",
-            "title": "Injective Functions (and a Proof!) | Injections, One to One Functions, Injective Proofs",
+            "title": "Injective Functions (and a Proof!)",
             "channel": "Wrath of Math",
             "addedIn": "2026-11g"
           },
@@ -10117,7 +10141,7 @@
             "id": "si1tfc4q",
             "kind": "youtube",
             "videoId": "OZDFIDGcioA",
-            "title": "Surjective Functions (and a Proof!) | Surjections, Onto Functions, Surjective Proofs",
+            "title": "Surjective Functions (and a Proof!)",
             "channel": "Wrath of Math",
             "addedIn": "2026-11g"
           },
@@ -10125,8 +10149,16 @@
             "id": "a6rgzdz0",
             "kind": "youtube",
             "videoId": "fcoC7gm4je8",
-            "title": "Bijective Functions and Why They're Important | Bijections, Bijective Proof, Functions and Relations",
+            "title": "Bijective Functions and Why They're Important",
             "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "rf6ptge1",
+            "kind": "youtube",
+            "videoId": "ufjEv-5nmcA",
+            "title": "Cartesian Product of Two Sets A x B",
+            "channel": "Dr. Trefor Bazett",
             "addedIn": "2026-11g"
           },
           {
@@ -10152,11 +10184,27 @@
             "channel": "Wrath of Math"
           },
           {
+            "id": "ncd8ibt2",
+            "kind": "youtube",
+            "videoId": "YEiZWonJrOg",
+            "title": "Intro to Sequences | Calculus, Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
             "id": "6veu8ac6",
             "kind": "youtube",
             "videoId": "cTnlHZD5ss4",
             "title": "Definition of the Limit of a Sequence | Real Analysis",
             "channel": "Wrath of Math"
+          },
+          {
+            "id": "qp87lg8l",
+            "kind": "youtube",
+            "videoId": "7N-4XZlxBho",
+            "title": "Proof: Convergent Sequence is Bounded | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
           },
           {
             "id": "argui295",
@@ -10173,11 +10221,35 @@
             "channel": "Wrath of Math"
           },
           {
+            "id": "hi6zwl7s",
+            "kind": "youtube",
+            "videoId": "AwC2S_dF8vg",
+            "title": "Definition of Continuity with Sequences! | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
             "id": "bc68qy2m",
             "kind": "youtube",
             "videoId": "dcUKdwHRSD8",
             "title": "Lecture 16: The Min/Max Theorem and Bolzano's Intermediate Value Theorem",
             "channel": "MIT OpenCourseWare"
+          },
+          {
+            "id": "j4kbh4fi",
+            "kind": "youtube",
+            "videoId": "I7AJkqEmk-4",
+            "title": "Lecture 9(A): Euclidean Space",
+            "channel": "Arizona Math Camp",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "bzfumar0",
+            "kind": "youtube",
+            "videoId": "rQuxMfUqCJ0",
+            "title": "Lecture 20(A): Bounded Sequences and Subsequences",
+            "channel": "Arizona Math Camp",
+            "addedIn": "2026-11g"
           },
           {
             "id": "9aij56cc",
@@ -10187,11 +10259,35 @@
             "channel": "Arizona Math Camp"
           },
           {
+            "id": "p4di1lrt",
+            "kind": "youtube",
+            "videoId": "WTbcJYBLxAs",
+            "title": "Continuity in Rn",
+            "channel": "Dr Peyam",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "bxsq09xo",
+            "kind": "youtube",
+            "videoId": "cMmX-JiPMcU",
+            "title": "Convergence in Rn",
+            "channel": "Dr Peyam",
+            "addedIn": "2026-11g"
+          },
+          {
             "id": "gxhdpqy9",
             "kind": "youtube",
             "videoId": "if2Xq4GVuvY",
             "title": "Lecture 23(A): Compact Sets and Metric Spaces; Bolzano-Weierstrass Theorem",
             "channel": "Arizona Math Camp"
+          },
+          {
+            "id": "j9ecyyxn",
+            "kind": "youtube",
+            "videoId": "dAz9ax-bjzU",
+            "title": "Open Covers, Finite Subcovers, and Compact Sets | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
           },
           {
             "id": "8rpfwi6t",
@@ -10224,6 +10320,22 @@
             "title": "Epsilon-Delta Definition of Functional Limits | Real Analysis",
             "channel": "Wrath of Math",
             "addedIn": "2026-11b"
+          },
+          {
+            "id": "k0j6lccv",
+            "kind": "youtube",
+            "videoId": "iCN2IMgRpUw",
+            "title": "Proving all the Function Limit Laws | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "fgko3q8g",
+            "kind": "youtube",
+            "videoId": "ymJ9lbWdeZk",
+            "title": "One-sided limits",
+            "channel": "Andrew McCrady",
+            "addedIn": "2026-11g"
           }
         ]
       },
