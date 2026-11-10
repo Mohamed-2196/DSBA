@@ -82,7 +82,7 @@ def test_the_baseline_seeds_what_the_api_needs(scratch: tuple[Config, Engine]) -
             "student": "forum.post,library.upload,newsletter.react,reports.create",
         }
         switches = dict(c.execute(text("SELECT feature, mode FROM feature_switches")).tuples().all())
-        features = ("forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades")
+        features = ("forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "push")
         assert switches == dict.fromkeys(features, "everyone") | {
             "notes": "off",
             "board": "off",
@@ -557,3 +557,27 @@ def test_the_november_recheck_keeps_an_edited_document_valid_and_an_editors_own_
     assert plain["furtherStudy"] == seed["furtherStudy"]
     assert plain["certNote"] == seed["certNote"]
     assert refresh(plain) == plain
+
+
+def test_push_is_stored_on_for_everyone_unless_an_admin_already_set_it(scratch: tuple[Config, Engine]) -> None:
+    """0067 stores the push switch on for everyone where it had none, and keeps a switch an admin already set. Going
+    back removes the switch only where 0067 stored it."""
+    cfg, engine = scratch
+    command.upgrade(cfg, _before(cfg, "0067"))
+    with engine.connect() as c:
+        assert _switch(c, "push") is None
+    command.upgrade(cfg, "0067")
+    with engine.connect() as c:
+        assert _switch(c, "push") == ("everyone", None, [])
+    command.downgrade(cfg, _before(cfg, "0067"))
+    with engine.begin() as c:
+        assert _switch(c, "push") is None
+        c.execute(
+            text(
+                "INSERT INTO feature_switches (feature, mode, updated_by, updated_at) "
+                "VALUES ('push', 'off', NULL, now())"
+            )
+        )
+    command.upgrade(cfg, "0067")
+    with engine.connect() as c:
+        assert _switch(c, "push") == ("off", None, [])

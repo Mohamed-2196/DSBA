@@ -470,7 +470,10 @@ to the Home Screen (iOS 16.4 or later). To turn it on:
 
    The Railway dev environment runs the push worker as its `push-worker` service and no mail worker, so dev sends
    notifications to devices and no emails.
-3. Turn on `push` in Access ("Notifications on phones and computers"); it arrives off, for admins too.
+3. `push` in Access ("Notifications on phones and computers") arrives **on for everyone**, so it works as soon as the
+   key and the worker are there. Set the key before people use a new environment: without it, Your account still
+   shows "On this device", but turning it on fails (`GET /push/key` answers 404). Switched off, it is gone for admins
+   too.
 
 Each device's subscription belongs to the signed-in session that made it: signing out (or out of every device)
 stops that device's notifications. A push waits in `push_outbox` and the mail worker (or the push worker) sends it with

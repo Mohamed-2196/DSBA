@@ -226,7 +226,8 @@ def test_off_when_the_switch_is_off_or_the_hub_has_no_key(
     set_feature: Callable[..., None],
 ) -> None:
     c = client_for(make_user())
-    assert c.get(f"{API}/push/key").status_code == 404  # off until an admin turns it on
+    set_feature("push", "off")
+    assert c.get(f"{API}/push/key").status_code == 404
     set_feature("push", "everyone")
     r = c.get(f"{API}/push/key")
     assert r.status_code == 404, "no VAPID key: no push"
@@ -235,6 +236,15 @@ def test_off_when_the_switch_is_off_or_the_hub_has_no_key(
     set_option("vapid_subject", SUBJECT)
     assert c.get(f"{API}/push/key").status_code == 200
     assert client_for().get(f"{API}/push/key").status_code == 401
+
+
+def test_the_switch_is_stored_on_for_everyone_by_its_migration(db: Session) -> None:
+    from app.core.access import Feature
+    from app.services import access
+
+    switch = access.switches(db).get(Feature.push)
+    assert switch is not None
+    assert switch.mode == "everyone"
 
 
 def test_admins_follow_the_switch(

@@ -132,7 +132,6 @@ OFF_AT_FIRST = (
     "library.autotag",
     "mcp",
     "forum.auto-check",
-    "push",
 )
 
 # Features that live inside another one, whose routes need it on too.
@@ -416,7 +415,7 @@ def test_me_and_features_list_what_is_on(
     assert client_for(student).get(f"{API}/features").json() == {"features": without_calendar}
     assert client_for().get(f"{API}/features").json() == {"features": without_calendar}
     assert client_for(boss).get(f"{API}/me").json()["features"] == [
-        f.value for f in Feature if f not in ADMINS_FOLLOW_SWITCH
+        f.value for f in Feature if not (f in ADMINS_FOLLOW_SWITCH and f in OFF_AT_FIRST)
     ]
     db.add(FeatureSwitch(feature="teleport", mode="everyone"))  # a key the code doesn't know
     db.commit()
