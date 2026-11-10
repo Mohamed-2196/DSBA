@@ -112,7 +112,7 @@ function Editor({ first, defaultYear }: { first: SummaryEditable; defaultYear: C
                 title: 'Its words and when it goes out',
                 about: 'Every year’s summary uses them, in its email and in the text reps paste.',
               }
-            : { title: 'Its words', about: 'Every year’s summary uses them in the text reps paste.' }
+            : { title: 'Its lines and headings', about: 'Every year’s summary uses them in the text reps paste.' }
         }
       >
         <div className="dedit-grid">
