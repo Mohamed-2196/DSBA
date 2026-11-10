@@ -1,6 +1,7 @@
 // Manage → Sunday summary, its words (summary.share): the subject line, the headings, the line before the closing
-// link, and the time on Sunday it goes out (shown only while the hub sends email). Saved together from the version loaded (summary_changed when someone else
-// saved first). Every save goes to the activity log with what changed, before and after.
+// link, and the time on Sunday it goes out (shown only while the hub sends email). Saved together from the version
+// loaded (summary_changed when someone else saved first). Every save goes to the activity log with what changed,
+// before and after.
 import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../api/errors';
 import type { SummaryEditable, SummaryWords as Words } from '../../api/types';

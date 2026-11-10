@@ -305,6 +305,12 @@
     max-width: 640px;
   }
 }
+/* 1100-1299: the shelf is full width, so three columns would match the featured cover's size; four keep them smaller. */
+@media (min-width: 1100px) and (max-width: 1299px) {
+  .nl-shelf {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
 @media (max-width: 1099px) {
   .nl-feature {
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
