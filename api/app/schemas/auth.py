@@ -216,6 +216,7 @@ class SessionState(ApiModel):
 
     me: Me | None
     google_sign_in: bool  # "Continue with Google" is set up on this hub
+    email: bool  # the hub sends email (notifications, the Sunday summary); false: no screen offers one
 
 
 class MeUpdate(ApiModel):

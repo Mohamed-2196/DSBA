@@ -6,7 +6,7 @@ to paste into their year's group.
   yet, and the newsletter issue of the last seven days. A section whose feature is off for the reader is left out.
 - Who gets it: accounts with a year that switched "Sunday summary" on, among those the summary
   feature is on for. It is opt-in.
-- When: the mail worker calls send_due() every few minutes; it queues the week's emails on Sunday from the words'
+- When (only while email is on): the mail worker calls send_due() every few minutes; it queues the week's emails on Sunday from the words'
   send time (Bahrain). `python -m app.cli weekly-summary` does the same on any day. A person gets at most one a week
   (weekly_summaries), whoever runs it and however often. Someone at the hourly email cap is left for a
   later run; an empty week sends nothing.
@@ -287,7 +287,7 @@ def due(now: dt.datetime, send_at: dt.time) -> bool:
 def send_due(sessions: Callable[[], AbstractContextManager[Session]], now: dt.datetime | None = None) -> int:
     """The mail worker's weekly step: on Sunday from the words' send time, queues the week's summaries. -> how many."""
     now = now or utcnow()
-    if now.astimezone(BAHRAIN).weekday() != 6:
+    if now.astimezone(BAHRAIN).weekday() != 6 or not get_settings().email_enabled:
         return 0
     with sessions() as db:
         if not due(now, words(db).send_time()):

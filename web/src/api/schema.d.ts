@@ -54,8 +54,9 @@ export interface paths {
         };
         /**
          * Session State
-         * @description Who is signed in: `{"me": Me}`, or `{"me": null}` for a guest, and whether "Continue with Google" is set up.
-         *     Never 401, so a guest's page load logs no error (student test ST-10); GET /me still answers 401 when signed out.
+         * @description Who is signed in: `{"me": Me}`, or `{"me": null}` for a guest, whether "Continue with Google" is set up, and
+         *     whether the hub sends email. Never 401, so a guest's page load logs no error (student test ST-10); GET /me still
+         *     answers 401 when signed out.
          */
         get: operations["session_state_api_v1_auth_session_get"];
         put?: never;
@@ -12121,6 +12122,8 @@ export interface components {
             me: components["schemas"]["Me"] | null;
             /** Googlesignin */
             googleSignIn: boolean;
+            /** Email */
+            email: boolean;
         };
         /**
          * ShareRequest

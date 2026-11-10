@@ -15,9 +15,10 @@ sweep              delete what is no longer needed: uploads never attached to an
 setup-bucket       create the bucket if needed and set its CORS and lifecycle rules (production: once)
 mail-worker        send the queued emails (notifications, account notices, Sunday summaries) with retries; runs
                    until stopped (--once: until nothing is due). Several can run side by side. On Sunday from
-                   08:00 Bahrain time it queues the week's summaries itself
+                   08:00 Bahrain time it queues the week's summaries itself. Refused with DSBA_EMAIL_BACKEND=off
 push-worker        send only the queued pushes to phones and computers, with retries, and turn the reminders that
-                   have come into notifications: no email goes out (for where emails shouldn't yet). Run it or the
+                   have come into notifications: no email goes out (with DSBA_EMAIL_BACKEND=off, or where emails
+                   shouldn't go yet). Run it or the
                    mail worker, which sends the pushes too. Runs until stopped (--once: until nothing is due)
 cancel-queued-emails  cancel the emails still waiting (--older-than HOURS: only those queued longer ago), before a
                    mail worker first runs where none did, so no backlog goes out
@@ -414,9 +415,13 @@ def cmd_vapid_key(_: argparse.Namespace) -> int:
 
 
 def cmd_mail_worker(args: argparse.Namespace) -> int:
-    """Sends the queued emails until stopped (SIGTERM or Ctrl-C), or with --once until nothing is due."""
+    """Sends the queued emails until stopped (SIGTERM or Ctrl-C), or with --once until nothing is due. Refused while
+    email is off: the push worker runs instead."""
     from app.services.outbox import run_worker
 
+    if not get_settings().email_enabled:
+        print("DSBA_EMAIL_BACKEND is off, so there is no email to send: run push-worker instead.", file=sys.stderr)
+        return 1
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     return run_worker(get_sessionmaker(), once=args.once, poll_seconds=args.poll)
 

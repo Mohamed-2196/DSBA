@@ -19,6 +19,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.core.access import Box, Feature
 from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.links import json_size
@@ -370,7 +371,7 @@ def publish(db: Session, user: User, issue: NewsletterIssue, ip: str | None) -> 
         AuditEntry.created_at > now - COHORT_EMAIL_EVERY,
         AuditEntry.data.contains({"emailed": True}),
     )
-    emailed = db.scalar(emailed_lately.limit(1)) is None
+    emailed = get_settings().email_enabled and db.scalar(emailed_lately.limit(1)) is None
     issue.status = IssueStatus.published
     issue.published_at = now
     try:
