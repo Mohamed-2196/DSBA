@@ -10,12 +10,13 @@ from fastapi import Request
 from sqlalchemy import ColumnElement, Select, func, or_, select
 from sqlalchemy.orm import Session, aliased
 
-from app.core.access import Box, Feature
+from app.core.access import ADMIN, Box, Feature
 from app.core.errors import conflict, forbidden, invalid, not_found
 from app.core.pagination import Limit, Offset
 from app.core.security import DB, ActiveUser, CurrentSession, client_ip, requires
 from app.core.time import utcnow
 from app.models import (
+    AccessRole,
     AuditEntry,
     ForumReply,
     ForumThread,
@@ -100,12 +101,22 @@ def _pending_suggestions(db: Session, user: User) -> int | None:
     return (suggestions.pending_count(db) if videos else 0) + (lesson_topics.pending_count(db) if stamps else 0)
 
 
+def _weekly_active(db: Session) -> int:
+    """The accounts seen in the last WEEK, on the site or through an AI app, leaving out admins: it counts students,
+    and reps are students."""
+    admins = select(RoleGrant.user_id).join(AccessRole, AccessRole.id == RoleGrant.role_id)
+    seen = User.last_seen_at >= utcnow() - WEEK
+    return _count(
+        db, select(func.count()).select_from(User).where(seen, User.id.not_in(admins.where(AccessRole.slug == ADMIN)))
+    )
+
+
 @router.get("/admin/stats", response_model=AdminStats)
 def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats:
     """Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
     for review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle
     them), the suggested videos waiting for review (for people who edit modules), and the open bug reports and the
-    accounts seen in the last 7 days (for admins). A feature switched off for the viewer counts None."""
+    students seen in the last 7 days (for admins). A feature switched off for the viewer counts None."""
     n = func.count()
     forum, library = (access.feature_on(db, user, f) for f in (Feature.forum, Feature.library))
     threads = select(n).select_from(ForumThread).where(ForumThread.status == PostStatus.visible)
@@ -124,9 +135,7 @@ def stats(user: Annotated[User, requires(Box.stats_view)], db: DB) -> AdminStats
         else None,
         pending_suggestions=_pending_suggestions(db, user),
         open_bug_reports=bugs.open_count(db) if access.is_admin(user) else None,
-        weekly_active=_count(db, select(n).select_from(User).where(User.last_seen_at >= utcnow() - WEEK))
-        if access.is_admin(user)
-        else None,
+        weekly_active=_weekly_active(db) if access.is_admin(user) else None,
     )
 
 

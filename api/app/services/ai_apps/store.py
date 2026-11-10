@@ -354,7 +354,8 @@ def remove(db: Session, user: User, connection_id: uuid.UUID) -> None:
 
 def count_call(db: Session, user: User, connection_id: uuid.UUID | None) -> None:
     """One tool call by an app as the student: within CALLS_PER_WINDOW per CALL_WINDOW and CALLS_PER_DAY a day
-    (429 rate_limited), counted by time only. The student's calls over a day old go."""
+    (429 rate_limited), counted by time only. The student's calls over a day old go. Touches the connection's
+    last_used_at and the student's last_seen_at at most every TOUCH_EVERY."""
     now = utcnow()
     where: list[Any] = [AiAppCall.user_id == user.id]
     message = "The Hub has answered a lot for this account. Try again in {}."
@@ -377,4 +378,6 @@ def count_call(db: Session, user: User, connection_id: uuid.UUID | None) -> None
         conn = db.get(AiAppConnection, connection_id)
         if conn is not None and (conn.last_used_at is None or now - conn.last_used_at > TOUCH_EVERY):
             conn.last_used_at = now
+    if user.last_seen_at is None or now - user.last_seen_at > TOUCH_EVERY:
+        user.last_seen_at = now  # studying through an AI app counts as using the Hub (Manage's weekly active count)
     db.commit()

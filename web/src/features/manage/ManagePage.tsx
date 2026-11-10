@@ -75,16 +75,14 @@ const NUMBERS = [
   ['openBugReports', 'Open bug reports'],
   ['pendingSuggestions', 'Suggested videos'],
   ['users', 'People'],
-  ['weeklyActive', 'Active this week'],
+  ['weeklyActive', 'Active, last 7 days'],
   ['threads', 'Threads'],
   ['replies', 'Replies'],
   ['libraryItems', 'Library files'],
 ] as const;
 
-/** A line under a number whose label alone doesn't say what it counts. */
-const NUMBER_HINTS: Partial<Record<(typeof NUMBERS)[number][0], string>> = {
-  weeklyActive: 'Signed in and used the Hub in the last 7 days',
-};
+/** Counts only admins get (null for everyone else), so they aren't drawn for others while the numbers load. */
+const ADMIN_ONLY = new Set<(typeof NUMBERS)[number][0]>(['openBugReports', 'weeklyActive']);
 
 function Numbers() {
   const { featureOn, isAdmin } = useAuth();
@@ -100,6 +98,7 @@ function Numbers() {
 }
 
 function HubNumbers() {
+  const { isAdmin } = useAuth();
   const stats = useAdminStats(true);
   if (stats.isError)
     return (
@@ -112,7 +111,9 @@ function HubNumbers() {
       />
     );
   // A count is null while its feature is switched off, so it isn't shown.
-  const shown = stats.data ? NUMBERS.filter(([key]) => stats.data[key] !== null) : NUMBERS;
+  const shown = stats.data
+    ? NUMBERS.filter(([key]) => stats.data[key] !== null)
+    : NUMBERS.filter(([key]) => isAdmin || !ADMIN_ONLY.has(key));
   return (
     <dl className="manage-numbers" aria-busy={stats.isPending || undefined}>
       {shown.map(([key, label]) => {
@@ -123,7 +124,6 @@ function HubNumbers() {
             <dd>
               {value === undefined || value === null ? <Skeleton width="2.5ch" height="1em" /> : formatCount(value)}
             </dd>
-            {NUMBER_HINTS[key] ? <dd className="manage-number__hint">{NUMBER_HINTS[key]}</dd> : null}
           </div>
         );
       })}

@@ -30,14 +30,6 @@
   letter-spacing: var(--tracking-head);
   line-height: 1.2;
 }
-.manage-number .manage-number__hint {
-  color: var(--ink-2);
-  font-family: inherit;
-  font-size: var(--fs-12);
-  font-weight: var(--fw-regular);
-  letter-spacing: normal;
-  line-height: 1.35;
-}
 .manage-stack {
   display: grid;
   gap: var(--sp-16);

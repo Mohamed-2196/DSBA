@@ -627,7 +627,7 @@ export interface paths {
          * @description Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting
          *     for review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle
          *     them), the suggested videos waiting for review (for people who edit modules), and the open bug reports and the
-         *     accounts seen in the last 7 days (for admins). A feature switched off for the viewer counts None.
+         *     students seen in the last 7 days (for admins). A feature switched off for the viewer counts None.
          */
         get: operations["stats_api_v1_admin_stats_get"];
         put?: never;
