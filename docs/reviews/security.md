@@ -1,3 +1,271 @@
+# Security review: the new sign-in and the MCP OAuth sign-in (round 17)
+
+Reviewer: Code Reviewer (security brief: `.claude/agents/security-reviewer.md`). Scope: `origin/feature/backend` at
+`9892e8ca`. This was a read-only review. No application code was changed and nothing was pushed.
+
+What was in scope:
+- passwords and sign-up/sign-in: `services/signin.py`, `services/passwords.py`, `services/sessions.py`, `routers/auth.py`;
+- Continue with Google: `services/google.py`, the callback, linking, and the takeover of unconfirmed accounts;
+- reset links: `signin.issue_reset_link`/`use_reset_link`, `routers/admin.py:215`;
+- MCP for AI apps: `services/ai_apps/{oauth,consent,store,server}.py`, `routers/ai_apps.py`, and the MCP SDK 2.3.0
+  handlers it relies on (authorize, token, revoke);
+- web push: `services/push.py`, `routers/push.py`, and how subscriptions follow sessions;
+- web screens: `ResetPasswordPage`, `ConnectAiPage`, `googleTrip.ts`, and the CSP/framing headers in the Caddyfile.
+
+How it was checked:
+- **Reading:** the files above, plus `core/security.py` (`client_ip`, the CSRF middleware), `my_calendar.py`,
+  `widget.py`, `routers/feeds.py`, DEPLOYMENT.md §5 and the go-live checklist rows B8/B9.
+- **Tests:** `tests/accounts` and `tests/ai_apps` on the branch (result at the end).
+- **Proof tests:** two tests written in a scratch worktree and not committed. Both **passed**, so the problem they
+  describe was real. They became the SEC-66 regression tests in `api/tests/accounts/test_other_access.py`.
+
+## Summary (round 17)
+
+The sign-in is built well. Password checks take the same time whether or not the account exists, and an unknown
+address, an account without a password and a wrong password all get the same answer. Hashing uses argon2id. A new
+session is issued on every sign-in, step-up and reset. CSRF is bound to the session. Google uses the authorization
+code flow with PKCE, a nonce, a state cookie that is checked against the stored row and used once, and a full check
+of the ID token (RS256 via JWKS, `iss`, `aud`, `exp`, `iat`, `email_verified`). Reset links are 256-bit, stored only
+as a hash, last one hour, work once (the row is locked while it is used), and a new link retires older ones. Admin
+accounts can't be reset, and every reset is audited. The MCP OAuth server checks
+the redirect URI, PKCE S256, the resource and the scope. A code works once, refresh tokens rotate and a reused one is
+detected, revoke checks that the token belongs to the client, and removing a connection ends its tokens at once.
+Push subscriptions follow the session and stop when it ends.
+
+**One hole matters before launch (SEC-66).** A sign-in change ends the account's sessions, but it doesn't cut off
+the account's other credentials that work without a session: the private calendar feed address, the widget feed
+address and connected AI apps. That covers a Google takeover of an unconfirmed account, a reset link and a password
+change. In the takeover case the squatter's calendar address then shows the real owner's own events. That is the
+exact attack the takeover exists to defeat.
+
+| ID | Severity | Owner | Title |
+|---|---|---|---|
+| SEC-66 | **major** | accounts (`services/signin.py:159`, `:298`; `sessions.py:87`) | Feeds and AI apps survive a takeover, a reset link and a password change: the squatter keeps reading the owner's calendar |
+| SEC-67 | minor (D4 trade-off) | sign-in (`services/passwords.py:133`; `config.py:88`) | Anyone can lock a password-only student out for an hour, again and again; the same limit allows 1,200 guesses a day per account |
+| SEC-68 | minor (unverified) | Google (`services/signin.py:200`; `google.py:312`) | Any Google account with a verified email takes over an unconfirmed account, even where Google doesn't own the address |
+| SEC-69 | minor (unverified) | sign-in (`config.py:89-91`; `google.py:51`) | A shared campus network gets 30 sign-ups a day and 60 sign-ins an hour for everyone on it |
+| SEC-70 | minor | deployment (go-live B9; DEPLOYMENT.md §5) | The SEC-50 check on Railway doesn't test a forged `X-Forwarded-For` |
+| SEC-71 | nit (D19 trade-off) | sign-up (`services/signin.py:93`) | Sign-up tells whether an address has an account |
+
+Status on `com-265-signin-fixes` (`e605b7a1`): **SEC-66 fixed** and **SEC-68 fixed** in code, with regression tests;
+**SEC-69 decided**: launch-fortnight values in DEPLOYMENT.md section 13, set on Railway for launch day and put back
+on Mon 14 Dec. **SEC-70** is a deployment step (go-live checklist B9). **SEC-67** and **SEC-71** stay open, after
+launch; Mohamed is asked on the final yes.
+
+Top three things to do:
+1. **SEC-66:** on a takeover, a reset link and a password change, also rotate both feed salts and delete the
+   account's AI-app connections (or at least their tokens). Make the two proof tests the regression tests.
+2. **SEC-70 and SEC-69:** on Railway, test the B9 check with a forged header too, and decide the per-network limits
+   for a launch where most students sign up from one campus network.
+3. **SEC-67:** let a browser that has signed in before skip the per-address failure count, and lower the count for
+   everyone else.
+
+---
+
+### SEC-66. Feeds and AI apps survive a takeover, a reset link and a password change: the squatter keeps reading the owner's calendar (major)
+
+- **Status (round 17 fixes, branch `com-265-signin-fixes`):** fixed in `e605b7a1`: `signin.end_other_access` turns off the private calendar and widget links (salts and hashes cleared; the student can make new ones) and deletes the account's AI-app connections with their codes and tokens. A Google takeover, a reset link and a password change call it; linking Google disconnects AI apps. The account notices and the toasts say so. Regression: `api/tests/accounts/test_other_access.py` (after each, the feed and widget answer 404, the AI app's access token 401 and its refresh token 400). Follow-up, not done: a squatter's display name, profile and forum posts stay on the owner's account after a takeover; clearing the name and flagging earlier posts for a moderator is for after launch.
+- **Owner:** accounts. **Where:**
+  - `api/app/services/signin.py:159` `_take_over`: clears the password, ends sessions and retires reset links. It
+    leaves `CalendarPrefs.feed_salt`/`widget_salt` and the `AiAppConnection` rows (and their tokens) alone.
+  - `signin.py:298` `use_reset_link` and `signin.py:142` `set_password` (through `sessions.revoke_others`,
+    `sessions.py:87`): the same gap.
+  - The credentials that outlive it: `routers/feeds.py:25` (calendar ICS: "their own events with their repeats and
+    reminders"), the widget feed (`services/widget.py`: today's own events, exams, the lesson to resume), and AI-app
+    refresh tokens (`store.py:32`: 30 days, renewed on every rotation, so they never run out).
+- **What an attacker does:**
+  - **Pre-hijack (the takeover case):** the attacker signs up with a student's Gmail address and any password before
+    the student does. They turn on the private calendar feed and the widget, and connect an AI app of their own. The
+    student later chooses Continue with Google, and the takeover gives them the account "clean". The attacker still
+    has both feed addresses, which now carry the **student's own events** (personal titles, places, notes, reminders)
+    and their exam dates, and an AI-app token that renews itself for good and reads the Hub as that student. The
+    connection uses up the student's AI-app call quota (500 a day).
+  - **Recovery (the reset and password cases):** someone who had a student's password does the same. The admin's
+    reset link, or the student's own password change, ends their sessions but not the feeds or the AI app.
+  - The owner is never told any of these exist. The connected app does appear under Settings → AI apps, and the feed
+    address on the calendar page, but nothing points them out after a takeover.
+- **Proof:** two tests in a scratch worktree (both passed on `9892e8ca`):
+  - `test_sec66_squatter_keeps_feeds_and_ai_app_after_google_takeover`: after the takeover, the squatter's calendar
+    feed answers 200 and contains an event **the new owner created after the takeover**. The widget answers 200, the
+    AI app's access token lists tools, and its refresh token gets a new pair.
+  - `test_sec66_a_reset_link_leaves_feeds_and_ai_apps_working`: after an admin's reset link is used, the intruder's
+    sessions answer 401 but the calendar feed and the AI app still work.
+- **Fix:**
+  - Add one helper, e.g. `signin.end_other_access(db, user)`, that sets `feed_salt`, `feed_hash`, `widget_salt` and
+    `widget_hash` to None (or new values; the old addresses must stop working) and deletes the user's
+    `AiAppConnection` rows (cascading their codes and tokens).
+  - Call it from `_take_over` and `use_reset_link` for sure. For `set_password` and `link_google`, call it too, or at
+    least delete the AI-app tokens. Today the code says "other sessions are signed out", and a student reads a
+    password change as "everything else is signed out".
+  - Optional: say so in the notice ("…and your calendar addresses and AI apps were disconnected").
+  - Turn both proof tests into regression tests: the feed and widget answer 404 and the AI app answers 401 after
+    each event.
+  - Worth a line in the same place: after a takeover, the squatter's forum posts, display name and profile stay on
+    the owner's account. Consider clearing the display name and flagging the account's posts made before the takeover for a moderator.
+
+### SEC-67. Anyone can lock a password-only student out for an hour, again and again; the same limit allows 1,200 guesses a day per account (minor; D4 trade-off)
+
+- **Status:** open, after launch (D4 trade-off; Mohamed is asked on the final yes).
+- **Owner:** sign-in. **Where:** `api/app/services/passwords.py:133` (wrong passwords for an address "from anywhere"),
+  `config.py:87-88` (10 per address per network, 50 per address in all, per hour). `check_sign_in` runs before the
+  password is checked, and also guards `confirm_password` (step-up and password change, `signin.py:122`).
+- **What an attacker does:**
+  - **Lockout:** they send 50 wrong passwords for a student's address from 5 networks (5 IPv4 addresses, or 5 IPv6 /64s, and
+    one home IPv6 /56 holds 256 of those). The student's correct password then answers 429 from any network for an
+    hour, and so do step-up and password change. Repeated every hour, it is a lasting lockout: the night before an
+    exam, say. Students who have Google linked can still continue with Google; password-only ones can't (and an
+    unconfirmed account can only "continue with Google" by being taken over, SEC-68).
+  - **Guessing:** the same cap allows 50 guesses an hour per account, which is 1,200 a day or about 36,000 a month,
+    from cheap distributed addresses. Only the 1,000 most common passwords are refused at sign-up. NIST SP 800-63B
+    §5.2.2 asks for no more than 100 consecutive failures before stronger throttling.
+- **Proof:** the branch's own `tests/accounts/test_sign_in.py:240`
+  (`test_wrong_passwords_from_everywhere_slow_the_address`) shows the owner's correct password answering 429 from a
+  fresh network after failures from others. The lockout works as designed, which is the problem.
+- **Fix (pick one, then record the choice under D4):**
+  - When signing in succeeds, give that browser a long-lived signed "known browser" cookie (HMAC of the user id and a
+    per-user salt). Failures only count towards the "from anywhere" lock for browsers without it, and a browser with
+    it skips that lock (but keeps its per-network limit). This is OWASP's device-cookie pattern.
+  - Then lower the from-anywhere budget for unknown browsers, with a growing back-off (for example 10, then
+    doubling waits), so the guessing budget stays near 100 a day.
+  - Failing test idea: 50 failures for `x@example.com` from 5 networks, then a sign-in with the right password from
+    a browser holding a valid known-browser cookie answers **200** (today it answers 429).
+
+### SEC-68. Any Google account with a verified email takes over an unconfirmed account, even where Google doesn't own the address (minor; unverified)
+
+- **Status (round 17 fixes, branch `com-265-signin-fixes`):** fixed in `e605b7a1`: `verify_id_token` says whether Google owns the address (`@gmail.com`/`@googlemail.com`, or `hd` equal to the address's domain), and `google_sign_in` takes over an unconfirmed account only then; otherwise it answers `email_taken` and the account is unchanged. A new account for any verified address is still made. Regression: `api/tests/accounts/test_other_access.py`.
+- **Owner:** Google sign-in. **Where:** `api/app/services/signin.py:200` (`_take_over` when the address matches an
+  unconfirmed account), `services/google.py:312` (trusts `email_verified` alone; `hd` is never read).
+- **What happens:** Google's own guidance on ID tokens says `email_verified` is reliable as "this person owns this
+  address" only where Google is the authority: `@gmail.com`, or a Workspace domain (the `hd` claim). For other
+  addresses (a personal Outlook or Hotmail address, a university address on Microsoft 365) Google checked the
+  address once, when the Google account was made, and doesn't check it again. If such an address changes hands (it
+  is recycled, an old employer or school reissues it, or someone once made a Google account with it and still holds
+  that Google account), the holder of that Google account takes over the Hub account that uses the address. They get
+  its data and the student loses their password. Pre-hijack protection (the reason for the takeover) only needs
+  Google's word where Google owns the address.
+- **Proof:** none; it depends on someone holding such a Google account. The code path is the one
+  `test_google_takes_over_an_unconfirmed_account` covers, with nothing that limits it to Gmail or Workspace addresses.
+- **Fix:**
+  - In `verify_id_token`, return whether Google is authoritative: the address ends in `@gmail.com`/`@googlemail.com`,
+    or `hd` is present and equals the address's domain.
+  - In `google_sign_in`, take over an unconfirmed account only when it is. Otherwise answer `email_taken` and tell
+    the person to sign in with the password and link Google from Your account (or ask an admin for a reset link).
+  - Failing test idea: the fake Google issues a token for `owner@outlook.com` (`email_verified: true`, no `hd`) and
+    an unconfirmed account with that address exists. Expect `authError=email_taken` and the account unchanged; today
+    it is taken over.
+
+### SEC-69. A shared campus network gets 30 sign-ups a day and 60 sign-ins an hour for everyone on it (minor; unverified)
+
+- **Status (round 17 fixes, branch `com-265-signin-fixes`):** decided in `e605b7a1` (config and docs): DEPLOYMENT.md section 13, "The launch fortnight", lists raised per-network limits for 30 Nov to 13 Dec (sign-ups 200 an hour and 400 a day, sign-ins and Google starts 600 an hour, with `DSBA_ALLOW_RAISED_LIMITS=true`) and how to put them back. The Google start limit became a setting (`DSBA_GOOGLE_STARTS_PER_NETWORK_PER_HOUR`) so it can be raised too. Still to check: whether BIBF's Wi-Fi uses one public address.
+- **Owner:** sign-in / launch. **Where:** `config.py:89-91` (`sign_ins_per_network_per_hour` 60,
+  `sign_ups_per_network_per_hour` 10, `sign_ups_per_network_per_day` 30), and `google.py:51` (60 Google starts an
+  hour per network).
+- **What happens:** the limits count an IPv4 address as one network. If the launch is announced in class and
+  students sign up on BIBF's Wi-Fi (usually one NAT address), the 11th sign-up in an hour and the 31st in a day get
+  429 "Too many new accounts from this network" for everyone on campus. Sign-ins stop at 60 an hour, right and wrong
+  together. Google sign-ups get further (60 starts an hour) but share the same campus address. That is a self-inflicted outage on launch day, and an easy one for a
+  single student on campus to cause on purpose.
+- **Proof:** the behaviour is the branch's own `test_sign_ups_per_network`. That BIBF's Wi-Fi uses one public
+  address is unverified: check it from campus (whatismyip) or ask BIBF IT.
+- **Fix:** decide it before launch day. Either raise the per-network sign-up limits for launch week with
+  `DSBA_ALLOW_RAISED_LIMITS=true` (and say so in DEPLOYMENT.md), add BIBF's public addresses to a higher-limit list,
+  or tell students to sign up with Google on mobile data. Watch 429s on `/auth/sign-up` and `/auth/sign-in` that day.
+  - Failing test idea (if a campus allow-list is added): 40 sign-ups from the configured campus address in one day
+    all answer 201.
+
+### SEC-70. The SEC-50 check on Railway doesn't test a forged `X-Forwarded-For` (minor)
+
+- **Status:** open, a deployment step: go-live checklist B9 gets the forged-header check.
+- **Owner:** deployment. **Where:** go-live checklist B8/B9 (`docs/2026-11-go-live.md:80-81`), DEPLOYMENT.md §5
+  (`DSBA_EDGE_PROXIES=private_ranges 100.64.0.0/10`, `DSBA_TRUSTED_PROXIES=private_ranges,100.64.0.0/10`).
+- **What happens:** the client-address code reads `X-Forwarded-For` from the right and skips trusted hops
+  (`core/security.py:83`). That is only safe if Railway's edge **appends** the real client address (or replaces the
+  header). If it passes on a header the browser sent without adding to it, every limit in SEC-67/69, D4 and the
+  sign-up and Google start limits can be dodged by sending a new fake address each time, and the session and audit
+  addresses become whatever the attacker writes. B9 ("your own address shows under Sessions") passes either way,
+  because a normal browser sends no such header.
+- **Proof:** none (needs the production service; Railway wasn't touched).
+- **Fix:** add a second step to B9: sign in with
+  `curl -c jar -H 'X-Forwarded-For: 203.0.113.77' …/api/v1/auth/sign-in …`, then list `/api/v1/me/sessions` with
+  that cookie. The address must be the machine's real one, not 203.0.113.77. If it shows 203.0.113.77, read
+  Railway's own header (`X-Real-IP` or `X-Envoy-External-Address`) with Caddy's `client_ip_headers` instead.
+
+### SEC-71. Sign-up tells whether an address has an account (nit; D19 trade-off)
+
+- **Status:** open, after launch (D19 trade-off; Mohamed is asked on the final yes).
+- **Where:** `api/app/services/signin.py:93`: 409 `email_taken` "An account already uses this email address".
+- **What happens:** sign-in hides whether an account exists, but sign-up shows it. Within the sign-up limit (10 an
+  hour per network, more with many addresses), anyone can check which addresses have Hub accounts. For about 160
+  students whose addresses are mostly known to each other this is low value, so it is a fair trade for a clear
+  message.
+- **Fix:** accept it in writing under D19, or answer sign-up for a taken address the same way as success ("check
+  your email…"). That needs email confirmation, which D19 dropped. Test idea if changed: sign-up with a taken address
+  answers like a new one and creates nothing.
+
+---
+
+## Earlier findings, re-checked against the new sign-in
+
+- **SEC-50:** still open on Railway, as before. The code and the docs are done; B8 (the values) and B9 (the check)
+  are still todo, and SEC-70 adds a forged-header step to B9.
+- **SEC-52 / SEC-56:** overtaken by D19. Sign-in sends no codes and no texts. Security notices only go to addresses
+  Google confirmed (`signin.py:68`), so a typed address can't be used to send mail to someone else.
+- **SEC-54:** fixed, re-checked. `_bootstraps_admin` gives Admin only on a Google sign-in, only to a confirmed listed
+  address, and only while the hub has no active admin.
+- **SEC-60:** fixed, re-checked. `production_problems` refuses SMTP without STARTTLS or port 465, and any session longer
+  than `MAX_SESSION_DAYS` (30) (`config.py:349`, `:393`).
+
+## Checked and sound
+
+- **Passwords:** argon2id with the library defaults (the cheapest parameters only when `env == "test"`), NFKC before
+  hashing, a dummy hash so the work is the same for unknown accounts, and identical errors. A new password has 8 or more
+  characters, isn't a common one or the address, and has more than two different characters. Limits take advisory
+  locks and are recorded before the password is checked, so parallel guesses are counted too.
+- **Sessions and fixation:** `sessions.renew` revokes the browser's old session and issues a new random token on every
+  sign-in, sign-up, Google sign-in, reset and step-up, and the CSRF token is bound to it. Step-up means a session started within the last 10
+  minutes. Adding a password to a Google account, linking Google, deleting the account and admin changes all need it.
+- **CSRF:** every unsafe `/api/` method goes through the session-bound check, including sign-in, sign-up, reset and
+  the AI-app consent POST. Only `/api/mcp*` and `/.well-known/oauth-*` skip it; they read no cookies and use bearer
+  tokens.
+- **Google flow:** server-side code flow with PKCE S256, a 256-bit state stored as a hash and also kept in an HttpOnly
+  SameSite=Lax cookie (`__Host-` in production) that must match. The login row is used once and lasts 10 minutes. The nonce
+  is checked. The ID token's signature is checked against Google's JWKS (RS256 only; `kid` must be known), along with
+  `iss`, `aud`, `exp`, `iat` (60-second leeway) and `email_verified`. `safe_return` allows only same-origin paths
+  outside `/api/` and drops secret-looking parameters and the fragment. Errors reach the browser only as a code.
+  Linking needs this browser's live session to belong to the user who started it. Login CSRF fails because the state
+  cookie isn't in the victim's browser.
+- **Takeover rules:** a confirmed account is never taken over by another Google account (`email_taken`), and a
+  takeover ends sessions and reset links and is audited (but see SEC-66, SEC-68).
+- **Reset links:** 256-bit `new_token`, stored as SHA-256, a 1-hour TTL, single use under `SELECT … FOR UPDATE`, and
+  older links retired when a new one is made. The admin route needs a stepped-up admin (`SteppedUpAdmin`), refuses
+  the admin's own account and any admin, and is audited and notified. The link's token is in the URL fragment, so it
+  is never sent to the server or in a `Referer`. The page removes it from the address after use, failures are
+  limited to 20 an hour per network, and a weak new password doesn't use up the link.
+- **MCP OAuth:** dynamic registration is limited to 20 an hour per address, keeps registrations small, allows only
+  https, loopback http or private-use scheme redirects (never script schemes, and re-checked on every load), and
+  removes apps nobody connected within a day. The SDK checks the client, an exact match with a registered redirect
+  URI, PKCE S256, and that the code belongs to the client. The provider checks the resource (`invalid_target`) and
+  the single read-only scope. The consent request is signed with HS256 under a key derived for this purpose, lasts 15
+  minutes, and the consent POST needs CSRF and an active user. The page shows the app's name **and** the redirect host and
+  refuses to navigate to an unsafe URL. Codes are spent in one `DELETE … RETURNING`. Refresh tokens rotate; a spent
+  one coming back revokes the connection. Revoke checks `token.client_id == client.client_id` (SDK). Access tokens stop at once when the
+  connection is removed, the account is suspended, or the mcp switch is off. Tools are read-only and see what the
+  student sees, with a per-student cap of 60 per 10 minutes and 500 a day. `/connect-ai` can't be framed
+  (`frame-ancestors 'none'`, `X-Frame-Options: DENY`).
+- **Web push:** a subscription is tied to the session that made it. Sending stops when that session ends
+  (`_cancel_reason`), so a takeover, reset or sign-out also stops pushes. On a new sign-in, subscriptions move to the
+  new session only when it is the same person. The endpoint must be a known push service, and the keys must be a
+  valid P-256 point and 16 bytes. There is a per-user device cap. Endpoints are kept out of paths and logs.
+  (Nit, not numbered: someone who knows another browser's push endpoint could re-subscribe it to their own account.
+  Endpoints are unguessable capability URLs, so there's nothing to do.)
+
+## Tests
+
+- `uv run --no-sync pytest tests/accounts tests/ai_apps` on `9892e8ca`: 449 passed, which is the branch's 447 plus the 2 proof tests.
+- The two proof tests: 2 passed (the SEC-66 problem was real).
+
+---
+
 # Pre-launch audit (round 16)
 
 Reviewer: security. Scope: the whole hub on `feature/backend` at `13d51404` (round 15 merged), with weight on what
