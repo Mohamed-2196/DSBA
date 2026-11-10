@@ -75,10 +75,16 @@ const NUMBERS = [
   ['openBugReports', 'Open bug reports'],
   ['pendingSuggestions', 'Suggested videos'],
   ['users', 'People'],
+  ['weeklyActive', 'Active this week'],
   ['threads', 'Threads'],
   ['replies', 'Replies'],
   ['libraryItems', 'Library files'],
 ] as const;
+
+/** A line under a number whose label alone doesn't say what it counts. */
+const NUMBER_HINTS: Partial<Record<(typeof NUMBERS)[number][0], string>> = {
+  weeklyActive: 'Signed in and used the Hub in the last 7 days',
+};
 
 function Numbers() {
   const { featureOn, isAdmin } = useAuth();
@@ -117,6 +123,7 @@ function HubNumbers() {
             <dd>
               {value === undefined || value === null ? <Skeleton width="2.5ch" height="1em" /> : formatCount(value)}
             </dd>
+            {NUMBER_HINTS[key] ? <dd className="manage-number__hint">{NUMBER_HINTS[key]}</dd> : null}
           </div>
         );
       })}

@@ -3008,7 +3008,7 @@
           "admin"
         ],
         "summary": "Stats",
-        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle\nthem), the suggested videos waiting for review (for people who edit modules), and the open bug reports (for\nadmins). A feature switched off for the viewer counts None.",
+        "description": "Counts for the moderation dashboard: visible threads and replies, published library items, uploads waiting\nfor review, the open reports in the viewer's queue and the requests waiting for an answer (for people who handle\nthem), the suggested videos waiting for review (for people who edit modules), and the open bug reports and the\naccounts seen in the last 7 days (for admins). A feature switched off for the viewer counts None.",
         "operationId": "stats_api_v1_admin_stats_get",
         "responses": {
           "200": {
@@ -32187,6 +32187,17 @@
               }
             ],
             "title": "Openbugreports"
+          },
+          "weeklyActive": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weeklyactive"
           }
         },
         "type": "object",
@@ -32199,7 +32210,8 @@
           "openReports",
           "openRequests",
           "pendingSuggestions",
-          "openBugReports"
+          "openBugReports",
+          "weeklyActive"
         ],
         "title": "AdminStats",
         "description": "A feature's counts are None while it is switched off for the viewer."

@@ -110,3 +110,4 @@ class AdminStats(ApiModel):
     open_requests: int | None  # waiting for an answer; None without requests.manage or while requests are off
     pending_suggestions: int | None  # videos and time stamps to review; None without content.edit or while both off
     open_bug_reports: int | None  # bug reports waiting for an admin; None for everyone else
+    weekly_active: int | None  # accounts seen (signed in or used the Hub) in the last 7 days; None for non-admins
