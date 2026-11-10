@@ -1,12 +1,14 @@
 """Email turned off (DSBA_EMAIL_BACKEND=off): the hub runs without a mail provider. Nothing is queued for email
 (notification emails, account notices, Sunday summaries); notifications still come in the Hub and as pushes; the web
-app is told, so no screen offers an email; and the question about emails at sign-up isn't asked."""
+app is told, so no screen offers an email; the question about emails at sign-up isn't asked;
+and the mail worker still sends the pushes and runs its jobs."""
 
 from __future__ import annotations
 
 import datetime as dt
-from collections.abc import Callable
-from contextlib import nullcontext
+import logging
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager, nullcontext
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -96,9 +98,36 @@ def test_sign_up_needs_no_answer_about_emails(client_for: ClientFor, make_user: 
 
 
 @pytest.mark.usefixtures("email_off")
-def test_the_mail_worker_refuses_to_start(capsys: pytest.CaptureFixture[str]) -> None:
-    assert cli.main(["mail-worker", "--once"]) == 1
-    assert "push-worker" in capsys.readouterr().err
+def test_the_mail_worker_still_runs_the_pushes_and_jobs(
+    db: Session, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """With email off the mail worker keeps going: past papers' tagging and the forum checks the API left run only
+    in it (a forum picture whose check never runs stays hidden)."""
+    from app.services import paper_tagging
+    from app.services.forum import checks
+
+    ran: list[str] = []
+
+    def job(name: str) -> Callable[..., int]:
+        def run_due(*_a: Any, **_k: Any) -> int:
+            ran.append(name)
+            return 1 if ran.count(name) == 1 else 0  # one due job, then none
+
+        return run_due
+
+    monkeypatch.setattr(paper_tagging, "run_due", job("tagging"))
+    monkeypatch.setattr(checks, "run_due", job("forum"))
+
+    @contextmanager
+    def _session() -> Iterator[Session]:
+        yield db
+
+    monkeypatch.setattr(cli, "get_sessionmaker", lambda: _session)
+    with caplog.at_level(logging.INFO):
+        assert cli.main(["mail-worker", "--once"]) == 0
+    assert ran.count("tagging") >= 1 and ran.count("forum") >= 1
+    assert "email is off" in caplog.text
+    assert _emails(db) == []
 
 
 @pytest.mark.usefixtures("email_off")

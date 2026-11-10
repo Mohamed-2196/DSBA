@@ -15,7 +15,7 @@
   the feature it is about is switched off for the person.
 - Rows that are done are deleted after KEEP_DONE.
 - With email off (DSBA_EMAIL_BACKEND=off) nothing is queued and no switch reads on: the notifications still come in
-  the Hub and as pushes (`push-worker`), and the mail worker refuses to start."""
+  the Hub and as pushes, and the mail worker keeps running for the pushes, reminders, tagging and forum checks."""
 
 from __future__ import annotations
 

@@ -28,7 +28,7 @@ x-api-env: &api-env
   DSBA_S3_ACCESS_KEY_ID: ${DSBA_S3_ACCESS_KEY_ID:?set DSBA_S3_ACCESS_KEY_ID in .env}
   DSBA_S3_SECRET_ACCESS_KEY: ${DSBA_S3_SECRET_ACCESS_KEY:?set DSBA_S3_SECRET_ACCESS_KEY in .env}
   # Email: smtp (then the API refuses to start without DSBA_SMTP_HOST and DSBA_EMAIL_FROM), or off: nothing is emailed,
-  # no screen offers an email, and the mail service runs the push worker instead (DEPLOYMENT.md, section 4).
+  # no screen offers an email, and the mail service sends only pushes and runs its jobs (DEPLOYMENT.md, section 4).
   DSBA_EMAIL_BACKEND: ${DSBA_EMAIL_BACKEND:-smtp}
   DSBA_EMAIL_FROM: ${DSBA_EMAIL_FROM:-}
   DSBA_SMTP_HOST: ${DSBA_SMTP_HOST:-}
@@ -184,11 +184,10 @@ services:
     # The mail worker: sends the queued emails (notifications, account notices) and pushes to phones and computers,
     # and retries failures with backoff.
     # Several may run (each email is claimed with FOR UPDATE SKIP LOCKED); `docker compose stop` lets it finish the
-    # email in hand. With DSBA_EMAIL_BACKEND=off it runs the push worker instead: pushes and reminders, no email.
+    # email in hand. It also tags past papers and runs the forum checks the API left, so it runs with
+    # DSBA_EMAIL_BACKEND=off too: then it sends no email, only pushes and reminders.
     <<: *api
-    command: >-
-      sh -c 'if [ "$$DSBA_EMAIL_BACKEND" = off ]; then exec python -m app.cli push-worker; fi;
-      exec python -m app.cli mail-worker'
+    command: python -m app.cli mail-worker
     healthcheck:
       disable: true
     depends_on:

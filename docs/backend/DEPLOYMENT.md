@@ -8,7 +8,7 @@ development uses `compose.yaml` instead.
 browser ──https──▶ web (Caddy: TLS, the built app, /api/* and the MCP sign-in's /.well-known/oauth-* proxied, security headers, 1 MB body cap)
    │                  └──▶ api (FastAPI, no published port) ──▶ db (PostgreSQL 17, volume pgdata)
    └──presigned POST/GET──▶ bucket (AWS S3, or MinIO behind HTTPS)
-mail: the email outbox (in db) ──SMTP──▶ your mail relay      (DSBA_EMAIL_BACKEND=off: no email, the push worker runs)
+mail: the email outbox (in db) ──SMTP──▶ your mail relay      (DSBA_EMAIL_BACKEND=off: no email; the worker still runs)
 texts: published library files ──extract text──▶ search index (in db)
 backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily): uploads, sign-in records, sessions, old files
 sign-in: email and password, or Google ──OpenID Connect──▶ accounts.google.com (section 14)
@@ -171,7 +171,9 @@ the person turned that switch off, changed their address or deleted the account.
 
 The same worker keeps the hub's clock: on Sunday, from the time set in Manage → Sunday summary (Bahrain time), it
 queues the week's summaries, and within a minute of their time it turns the reminders on board cards and on students'
-own calendar events into notifications. Without a running `mail` service, none of these happen.
+own calendar events into notifications. It also sends the pushes (section 11), tags newly published past papers and
+runs the forum checks the API left (a forum picture whose check never runs stays hidden). Without a running `mail`
+service, none of these happen.
 
 **Running without email** (`DSBA_EMAIL_BACKEND=off`; the launch runs this way, COM-254). No mail provider is needed:
 leave `DSBA_EMAIL_FROM` and every `DSBA_SMTP_*` unset. Then:
@@ -181,8 +183,10 @@ leave `DSBA_EMAIL_FROM` and every `DSBA_SMTP_*` unset. Then:
 - the web app is told (`GET /api/v1/auth/session` answers `"email": false`), so no screen offers an email: Your account
   has no Emails section, sign-up doesn't ask about emails, the newsletter has no "Tell me about new issues" box, and
   Manage → Sunday summary is only the text reps paste into their year's group;
-- `mail-worker` refuses to start. Run `push-worker` instead: it sends the pushes and turns reminders into
-  notifications. In `compose.prod.yaml` the `mail` service does this by itself when the setting is `off`;
+- the `mail` worker still runs, with the same start command (`python -m app.cli mail-worker`, in compose and on
+  Railway): it sends no email, only the pushes, and it turns reminders into notifications, tags past papers and runs
+  the forum checks. Its log says "email is off: sending pushes, reminders and jobs only" at start. Don't run
+  `push-worker` in its place: that one does no tagging and no forum checks;
 - a forgotten password is reset by an admin: Manage → Access → People → the person → **Reset link**, which works once
   within an hour (or the person continues with Google, if it is set up).
 
@@ -488,7 +492,8 @@ to the Home Screen (iOS 16.4 or later). To turn it on:
    cancel-queued-emails` (`--older-than 24` keeps the last day's).
 
    The Railway dev environment runs the push worker as its `push-worker` service and no mail worker, so dev sends
-   notifications to devices and no emails.
+   notifications to devices and no emails. With email off (section 4), run the mail worker instead: the push worker
+   doesn't tag past papers or run the forum checks.
 3. `push` in Access ("Notifications on phones and computers") arrives **on for everyone**, so it works as soon as the
    key and the worker are there. Set the key before people use a new environment: without it, Your account still
    shows "On this device", but turning it on fails (`GET /push/key` answers 404). Switched off, it is gone for admins
@@ -595,14 +600,14 @@ Nothing in the hub calls you when something breaks, so set these up before stude
   Better Stack), alerting you by email or text. Use a keyword check for `"status":"ok"`: the answer stays 200 with
   `"status":"degraded"` while the database or the bucket is unreachable.
 - **Daily jobs:** `DSBA_BACKUP_PING_URL` and `DSBA_SWEEP_PING_URL` (sections 7 and 8).
-- **The mail worker** (or the push worker, with email off): pushes, reminders, and with email on notification emails, account notices and Sunday summaries, stop silently if it dies. `restart: unless-stopped` brings it back after a crash; check `docker compose ps` after each deploy.
+- **The mail worker** (also with email off): pushes, reminders, past papers' tagging, forum checks, and with email on notification emails, account notices and Sunday summaries, stop silently if it dies. `restart: unless-stopped` brings it back after a crash; check `docker compose ps` after each deploy.
 - **Noora's spend:** the monthly limit on the Anthropic workspace, with its email alert at half.
 - **Disk:** an alert at 80% on the server's disk (the database volume and Docker's logs share it). Docker's logs
   rotate at 10 MB × 5 files per service (`x-logging` in compose.prod.yaml).
 - **Memory:** the API and the text worker are capped at 1 GB each (`DSBA_API_MEMORY`, `DSBA_TEXTS_MEMORY`).
 
 **On Railway** compose.prod.yaml doesn't apply: set each service's memory limit in its settings, keep the default log
-retention, run backup and sweep as cron services with `DSBA_ROLE`, the same image and only the variables listed for
+retention, keep the worker's start command `python -m app.cli mail-worker` with email off too (section 4), run backup and sweep as cron services with `DSBA_ROLE`, the same image and only the variables listed for
 them in compose.prod.yaml, and point the uptime check at the public domain.
 
 ## 14. Continue with Google

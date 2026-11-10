@@ -15,11 +15,12 @@ sweep              delete what is no longer needed: uploads never attached to an
 setup-bucket       create the bucket if needed and set its CORS and lifecycle rules (production: once)
 mail-worker        send the queued emails (notifications, account notices, Sunday summaries) with retries; runs
                    until stopped (--once: until nothing is due). Several can run side by side. On Sunday from
-                   08:00 Bahrain time it queues the week's summaries itself. Refused with DSBA_EMAIL_BACKEND=off
+                   08:00 Bahrain time it queues the week's summaries itself. It also sends the pushes and
+                   reminders, tags past papers and runs the forum checks, so it runs with DSBA_EMAIL_BACKEND=off too
 push-worker        send only the queued pushes to phones and computers, with retries, and turn the reminders that
-                   have come into notifications: no email goes out (with DSBA_EMAIL_BACKEND=off, or where emails
-                   shouldn't go yet). Run it or the
-                   mail worker, which sends the pushes too. Runs until stopped (--once: until nothing is due)
+                   have come into notifications: no email goes out, and no past papers are tagged or forum checks
+                   run. Run it or the mail worker, which sends the pushes too; with DSBA_EMAIL_BACKEND=off run the
+                   mail worker. Runs until stopped (--once: until nothing is due)
 cancel-queued-emails  cancel the emails still waiting (--older-than HOURS: only those queued longer ago), before a
                    mail worker first runs where none did, so no backlog goes out
 weekly-summary     queue this week's Sunday summary now, for everyone who has it on and hasn't had it this week
@@ -415,14 +416,13 @@ def cmd_vapid_key(_: argparse.Namespace) -> int:
 
 
 def cmd_mail_worker(args: argparse.Namespace) -> int:
-    """Sends the queued emails until stopped (SIGTERM or Ctrl-C), or with --once until nothing is due. Refused while
-    email is off: the push worker runs instead."""
+    """Sends the queued emails until stopped (SIGTERM or Ctrl-C), or with --once until nothing is due. With email off
+    it keeps running for the rest: pushes, reminders, past papers' tagging and the forum checks."""
     from app.services.outbox import run_worker
 
-    if not get_settings().email_enabled:
-        print("DSBA_EMAIL_BACKEND is off, so there is no email to send: run push-worker instead.", file=sys.stderr)
-        return 1
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    if not get_settings().email_enabled:
+        logging.getLogger(__name__).info("email is off: sending pushes, reminders and jobs only")
     return run_worker(get_sessionmaker(), once=args.once, poll_seconds=args.poll)
 
 

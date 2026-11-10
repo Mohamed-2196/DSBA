@@ -407,11 +407,11 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
 - **Email off (COM-254, 2026-11-10):** `DSBA_EMAIL_BACKEND=off` runs the hub with no mail provider, as the launch
   will (Mohamed: "notifications, not emails, for now"). Nothing is queued for email, `/auth/session` says
   `"email": false` so no screen offers one (Your account's Emails, sign-up's question, the newsletter's subscribe box,
-  Manage → Sunday summary's email lines), the mail worker refuses to start and the push worker runs instead
-  (compose.prod.yaml's `mail` service switches by itself). Forgotten passwords: an admin's Reset link.
+  Manage → Sunday summary's email lines), and the mail worker sends only pushes, reminders, past papers' tagging and
+  forum checks (the push worker does neither of the last two, so don't swap it in). Forgotten passwords: an admin's Reset link.
   DEPLOYMENT.md section 4, "Running without email".
-- **Workers:** in production, the `mail` worker sends queued notifications and Sunday summaries (with email off, the
-  push worker sends pushes and reminders instead); the `texts` worker (`python -m app.cli text-worker`) extracts text from published PDFs and Word files for search.
+- **Workers:** in production, the `mail` worker sends queued notifications and Sunday summaries (with email off it still
+  runs and sends only pushes); the `texts` worker (`python -m app.cli text-worker`) extracts text from published PDFs and Word files for search.
 - **Noora AI env:** `DSBA_ANTHROPIC_API_KEY` and `DSBA_NOORA_MODEL` power AI answers; without the key Noora runs in script mode.
 - **PWA:** installs via `/manifest.webmanifest` and `/sw.js`; the service worker caches the app shell and static assets.
 - **Bug reports:** anyone can report a bug with an optional screenshot; admins triage them in Manage → Bugs.
