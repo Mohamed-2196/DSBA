@@ -528,7 +528,8 @@ def test_a_later_lesson_follows_the_lesson_before_it_in_a_chapter_a_content_mana
     assert ids[ids.index("a6rgzdz0") + 1] == "rf6ptge1"  # and the lessons after it in the seed stay where they were
     assert ids[ids.index("h65xyfqg") + 1 :][:2] == ["k0j6lccv", "fgko3q8g"]
     assert ids[ids.index("ncd8ibt2") + 1] == "qp87lg8l"  # the bounded-sequence lesson skips the removed limit one
-    assert ids[0] == "bs8jmvr3" and "6veu8ac6" not in ids
+    assert ids[0] == "bs8jmvr3"
+    assert "6veu8ac6" not in ids
     assert [v.position for v in chapter.lessons] == list(range(len(ids)))
     assert load_all(db, only="new-lessons") == {"new-lessons": 0}  # once
 
