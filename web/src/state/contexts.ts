@@ -1,5 +1,6 @@
 import { createContext, type ReactNode } from 'react';
 import type { MateName } from '../ui/deskmates/types';
+import type { Glyph } from '../ui/icons/glyph';
 import type { CohortYear } from './cohort';
 
 export type Theme = 'light' | 'dark';
@@ -44,6 +45,8 @@ export interface ToastInput {
   /** a one-line pill (title · body) for a quiet confirmation over a page being written in, such as a note's first
    *  save: on a phone it keeps clear of the text */
   compact?: boolean;
+  /** the icon in place of the tone's, such as the bell on the offer of notifications */
+  glyph?: Glyph;
 }
 
 export interface Toast extends ToastInput {

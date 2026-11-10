@@ -13,7 +13,7 @@ import {
   blockedNote,
   browserPushSupport,
   devicePushOn,
-  onPushSynced,
+  onPushChanged,
   pushPermission,
   turnPushOff,
   turnPushOn,
@@ -95,7 +95,7 @@ function ThisDevice({ me, support }: { me: Me; support: PushSupport }) {
         .then((v) => live && setOn(v))
         .catch(() => undefined);
     read();
-    const stop = onPushSynced(read); // the start's sign-up may finish after this panel first reads it
+    const stop = onPushChanged(read); // the start's sign-up, or the offer's Turn on, may finish after this first read
     return () => {
       live = false;
       stop();

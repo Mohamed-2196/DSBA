@@ -8,10 +8,11 @@
 //   turnPushOff()        tells the API, then ends the browser's subscription; the device stays off until it is
 //                        turned on again here
 //   devicePushOn()       whether this browser has a subscription the signed-in person made
-//   resyncPush(userId)   on start: where the browser already allows the Hub's notifications and nobody turned them off
-//                        here, subscribes (or keeps the subscription) and sends it to the API for the signed-in person
-//                        and this session (the API moves it from whoever had this browser before). The switch and taps
-//                        wait for it; onPushSynced tells the switch when it is done
+//   resyncPush(userId)   on start: where the browser already allows the Hub's notifications, nobody turned them off
+//                        here and nobody else allowed them here (a shared computer), subscribes (or keeps the
+//                        subscription) and sends it to the API for the signed-in person and this session. The switch
+//                        and taps wait for it
+//   onPushChanged(fn)    tells the switch when the start's sign-up, a turn on or a turn off is done
 //   offerPush(...)       whether to offer them, once, in the installed app (shell/PushOffer.tsx)
 //   blockedNote(...)     where to allow them again: the device's settings in the installed app, else the browser's
 //   setAppBadge(count)   the app icon's badge: the unread count while the app is open (the service worker sets it
@@ -54,17 +55,22 @@ export function pushSupport({
 }
 
 /** Whether a start turns this device's notifications on by itself: the browser allows them already (the person did,
- * here or in the device's settings) and nobody turned them off here. */
+ * here or in the device's settings), nobody turned them off here, and the browser's subscription is this person's or
+ * nobody's. On a shared computer the next person to sign in taps the switch instead: they never agreed to them. */
 export function pushOnStart({
   support,
   permission,
   turnedOffHere,
+  owner,
+  userId,
 }: {
   support: PushSupport;
   permission: NotificationPermission;
   turnedOffHere: boolean;
+  owner: string | null;
+  userId: string;
 }): boolean {
-  return support === 'yes' && permission === 'granted' && !turnedOffHere;
+  return support === 'yes' && permission === 'granted' && !turnedOffHere && (owner === null || owner === userId);
 }
 
 /** Whether to offer notifications: once, in the installed app, while the device hasn't been asked yet. */
@@ -87,7 +93,7 @@ export function offerPush({
 /** Where to allow them again once they're blocked: the installed app's are in the device's settings. */
 export function blockedNote(installed: boolean): string {
   return installed
-    ? 'Notifications are blocked for the Hub on this device. Allow them in your device’s settings for the Hub app, then turn this on.'
+    ? 'Notifications are blocked for the Hub on this device. Allow them in your device’s settings for DSBA Hub, then turn this on.'
     : 'Notifications are blocked for the Hub in this browser. Allow them in the browser’s settings for this site, then turn this on.';
 }
 
@@ -218,11 +224,15 @@ let syncing: Promise<void> = Promise.resolve();
 const synced = () => syncing.catch(() => undefined);
 const listeners = new Set<() => void>();
 
-/** Calls `listener` each time a start's sign-up finishes (the switch reads it again); returns the unsubscribe. */
-export function onPushSynced(listener: () => void): () => void {
+/** Calls `listener` each time this browser's notifications may have changed: a start's sign-up, a turn on (the
+ * installed app's offer, say, while Your account is open) or a turn off. The switch reads them again. Returns the
+ * unsubscribe. */
+export function onPushChanged(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
+
+const changed = () => listeners.forEach((l) => l());
 
 async function send(sub: PushSubscription): Promise<void> {
   await call(api.POST('/api/v1/push/subscriptions', { body: subscriptionBody(sub.toJSON()) }));
@@ -237,17 +247,27 @@ export async function turnPushOn(userId: string): Promise<void> {
   await send(sub);
   setOwner(userId);
   write(OFF_HERE_KEY, null);
+  changed();
 }
 
+/** Off first, here: a start's sign-up that begins meanwhile (another tab) sees it and leaves the device alone. Put
+ * back when the API couldn't be told, so the switch keeps reading on. */
 export async function turnPushOff(): Promise<void> {
   await synced();
-  const sub = await currentSubscription();
-  if (sub) {
-    await call(api.POST('/api/v1/push/subscriptions/remove', { body: { endpoint: sub.endpoint } }));
-    await sub.unsubscribe().catch(() => undefined);
+  const wasOff = turnedOffHere();
+  write(OFF_HERE_KEY, '1');
+  try {
+    const sub = await currentSubscription();
+    if (sub) {
+      await call(api.POST('/api/v1/push/subscriptions/remove', { body: { endpoint: sub.endpoint } }));
+      await sub.unsubscribe().catch(() => undefined);
+    }
+  } catch (err) {
+    if (!wasOff) write(OFF_HERE_KEY, null);
+    throw err;
   }
   setOwner(null);
-  write(OFF_HERE_KEY, '1');
+  changed();
 }
 
 export async function devicePushOn(userId: string): Promise<boolean> {
@@ -257,12 +277,21 @@ export async function devicePushOn(userId: string): Promise<boolean> {
 }
 
 export function resyncPush(userId: string): Promise<void> {
-  if (!pushOnStart({ support: browserPushSupport(), permission: pushPermission(), turnedOffHere: turnedOffHere() }))
-    return Promise.resolve();
+  const here = () =>
+    pushOnStart({
+      support: browserPushSupport(),
+      permission: pushPermission(),
+      turnedOffHere: turnedOffHere(),
+      owner: owner(),
+      userId,
+    });
+  if (!here()) return Promise.resolve();
   syncing = (async () => {
-    await send(await subscription(await registration()));
+    const sub = await subscription(await registration());
+    if (!here()) return; // turned off (in another tab, say) while the browser subscribed
+    await send(sub);
     setOwner(userId);
-    listeners.forEach((l) => l());
+    changed();
   })();
   return syncing;
 }

@@ -152,8 +152,11 @@ def feature_on(db: Session, user: User | None, feature: Feature) -> bool:
 
 
 def features_on(db: Session, user: User | None) -> list[Feature]:
-    """The features that exist for this person, in the order FEATURES lists them."""
-    return [f for f in FEATURES if feature_on(db, user, f)]
+    """The features that exist for this person, in the order FEATURES lists them. Push is left out while the hub has
+    no VAPID key: the web app would show a switch (and offer it once) that can only fail."""
+    from app.services import push  # push imports this module
+
+    return [f for f in FEATURES if feature_on(db, user, f) and (f is not Feature.push or push.configured())]
 
 
 def on_for_everyone(db: Session, feature: Feature) -> bool:

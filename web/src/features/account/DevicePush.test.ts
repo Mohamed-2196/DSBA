@@ -20,7 +20,7 @@ vi.mock('../../lib/push', async (actual) => ({
   browserPushSupport: () => browser.support,
   pushPermission: () => browser.permission,
   devicePushOn: () => Promise.resolve(false),
-  onPushSynced: () => () => undefined,
+  onPushChanged: () => () => undefined,
   turnPushOn: vi.fn(),
   turnPushOff: vi.fn(),
 }));
@@ -85,7 +85,7 @@ describe('Notifications on your devices', () => {
     browser.permission = 'denied';
     browser.installed = true;
     const t = text(render());
-    expect(t).toContain('Allow them in your device’s settings for the Hub app, then turn this on.');
+    expect(t).toContain('Allow them in your device’s settings for DSBA Hub, then turn this on.');
     expect(t).not.toContain('settings for this site');
     expect(t).toContain('Only this device. Turn it on again on your other devices.');
   });

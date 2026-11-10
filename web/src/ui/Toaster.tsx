@@ -51,7 +51,7 @@ function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string)
       {toast.mate && toast.tone === 'success' ? (
         <Deskmate mate={toast.mate} state="happy" size={40} className="ui-toast__mate" />
       ) : (
-        <Icon glyph={GLYPHS[toast.tone] ?? glyph.info} size={24} className="ui-toast__icon" />
+        <Icon glyph={toast.glyph ?? GLYPHS[toast.tone] ?? glyph.info} size={24} className="ui-toast__icon" />
       )}
       <div className="ui-toast__text">
         <p className="ui-toast__title">{toast.title}</p>

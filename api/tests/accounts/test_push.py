@@ -238,6 +238,27 @@ def test_off_when_the_switch_is_off_or_the_hub_has_no_key(
     assert client_for().get(f"{API}/push/key").status_code == 401
 
 
+def test_me_lists_push_only_once_the_hub_has_a_key(
+    client_for: ClientFor,
+    make_user: MakeUser,
+    set_option: Callable[[str, Any], None],
+    set_feature: Callable[..., None],
+) -> None:
+    """Without a VAPID key the web app shows no switch and makes no offer: both could only fail."""
+    student, boss = make_user(), make_user(roles=("student", "admin"))
+    set_feature("push", "everyone")
+    for c in (client_for(student), client_for(boss)):
+        assert "push" not in c.get(f"{API}/me").json()["features"]
+        assert "push" not in c.get(f"{API}/features").json()["features"]
+    set_option("vapid_private_key", SecretStr(RFC_AS_PRIVATE))
+    set_option("vapid_subject", SUBJECT)
+    for c in (client_for(student), client_for(boss)):
+        assert "push" in c.get(f"{API}/me").json()["features"]
+        assert "push" in c.get(f"{API}/features").json()["features"]
+    set_feature("push", "off")
+    assert "push" not in client_for(student).get(f"{API}/me").json()["features"]
+
+
 def test_the_switch_is_stored_on_for_everyone_by_its_migration(db: Session) -> None:
     from app.core.access import Feature
     from app.services import access

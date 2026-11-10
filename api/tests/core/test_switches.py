@@ -405,7 +405,8 @@ def test_a_notification_into_a_switched_off_feature_still_lists(
 def test_me_and_features_list_what_is_on(
     client_for: ClientFor, make_user: MakeUser, set_feature: Callable[..., None], db: Session
 ) -> None:
-    everything = [f.value for f in Feature if f not in OFF_AT_FIRST]
+    # push is listed only once the hub has a VAPID key (tests/accounts/test_push.py); these tests have none
+    everything = [f.value for f in Feature if f not in OFF_AT_FIRST and f is not Feature.push]
     student, boss = make_user(name="Sara Student"), make_user(name="Head Admin", roles=ADMIN)
     assert client_for(student).get(f"{API}/me").json()["features"] == everything
     assert client_for().get(f"{API}/features").json() == {"features": everything}
@@ -415,7 +416,7 @@ def test_me_and_features_list_what_is_on(
     assert client_for(student).get(f"{API}/features").json() == {"features": without_calendar}
     assert client_for().get(f"{API}/features").json() == {"features": without_calendar}
     assert client_for(boss).get(f"{API}/me").json()["features"] == [
-        f.value for f in Feature if not (f in ADMINS_FOLLOW_SWITCH and f in OFF_AT_FIRST)
+        f.value for f in Feature if not (f in ADMINS_FOLLOW_SWITCH and f in OFF_AT_FIRST) and f is not Feature.push
     ]
     db.add(FeatureSwitch(feature="teleport", mode="everyone"))  # a key the code doesn't know
     db.commit()

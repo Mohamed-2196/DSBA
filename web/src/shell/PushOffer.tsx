@@ -7,6 +7,7 @@ import { useAuth } from '../auth';
 import { PushRefused, blockedNote, notePushOffered, offerPushHere, turnPushOn } from '../lib/push';
 import { useInstall } from '../lib/pwa';
 import { useToast } from '../state';
+import { bell } from '../ui/icons/glyphs';
 
 export function PushOffer() {
   const { me, status, featureOn } = useAuth();
@@ -42,6 +43,7 @@ export function PushOffer() {
       );
     push({
       title: 'Get a notification when someone replies to you?',
+      glyph: bell, // the header's bell: the notifications students already know
       body: 'You can change it any time in Your account.',
       duration: 0,
       action: { label: 'Turn on', onClick: () => void turnOn() },

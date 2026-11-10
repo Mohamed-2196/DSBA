@@ -34,6 +34,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Removes an unattributed 'everyone' push switch. That is the one 0067 stored, but also one `cli enable-features`
+    stored (it records no admin) or one whose admin's account was deleted since: going back turns push off there
+    too."""
     op.execute(
         sa.text(
             "DELETE FROM feature_switches WHERE feature = :feature AND mode = 'everyone' AND updated_by IS NULL"

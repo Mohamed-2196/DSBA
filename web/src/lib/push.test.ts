@@ -70,16 +70,23 @@ describe('sameKey', () => {
 });
 
 describe('pushOnStart', () => {
+  const start = { support: 'yes', permission: 'granted', turnedOffHere: false, owner: null, userId: 'u1' } as const;
+
   it('turns a device on by itself where its browser already allows the Hub’s notifications', () => {
-    expect(pushOnStart({ support: 'yes', permission: 'granted', turnedOffHere: false })).toBe(true);
+    expect(pushOnStart(start)).toBe(true);
+    expect(pushOnStart({ ...start, owner: 'u1' })).toBe(true);
   });
 
   it('leaves it off where someone turned it off here, or the browser hasn’t allowed them', () => {
-    expect(pushOnStart({ support: 'yes', permission: 'granted', turnedOffHere: true })).toBe(false);
-    expect(pushOnStart({ support: 'yes', permission: 'default', turnedOffHere: false })).toBe(false);
-    expect(pushOnStart({ support: 'yes', permission: 'denied', turnedOffHere: false })).toBe(false);
-    expect(pushOnStart({ support: 'home-screen', permission: 'granted', turnedOffHere: false })).toBe(false);
-    expect(pushOnStart({ support: 'no', permission: 'granted', turnedOffHere: false })).toBe(false);
+    expect(pushOnStart({ ...start, turnedOffHere: true })).toBe(false);
+    expect(pushOnStart({ ...start, permission: 'default' })).toBe(false);
+    expect(pushOnStart({ ...start, permission: 'denied' })).toBe(false);
+    expect(pushOnStart({ ...start, support: 'home-screen' })).toBe(false);
+    expect(pushOnStart({ ...start, support: 'no' })).toBe(false);
+  });
+
+  it('leaves it off for the next person on a shared browser: someone else allowed them there', () => {
+    expect(pushOnStart({ ...start, owner: 'u2' })).toBe(false);
   });
 });
 
@@ -109,7 +116,7 @@ describe('offerPush', () => {
 describe('blockedNote', () => {
   it('sends the installed app to the device’s settings, and a tab to the browser’s', () => {
     expect(blockedNote(true)).toBe(
-      'Notifications are blocked for the Hub on this device. Allow them in your device’s settings for the Hub app, then turn this on.',
+      'Notifications are blocked for the Hub on this device. Allow them in your device’s settings for DSBA Hub, then turn this on.',
     );
     expect(blockedNote(false)).toBe(
       'Notifications are blocked for the Hub in this browser. Allow them in the browser’s settings for this site, then turn this on.',
