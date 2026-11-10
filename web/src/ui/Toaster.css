@@ -56,11 +56,20 @@
   color: var(--ink-2);
   line-height: 1.45;
 }
-.ui-toast__action {
+.ui-toast__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
   margin-top: 8px;
+}
+.ui-toast__action {
   color: var(--accent);
   font-size: var(--fs-14);
   font-weight: var(--fw-bold);
+}
+.ui-toast__action--quiet {
+  color: var(--ink-2);
+  font-weight: var(--fw-medium);
 }
 .ui-toast__action:hover {
   text-decoration: underline;

@@ -34,6 +34,8 @@ export interface ToastInput {
   /** ms; 0 = stays until dismissed (default 5000) */
   duration?: number;
   action?: { label: string; onClick?: () => void };
+  /** a quieter second button beside the action, such as "Not now" */
+  secondary?: { label: string; onClick?: () => void };
   /**
    * A happy deskmate on a success that matters (a file published, a thread posted, a plan made). Never on a
    * failure, and not on every toast.

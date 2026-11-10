@@ -56,17 +56,24 @@ function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string)
       <div className="ui-toast__text">
         <p className="ui-toast__title">{toast.title}</p>
         {toast.body ? <p className="ui-toast__body">{toast.body}</p> : null}
-        {toast.action ? (
-          <button
-            type="button"
-            className="ui-toast__action"
-            onClick={() => {
-              toast.action?.onClick?.();
-              setLeaving(true);
-            }}
-          >
-            {toast.action.label}
-          </button>
+        {toast.action || toast.secondary ? (
+          <div className="ui-toast__actions">
+            {[toast.action, toast.secondary].map((a, i) =>
+              a ? (
+                <button
+                  key={i}
+                  type="button"
+                  className={cx('ui-toast__action', i === 1 && 'ui-toast__action--quiet')}
+                  onClick={() => {
+                    a.onClick?.();
+                    setLeaving(true);
+                  }}
+                >
+                  {a.label}
+                </button>
+              ) : null,
+            )}
+          </div>
         ) : null}
       </div>
       <button

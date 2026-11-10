@@ -1,20 +1,25 @@
 // "Notifications on your devices" on Your account: a panel for this browser alone, with web push on or off
 // (lib/push.ts), then which notifications come to every device where it is on. Only replies to your own posts start
-// on. The browser's permission is asked only when the switch is tapped; on an iPhone or iPad outside the Home Screen
-// app, the steps to add it come first. While the browser blocks the Hub's notifications, the switch is off limits.
+// on. The browser's permission is asked only when the switch is tapped (or by the installed app's one-time offer,
+// shell/PushOffer.tsx); where the browser allows them already, the device turns on by itself on start
+// (shell/PushSync.tsx). On an iPhone or iPad outside the Home Screen app, the steps to add it come first. While the
+// browser blocks the Hub's notifications, the switch is off limits.
 import { useEffect, useState } from 'react';
 import { errorMessage } from '../../api/errors';
 import type { Me } from '../../api/types';
 import { useAuth, useUpdatePreferences, type Feature } from '../../auth';
 import {
   PushRefused,
+  blockedNote,
   browserPushSupport,
   devicePushOn,
+  onPushSynced,
   pushPermission,
   turnPushOff,
   turnPushOn,
   type PushSupport,
 } from '../../lib/push';
+import { useInstall } from '../../lib/pwa';
 import { IphoneSteps } from '../../shell/InstallSteps';
 import { useToast } from '../../state';
 import { Divider, Panel, SectionHeader, Switch } from '../../ui';
@@ -77,6 +82,7 @@ const PUSH_CHOICES: { key: PushChoice; label: string; description: string; featu
 
 function ThisDevice({ me, support }: { me: Me; support: PushSupport }) {
   const { push } = useToast();
+  const { installed } = useInstall();
   const [on, setOn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [blocked, setBlocked] = useState(() => support === 'yes' && pushPermission() === 'denied');
@@ -84,15 +90,19 @@ function ThisDevice({ me, support }: { me: Me; support: PushSupport }) {
   useEffect(() => {
     if (support !== 'yes') return;
     let live = true;
-    devicePushOn(me.id)
-      .then((v) => live && setOn(v))
-      .catch(() => undefined);
+    const read = () =>
+      void devicePushOn(me.id)
+        .then((v) => live && setOn(v))
+        .catch(() => undefined);
+    read();
+    const stop = onPushSynced(read); // the start's sign-up may finish after this panel first reads it
     return () => {
       live = false;
+      stop();
     };
   }, [me.id, support]);
 
-  // Allowing them again in the browser's settings brings the switch back without a reload.
+  // Allowing them again in the browser's (or the device's) settings brings the switch back without a reload.
   useEffect(() => {
     if (support !== 'yes' || !navigator.permissions) return;
     let status: PermissionStatus | null = null;
@@ -156,7 +166,7 @@ function ThisDevice({ me, support }: { me: Me; support: PushSupport }) {
     <>
       <Switch
         label="On this device"
-        description="Only this browser. Turn it on again on your other devices."
+        description={`Only this ${installed ? 'device' : 'browser'}. Turn it on again on your other devices.`}
         checked={on}
         disabled={busy || blocked}
         onChange={(next) => void change(next)}
@@ -164,8 +174,7 @@ function ThisDevice({ me, support }: { me: Me; support: PushSupport }) {
       />
       {blocked ? (
         <p className="acct-note acct-push__blocked" role="status">
-          Notifications are blocked for the Hub in this browser. Allow them in the browser’s settings for this site,
-          then turn this on.
+          {blockedNote(installed)}
         </p>
       ) : null}
     </>

@@ -2,6 +2,7 @@ import { createElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Me } from '../../api/types';
+import type * as Push from '../../lib/push';
 import type { PushSupport } from '../../lib/push';
 import { InstallSteps } from '../../shell/InstallSteps';
 import type * as Ui from '../../ui';
@@ -10,16 +11,20 @@ import { DevicePush } from './DevicePush';
 const browser = vi.hoisted(() => ({
   support: 'yes' as PushSupport,
   permission: 'default' as NotificationPermission,
+  installed: false,
 }));
 
-vi.mock('../../lib/push', () => ({
+vi.mock('../../lib/push', async (actual) => ({
+  blockedNote: (await actual<typeof Push>()).blockedNote,
   PushRefused: class PushRefused extends Error {},
   browserPushSupport: () => browser.support,
   pushPermission: () => browser.permission,
   devicePushOn: () => Promise.resolve(false),
+  onPushSynced: () => () => undefined,
   turnPushOn: vi.fn(),
   turnPushOff: vi.fn(),
 }));
+vi.mock('../../lib/pwa', () => ({ useInstall: () => ({ installed: browser.installed }) }));
 vi.mock('../../auth', () => ({
   useAuth: () => ({ featureOn: () => true }),
   useUpdatePreferences: () => ({ mutate: vi.fn() }),
@@ -43,6 +48,7 @@ const deviceInput = (html: string) => /<input[^>]*data-hub="account-push-device"
 beforeEach(() => {
   browser.support = 'yes';
   browser.permission = 'default';
+  browser.installed = false;
 });
 
 describe('Notifications on your devices', () => {
@@ -73,6 +79,15 @@ describe('Notifications on your devices', () => {
     const html = render();
     expect(deviceInput(html)).toContain('disabled');
     expect(text(html)).toContain('Notifications are blocked for the Hub in this browser.');
+  });
+
+  it('sends the installed app to the device’s settings when they are blocked', () => {
+    browser.permission = 'denied';
+    browser.installed = true;
+    const t = text(render());
+    expect(t).toContain('Allow them in your device’s settings for the Hub app, then turn this on.');
+    expect(t).not.toContain('settings for this site');
+    expect(t).toContain('Only this device. Turn it on again on your other devices.');
   });
 
   it('leaves the switch to tap while the browser hasn’t blocked them', () => {
