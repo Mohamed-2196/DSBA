@@ -6,7 +6,7 @@ import { errorMessage, isApiError } from '../../api/errors';
 import type { SummaryEditable, SummaryWords as Words } from '../../api/types';
 import { useAuth } from '../../auth';
 import { cohortLabel, useToast, YEARS, type CohortYear } from '../../state';
-import { Drawer, Panel, QueryError, SegmentedControl, Skeleton, TextField } from '../../ui';
+import { cx, Drawer, Panel, QueryError, SegmentedControl, Skeleton, TextField } from '../../ui';
 import { DocFrame, docErrors, type DocProblem } from '../../ui/docEditor';
 import { useReloadSummaryWords, useSaveSummaryWords, useSummaryDraft, useSummaryWords } from './api';
 
@@ -115,7 +115,8 @@ function Editor({ first, defaultYear }: { first: SummaryEditable; defaultYear: C
             : { title: 'Its lines and headings', about: 'Every year’s summary uses them in the text reps paste.' }
         }
       >
-        <div className="dedit-grid">
+        {/* With email off there is no send time: two columns in the text's order, first and last lines wide. */}
+        <div className={cx('dedit-grid', !emailOn && 'dedit-grid--pairs')}>
           <TextField
             className="dedit-grid__wide"
             label={emailOn ? 'Subject line' : 'First line'}
@@ -143,6 +144,7 @@ function Editor({ first, defaultYear }: { first: SummaryEditable; defaultYear: C
             />
           ))}
           <TextField
+            className={emailOn ? undefined : 'dedit-grid__wide'}
             label="Before the link at the end"
             hint="The link to the hub follows it."
             value={words.closing}

@@ -97,7 +97,17 @@ function LatestFeature({ issue }: { issue: IssueCard }) {
 
 /** No issue is out yet: what the newsletter will be, and how to get the first one (the subscribe box below, or with
  *  the hub's email off, the notification everyone gets). */
-function ComingSoon({ manages, hasDrafts, emailOn }: { manages: boolean; hasDrafts: boolean; emailOn: boolean }) {
+function ComingSoon({
+  manages,
+  hasDrafts,
+  emailOn,
+  signedIn,
+}: {
+  manages: boolean;
+  hasDrafts: boolean;
+  emailOn: boolean;
+  signedIn: boolean;
+}) {
   return (
     <section className="nl-feature nl-feature--soon" data-hub="newsletter-empty" aria-labelledby="nl-soon-title">
       <div className="nl-feature__cover nl-soon__cover">
@@ -127,7 +137,7 @@ function ComingSoon({ manages, hasDrafts, emailOn }: { manages: boolean; hasDraf
               : 'Nothing is published yet. Start a new issue above: it stays a draft until you publish it.'
             : emailOn
               ? 'There’s no timetable: an issue goes out when there’s news worth your time. Subscribe and you’ll hear the moment the first one is out.'
-              : 'There’s no timetable: an issue goes out when there’s news worth your time. Signed in, you’ll get a notification here the moment the first one is out.'}
+              : `There’s no timetable: an issue goes out when there’s news worth your time. ${signedIn ? 'You’ll' : 'Sign in and you’ll'} get a notification the moment the first one is out.`}
         </p>
         <div className="nl-feature__contents nl-soon__contents">
           <h3 className="nl-feature__contents-title">What an issue can hold</h3>
@@ -256,7 +266,7 @@ function NewsletterSkeleton() {
 
 export default function NewsletterPage() {
   useDocumentTitle('The DSBA Newsletter');
-  const { can, emailOn } = useAuth();
+  const { can, emailOn, me } = useAuth();
   const manages = can('newsletter.manage');
   const list = useIssues({ includeDrafts: manages });
   const [creating, setCreating] = useState(false);
@@ -288,7 +298,7 @@ export default function NewsletterPage() {
       ) : latest ? (
         <LatestFeature issue={latest} />
       ) : (
-        <ComingSoon manages={manages} hasDrafts={drafts.length > 0} emailOn={emailOn} />
+        <ComingSoon manages={manages} hasDrafts={drafts.length > 0} emailOn={emailOn} signedIn={me !== null} />
       )}
 
       {cards.length ? (

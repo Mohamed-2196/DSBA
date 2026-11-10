@@ -426,6 +426,7 @@ function Sessions() {
 
 function YourData() {
   const { push } = useToast();
+  const { emailOn } = useAuth();
   const [downloading, setDownloading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const download = async () => {
@@ -445,7 +446,8 @@ function YourData() {
           <h3 className="acct-data__title">Download your data</h3>
           <p>
             Everything the Hub keeps about you, as a JSON file: your profile, devices, posts, votes, reports, bug
-            reports, uploads, stars, reactions, progress, notifications and the emails we sent you.
+            reports, uploads, stars, reactions, progress
+            {emailOn ? ', notifications and the emails we sent you' : ' and notifications'}.
           </p>
         </div>
         <Button leadingIcon={<Icon glyph={glyph.download} />} onClick={() => void download()} loading={downloading}>

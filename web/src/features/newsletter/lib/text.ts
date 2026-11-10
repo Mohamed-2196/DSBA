@@ -99,8 +99,9 @@ export const sectionDomId = (id: string): string => `nl-sec-${id}`;
 export function publishedNote(no: string, emailed: boolean, emailOn: boolean): { title: string; body: string } {
   return {
     title: `Issue ${no} is out`,
-    body:
-      emailed || !emailOn
+    body: !emailOn
+      ? 'It’s on the newsletter page, and everyone has been notified.'
+      : emailed
         ? 'It’s on the newsletter page, and everyone who wants newsletter notifications has been told.'
         : 'Published. The cohort email goes out once a day; the next one can be sent tomorrow.',
   };

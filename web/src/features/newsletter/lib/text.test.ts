@@ -96,9 +96,8 @@ describe('publishedNote', () => {
     });
   });
 
-  it('names no email when the hub sends none', () => {
-    expect(publishedNote('09', false, false).body).toBe(
-      'It’s on the newsletter page, and everyone who wants newsletter notifications has been told.',
-    );
+  it('names no email when the hub sends none: everyone is notified in the Hub', () => {
+    expect(publishedNote('09', false, false).body).toBe('It’s on the newsletter page, and everyone has been notified.');
+    expect(publishedNote('10', true, false).body).toBe('It’s on the newsletter page, and everyone has been notified.');
   });
 });
