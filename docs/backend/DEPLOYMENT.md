@@ -8,7 +8,7 @@ development uses `compose.yaml` instead.
 browser ──https──▶ web (Caddy: TLS, the built app, /api/* and the MCP sign-in's /.well-known/oauth-* proxied, security headers, 1 MB body cap)
    │                  └──▶ api (FastAPI, no published port) ──▶ db (PostgreSQL 17, volume pgdata)
    └──presigned POST/GET──▶ bucket (AWS S3, or MinIO behind HTTPS)
-mail: the email outbox (in db) ──SMTP──▶ your mail relay
+mail: the email outbox (in db) ──SMTP──▶ your mail relay      (DSBA_EMAIL_BACKEND=off: no email, the push worker runs)
 texts: published library files ──extract text──▶ search index (in db)
 backup (daily): pg_dump ──▶ backup bucket (its own key)      sweep (daily): uploads, sign-in records, sessions, old files
 sign-in: email and password, or Google ──OpenID Connect──▶ accounts.google.com (section 14)
@@ -20,7 +20,8 @@ sign-in: email and password, or Google ──OpenID Connect──▶ accounts.go
   (`DSBA_DOMAIN`, e.g. `hub.example.com`). Caddy gets and renews the certificate itself.
 - An S3 bucket for files and a second bucket for backups (section 3), with a key for the API, one for the text
   worker that can only read the library's files and write their covers (section 3), and one for backups (section 7).
-- An SMTP account for notification emails and account notices (any provider's relay).
+- An SMTP account for notification emails, account notices and the Sunday summary (any provider's relay), or none:
+  with `DSBA_EMAIL_BACKEND=off` the hub sends no email at all (section 4, "Running without email").
 - For "Continue with Google": an OAuth client in Google Cloud Console (section 14). Without it students sign in with
   an email address and a password only, and nobody can become an admin through `DSBA_ADMIN_IDENTIFIERS`.
 - An Anthropic API key (`DSBA_ANTHROPIC_API_KEY`) if Mini Noora's AI answers (`noora.ai`) or the forum's automatic check
@@ -35,7 +36,7 @@ for production. It lists every problem in one go, for example:
 ```
 app.config.ConfigError: DSBA Hub won't start in production until these settings are fixed:
   - DSBA_SECRET_KEY must be a random string of at least 32 characters, not the development one (...)
-  - DSBA_EMAIL_BACKEND must be smtp (it is 'console'): the console and file backends don't deliver notifications.
+  - DSBA_EMAIL_BACKEND must be smtp or off (it is 'console'): the console and file backends don't deliver notifications.
 ```
 
 What production refuses (`app/config.py`, `Settings.production_problems`):
@@ -52,7 +53,7 @@ What production refuses (`app/config.py`, `Settings.production_problems`):
 | `DSBA_SIGN_IN_FAILURES_PER_*`, `DSBA_SIGN_INS_PER_NETWORK_PER_HOUR`, `DSBA_SIGN_UPS_PER_NETWORK_PER_*` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose |
 | `DSBA_GOOGLE_CLIENT_ID`, `DSBA_GOOGLE_CLIENT_SECRET` | set together or not at all (in every environment); both empty turns "Continue with Google" off |
 | `DSBA_S3_*` | bucket and keys set, not the development keys; the endpoint set explicitly (empty for AWS S3); what browsers use (`DSBA_S3_PUBLIC_ENDPOINT_URL`, else `DSBA_S3_ENDPOINT_URL`) is `https://`; `DSBA_S3_CREATE_BUCKET` false (the default in production) |
-| `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain; `DSBA_SMTP_STARTTLS` true, unless `DSBA_SMTP_PORT` is 465 (TLS from the start) |
+| `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain; `DSBA_SMTP_STARTTLS` true, unless `DSBA_SMTP_PORT` is 465 (TLS from the start). Or `off`: no email, and no SMTP setting is checked (section 4, "Running without email") |
 | `DSBA_VAPID_PRIVATE_KEY`, `DSBA_VAPID_SUBJECT` | both or neither (section 11); the key a P-256 private key, the subject `mailto:` or `https://` |
 
 Every other setting, the optional ones included, is in section 12.
@@ -171,6 +172,24 @@ the person turned that switch off, changed their address or deleted the account.
 The same worker keeps the hub's clock: on Sunday, from the time set in Manage → Sunday summary (Bahrain time), it
 queues the week's summaries, and within a minute of their time it turns the reminders on board cards and on students'
 own calendar events into notifications. Without a running `mail` service, none of these happen.
+
+**Running without email** (`DSBA_EMAIL_BACKEND=off`; the launch runs this way, COM-254). No mail provider is needed:
+leave `DSBA_EMAIL_FROM` and every `DSBA_SMTP_*` unset. Then:
+
+- nothing is queued for email: no notification emails, account notices or Sunday summaries (`email_outbox` stays
+  empty). Notifications still come in the Hub, and as pushes to phones and computers (section 11);
+- the web app is told (`GET /api/v1/auth/session` answers `"email": false`), so no screen offers an email: Your account
+  has no Emails section, sign-up doesn't ask about emails, the newsletter has no "Tell me about new issues" box, and
+  Manage → Sunday summary is only the text reps paste into their year's group;
+- `mail-worker` refuses to start. Run `push-worker` instead: it sends the pushes and turns reminders into
+  notifications. In `compose.prod.yaml` the `mail` service does this by itself when the setting is `off`;
+- a forgotten password is reset by an admin: Manage → Access → People → the person → **Reset link**, which works once
+  within an hour (or the person continues with Google, if it is set up).
+
+To turn email on later: set up SMTP (`DSBA_EMAIL_BACKEND=smtp` and the settings above), run `python -m app.cli
+cancel-queued-emails` once (nothing should be waiting, but it is cheap), and restart the workers so the mail worker
+runs. People who signed up while it was off never answered the question about emails, so they get no notification
+emails until they turn a switch on in Your account.
 
 **Text of papers.** Search finds words inside published PDF and Word files. The `texts` service
 (`python -m app.cli text-worker`) reads each newly published file once, in a child process limited to 60 seconds
@@ -507,7 +526,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_SIGN_INS_PER_NETWORK_PER_HOUR` | `60` | password sign-ins from one network, right or wrong |
 | `DSBA_SIGN_UPS_PER_NETWORK_PER_HOUR`, `DSBA_SIGN_UPS_PER_NETWORK_PER_DAY` | `10`, `30` | new accounts (tries included) from one network |
 | `DSBA_GOOGLE_CLIENT_ID`, `DSBA_GOOGLE_CLIENT_SECRET` | none | "Continue with Google" (section 14); off while either is empty |
-| `DSBA_EMAIL_BACKEND` | `console` | `smtp`, `file` (into `DSBA_EMAIL_FILE_DIR`, default `var/mail`) or `console` |
+| `DSBA_EMAIL_BACKEND` | `console` | `smtp`, `file` (into `DSBA_EMAIL_FILE_DIR`, default `var/mail`), `console`, or `off` (no email; section 4) |
 | `DSBA_EMAIL_FROM` | `DSBA Hub <no-reply@dsba-hub.local>` | the sender |
 | `DSBA_SMTP_HOST`, `_PORT`, `_USERNAME`, `_PASSWORD`, `_STARTTLS` | `127.0.0.1`, `1025`, none, none, false | the mail relay |
 | `DSBA_ALLOW_RAISED_LIMITS` | false | lets production run limits above their defaults (the e2e suite raises them) |
@@ -576,7 +595,7 @@ Nothing in the hub calls you when something breaks, so set these up before stude
   Better Stack), alerting you by email or text. Use a keyword check for `"status":"ok"`: the answer stays 200 with
   `"status":"degraded"` while the database or the bucket is unreachable.
 - **Daily jobs:** `DSBA_BACKUP_PING_URL` and `DSBA_SWEEP_PING_URL` (sections 7 and 8).
-- **The mail worker:** notifications, account notices, reminders and Sunday summaries stop silently if it dies. `restart: unless-stopped` brings it back after a crash; check `docker compose ps` after each deploy.
+- **The mail worker** (or the push worker, with email off): pushes, reminders, and with email on notification emails, account notices and Sunday summaries, stop silently if it dies. `restart: unless-stopped` brings it back after a crash; check `docker compose ps` after each deploy.
 - **Noora's spend:** the monthly limit on the Anthropic workspace, with its email alert at half.
 - **Disk:** an alert at 80% on the server's disk (the database volume and Docker's logs share it). Docker's logs
   rotate at 10 MB × 5 files per service (`x-logging` in compose.prod.yaml).

@@ -393,7 +393,7 @@ class Settings(BaseSettings):
                 f"DSBA_EMAIL_BACKEND must be smtp or off (it is {self.email_backend!r}): the console and file "
                 "backends don't deliver notifications."
             )
-        elif self.email_backend == "smtp" and "smtp_host" not in given:
+        elif self.email_backend == "smtp" and ("smtp_host" not in given or not self.smtp_host.strip()):
             add(
                 "DSBA_SMTP_HOST must be your mail provider's SMTP server (the default is the development mail catcher)."
             )
@@ -402,7 +402,7 @@ class Settings(BaseSettings):
                 f"DSBA_SMTP_STARTTLS must be true, or DSBA_SMTP_PORT {SMTPS_PORT} (TLS from the start): emails and "
                 "the SMTP password must never travel in clear."
             )
-        if self.email_enabled and self.email_from == DEV_EMAIL_FROM:
+        if self.email_enabled and self.email_from.strip() in ("", DEV_EMAIL_FROM):
             add("DSBA_EMAIL_FROM must be an address on your own domain, like 'DSBA Hub <no-reply@example.com>'.")
 
         # Web push: optional, but whole when set

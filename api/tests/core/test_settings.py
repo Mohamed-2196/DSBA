@@ -97,6 +97,8 @@ def test_good_production_settings_start() -> None:
         ({"email_backend": "console"}, "DSBA_EMAIL_BACKEND must be smtp or off (it is 'console')"),
         ({"email_backend": "file"}, "DSBA_EMAIL_BACKEND must be smtp or off (it is 'file')"),
         ({"smtp_host": REMOVE}, "DSBA_SMTP_HOST must be your mail provider's"),
+        ({"smtp_host": ""}, "DSBA_SMTP_HOST must be your mail provider's"),  # compose passes an unset one as empty
+        ({"email_from": ""}, "DSBA_EMAIL_FROM must be an address on your own domain"),
         ({"email_from": REMOVE}, "DSBA_EMAIL_FROM must be an address on your own domain"),
         ({"google_client_id": "id.apps.googleusercontent.com"}, "DSBA_GOOGLE_CLIENT_ID and DSBA_GOOGLE_CLIENT_SECRET"),
         ({"google_client_secret": "a-secret"}, "DSBA_GOOGLE_CLIENT_ID and DSBA_GOOGLE_CLIENT_SECRET"),
@@ -268,9 +270,7 @@ def test_smtp_on_port_465_needs_no_starttls() -> None:
 
 def test_production_runs_with_email_off_and_no_mail_provider() -> None:
     """No email at launch (COM-254): with DSBA_EMAIL_BACKEND=off, no SMTP server or sender address is needed."""
-    s = production(
-        email_backend="off", smtp_host=REMOVE, smtp_port=REMOVE, smtp_starttls=REMOVE, email_from=REMOVE
-    )
+    s = production(email_backend="off", smtp_host=REMOVE, smtp_port=REMOVE, smtp_starttls=REMOVE, email_from=REMOVE)
     assert s.problems() == []
     assert s.email_enabled is False
     assert production().email_enabled is True

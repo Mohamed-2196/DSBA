@@ -6,7 +6,9 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Callable
+from contextlib import nullcontext
 from typing import Any
+from urllib.parse import urlsplit
 
 import pytest
 from fastapi.testclient import TestClient
@@ -19,7 +21,7 @@ from app.models import EmailOutbox, Notification, PushOutbox, User
 from app.services import outbox as mail_outbox
 from app.services import summary
 from app.services.notify import notify, notify_all
-from tests.accounts.conftest import API
+from tests.accounts.conftest import API, PASSWORD, sign_in_with
 from tests.accounts.test_push import Browser, _on
 from tests.accounts.test_push import push_on as push_on  # the fixture
 
@@ -72,14 +74,8 @@ def test_no_sunday_summary_is_queued(make_user: MakeUser, db: Session) -> None:
     db.commit()
     sunday = dt.datetime(2026, 11, 15, 12, tzinfo=BAHRAIN)
     assert summary.send_week(db, sunday.date()) == 0
-    assert summary.send_due(lambda: _same(db), sunday) == 0
+    assert summary.send_due(lambda: nullcontext(db), sunday) == 0
     assert _emails(db) == []
-
-
-def _same(db: Session) -> Any:
-    from contextlib import nullcontext
-
-    return nullcontext(db)
 
 
 def test_the_session_says_whether_email_is_on(client_for: ClientFor, set_option: SetOption) -> None:
@@ -103,3 +99,18 @@ def test_sign_up_needs_no_answer_about_emails(client_for: ClientFor, make_user: 
 def test_the_mail_worker_refuses_to_start(capsys: pytest.CaptureFixture[str]) -> None:
     assert cli.main(["mail-worker", "--once"]) == 1
     assert "push-worker" in capsys.readouterr().err
+
+
+@pytest.mark.usefixtures("email_off")
+def test_a_forgotten_password_is_reset_with_an_admins_link(
+    client_for: ClientFor, make_user: MakeUser, db: Session
+) -> None:
+    boss = make_user(email="head-off@example.com", name="Head Admin", roles=("student", "admin"))
+    forgot = make_user(email="forgot-off@example.com", password=PASSWORD, name="Forgetful Fatima")
+    r = client_for(boss).post(f"{API}/admin/users/{forgot.id}/reset-link")
+    assert r.status_code == 200, r.text
+    token = urlsplit(r.json()["url"]).fragment.removeprefix("token=")
+    used = client_for().post(f"{API}/auth/password-reset", json={"token": token, "newPassword": "a brand new phrase"})
+    assert used.status_code == 200, used.text
+    assert sign_in_with(client_for(), "forgot-off@example.com", "a brand new phrase").status_code == 200
+    assert _emails(db) == []  # no account notice is queued
