@@ -42,7 +42,7 @@ export default function ResetPasswordPage() {
       push({
         tone: 'success',
         title: 'Your new password is set',
-        body: 'You’re signed in. Other devices were signed out.',
+        body: 'You’re signed in. Other devices were signed out, your private calendar links were turned off and your AI apps were disconnected.',
       });
       void navigate('/', { replace: true });
     } catch (err) {
