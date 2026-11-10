@@ -1,6 +1,7 @@
 // Moderators' actions on an issue: publish (it reaches everyone, so it asks first) and delete.
 import { useState } from 'react';
 import { errorMessage } from '../../../api/errors';
+import { useAuth } from '../../../auth';
 import { useSingleFlight, useToast } from '../../../state';
 import { Button, type ButtonSize, ConfirmDialog, glyph, Icon, IconButton, Modal } from '../../../ui';
 import { useDeleteIssue, usePublishIssue } from '../api';
@@ -25,6 +26,7 @@ export function PublishButton({
   onPublished?: () => void;
 }) {
   const { push } = useToast();
+  const { emailOn } = useAuth();
   const publish = usePublishIssue();
   const send = useSingleFlight(publish);
   const [asking, setAsking] = useState(false);
@@ -35,7 +37,7 @@ export function PublishButton({
       {
         onSuccess: (published) => {
           setAsking(false);
-          push({ tone: 'success', ...publishedNote(no, published.emailed) });
+          push({ tone: 'success', ...publishedNote(no, published.emailed, emailOn) });
           onPublished?.();
         },
       },

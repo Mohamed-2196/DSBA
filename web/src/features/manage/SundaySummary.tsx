@@ -1,9 +1,10 @@
 // Manage's Sunday summary: this week's text for a year, to paste into its WhatsApp group, and how many people in
-// that year get it by email. The mail worker sends the emails on Sunday at the words' send time by itself; nothing is
-// sent here.
+// that year get it by email (only while the hub sends email). The mail worker sends the emails on Sunday at the words'
+// send time by itself; nothing is sent here.
 import { useState } from 'react';
 import { formatLong, parseDay } from '../../lib/dates';
 import { copyText } from '../../lib/share';
+import { useAuth } from '../../auth';
 import { cohortLabel, useToast, YEARS, type CohortYear } from '../../state';
 import { Button, formatCount, glyph, Icon, Panel, QueryError, SegmentedControl, Skeleton } from '../../ui';
 import { useSummaryPreview, useSummaryWords } from './api';
@@ -13,6 +14,7 @@ export function SundaySummary({ defaultYear }: { defaultYear: CohortYear | null 
   const preview = useSummaryPreview(year);
   const sendAt = useSummaryWords().data?.data.sendAt;
   const { push } = useToast();
+  const { emailOn } = useAuth();
   const p = preview.data;
   const copy = async () => {
     if (!p) return;
@@ -27,8 +29,10 @@ export function SundaySummary({ defaultYear }: { defaultYear: CohortYear | null 
     <Panel className="manage-summary" data-hub="sunday-summary">
       <h3 className="manage-noora__title">Sunday summary</h3>
       <p className="manage-noora__note">
-        This week’s summary for a year, to paste into its group. People who turn it on in Your account get it by email
-        on Sunday{sendAt ? ` from ${sendAt}, Bahrain time` : ''}.
+        This week’s summary for a year, to paste into its group.
+        {emailOn
+          ? ` People who turn it on in Your account get it by email on Sunday${sendAt ? ` from ${sendAt}, Bahrain time` : ''}.`
+          : ''}
       </p>
       <SegmentedControl
         label="Year"
@@ -50,10 +54,15 @@ export function SundaySummary({ defaultYear }: { defaultYear: CohortYear | null 
       ) : (
         <>
           <p className="manage-noora__note">
-            Week of {formatLong(parseDay(p.weekOf))}.{' '}
-            {p.subscribers === 1 ? '1 person' : `${formatCount(p.subscribers)} people`} in {cohortLabel(p.year)} get it
-            by email.
-            {p.empty ? ' Nothing to tell this week, so no email goes out.' : ''}
+            Week of {formatLong(parseDay(p.weekOf))}.
+            {emailOn
+              ? ` ${p.subscribers === 1 ? '1 person' : `${formatCount(p.subscribers)} people`} in ${cohortLabel(p.year)} get it by email.`
+              : ''}
+            {p.empty
+              ? emailOn
+                ? ' Nothing to tell this week, so no email goes out.'
+                : ' Nothing to tell this week.'
+              : ''}
           </p>
           <pre className="manage-summary__text" tabIndex={0} aria-label={`The summary for ${cohortLabel(p.year)}`}>
             {p.text}

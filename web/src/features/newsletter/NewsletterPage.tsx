@@ -4,7 +4,7 @@ import type { IssueSummary } from '../../api/types';
 import { useAuth } from '../../auth';
 import { formatDay, formatMonthYear, parseDay } from '../../lib/dates';
 import { useDocumentTitle } from '../../state';
-import { Badge, Button, glyph, Icon, IconButton, Page, PageHeader, Panel, QueryError, Skeleton } from '../../ui';
+import { Badge, Button, cx, glyph, Icon, IconButton, Page, PageHeader, Panel, QueryError, Skeleton } from '../../ui';
 import { toCard, useIssueDetails, useIssues, useNewsletterMasthead } from './api';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
 import { IssueCover } from './components/IssueCover';
@@ -253,7 +253,7 @@ function NewsletterSkeleton() {
 
 export default function NewsletterPage() {
   useDocumentTitle('The DSBA Newsletter');
-  const { can } = useAuth();
+  const { can, emailOn } = useAuth();
   const manages = can('newsletter.manage');
   const list = useIssues({ includeDrafts: manages });
   const [creating, setCreating] = useState(false);
@@ -296,7 +296,7 @@ export default function NewsletterPage() {
             </h2>
             <p className="nl-archive__desc">Every issue so far, newest first.</p>
           </div>
-          <div className="nl-archive__layout">
+          <div className={cx('nl-archive__layout', !emailOn && 'nl-archive__layout--alone')}>
             <ol role="list" className="nl-shelf">
               {cards.map((issue) => (
                 <ShelfItem key={issue.slug} issue={issue} />

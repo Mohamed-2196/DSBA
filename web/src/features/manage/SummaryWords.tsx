@@ -1,9 +1,10 @@
 // Manage → Sunday summary, its words (summary.share): the subject line, the headings, the line before the closing
-// link, and the time on Sunday it goes out. Saved together from the version loaded (summary_changed when someone else
+// link, and the time on Sunday it goes out (shown only while the hub sends email). Saved together from the version loaded (summary_changed when someone else
 // saved first). Every save goes to the activity log with what changed, before and after.
 import { useMemo, useState } from 'react';
 import { errorMessage, isApiError } from '../../api/errors';
 import type { SummaryEditable, SummaryWords as Words } from '../../api/types';
+import { useAuth } from '../../auth';
 import { cohortLabel, useToast, YEARS, type CohortYear } from '../../state';
 import { Drawer, Panel, QueryError, SegmentedControl, Skeleton, TextField } from '../../ui';
 import { DocFrame, docErrors, type DocProblem } from '../../ui/docEditor';
@@ -48,6 +49,7 @@ function Editor({ first, defaultYear }: { first: SummaryEditable; defaultYear: C
   const [year, setYear] = useState<CohortYear>(defaultYear ?? 1);
   const save = useSaveSummaryWords();
   const reload = useReloadSummaryWords();
+  const { emailOn } = useAuth();
   const { push: toast } = useToast();
   const dirty = useMemo(() => JSON.stringify(words) !== JSON.stringify(saved), [words, saved]);
   const draft = useSummaryDraft(year, words, previewing);
@@ -104,16 +106,24 @@ function Editor({ first, defaultYear }: { first: SummaryEditable; defaultYear: C
         onSave={submit}
         problem={problem}
         onReload={() => reload().then(start)}
-        section={{
-          title: 'Its words and when it goes out',
-          about: 'Every year’s summary uses them, in its email and in the text reps paste.',
-        }}
+        section={
+          emailOn
+            ? {
+                title: 'Its words and when it goes out',
+                about: 'Every year’s summary uses them, in its email and in the text reps paste.',
+              }
+            : { title: 'Its words', about: 'Every year’s summary uses them in the text reps paste.' }
+        }
       >
         <div className="dedit-grid">
           <TextField
             className="dedit-grid__wide"
-            label="Subject line"
-            hint="{year} is the year’s number and {week} the week, like 18 to 24 October. Also the text’s first line."
+            label={emailOn ? 'Subject line' : 'First line'}
+            hint={
+              emailOn
+                ? '{year} is the year’s number and {week} the week, like 18 to 24 October. Also the text’s first line.'
+                : '{year} is the year’s number and {week} the week, like 18 to 24 October.'
+            }
             value={words.subject}
             onChange={(e) => setWords((w) => ({ ...w, subject: e.target.value }))}
             error={err('subject')}
@@ -141,16 +151,18 @@ function Editor({ first, defaultYear }: { first: SummaryEditable; defaultYear: C
             maxLength={80}
             required
           />
-          <TextField
-            label="Goes out on Sunday at"
-            hint="Bahrain time. The emails are queued from then on."
-            type="time"
-            step={300}
-            value={words.sendAt}
-            onChange={(e) => setWords((w) => ({ ...w, sendAt: e.target.value.slice(0, 5) }))}
-            error={err('sendAt')}
-            required
-          />
+          {emailOn ? (
+            <TextField
+              label="Goes out on Sunday at"
+              hint="Bahrain time. The emails are queued from then on."
+              type="time"
+              step={300}
+              value={words.sendAt}
+              onChange={(e) => setWords((w) => ({ ...w, sendAt: e.target.value.slice(0, 5) }))}
+              error={err('sendAt')}
+              required
+            />
+          ) : null}
         </div>
       </DocFrame>
 

@@ -238,6 +238,9 @@
   gap: var(--sp-48);
   align-items: start;
 }
+.nl-archive__layout--alone {
+  grid-template-columns: minmax(0, 1fr); /* no subscribe box beside it (the hub sends no email) */
+}
 .nl-shelf {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

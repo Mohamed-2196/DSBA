@@ -7,7 +7,7 @@ import type { Me } from '../api/types';
 import { useAccountYearSync, useToast } from '../state';
 import { canDo, featureIsOn, isActiveAdmin, managerBoxes, offerOf, offered, offForOthers } from './access';
 import { AuthContext, type AuthValue, type SignInRequest } from './context';
-import { GOOGLE_SIGN_IN_KEY, ME_KEY, clearPersonalStorage, resetPersonalQueries } from './queries';
+import { HUB_SETUP_KEY, ME_KEY, clearPersonalStorage, resetPersonalQueries } from './queries';
 import { readGuestFeatures } from './guestFeatures';
 import { GoogleReturn } from './GoogleReturn';
 import { createSessionGuard } from './sessionGuard';
@@ -16,6 +16,13 @@ import { StepUpDialog } from './StepUpDialog';
 
 /** The API's CSRF cookie (as in api/client.ts): signing in and stepping up replace it. */
 const CSRF_COOKIE: string = import.meta.env.VITE_CSRF_COOKIE || 'dsba_csrf';
+
+/** How the hub is set up, from GET /auth/session. */
+interface HubSetup {
+  googleSignIn: boolean;
+  email: boolean;
+}
+const NOT_SET_UP: HubSetup = { googleSignIn: false, email: false };
 
 function readCsrfCookie(): string | null {
   const hit = document.cookie.split('; ').find((c) => c.startsWith(`${CSRF_COOKIE}=`));
@@ -113,8 +120,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ME_KEY,
     queryFn: async ({ client }): Promise<Me | null> => {
       const before = client.getQueryData<Me | null>(ME_KEY) ?? null;
-      const { me, googleSignIn } = await call(api.GET('/api/v1/auth/session'));
-      client.setQueryData(GOOGLE_SIGN_IN_KEY, googleSignIn);
+      const { me, googleSignIn, email } = await call(api.GET('/api/v1/auth/session'));
+      client.setQueryData<HubSetup>(HUB_SETUP_KEY, { googleSignIn, email });
       // Signing in again after a session ended: keep the page as it was until that is done.
       if (before && !me && reauthPending()) return before;
       if (before && !me) queueMicrotask(() => sessionEndedRef.current({ userId: before.id, write: false }));
@@ -125,9 +132,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnWindowFocus: true,
   });
   const me = sessionQuery.data ?? null;
-  // Whether "Continue with Google" is set up: the session's answer says, alongside who is signed in.
-  const googleQuery = useQuery({ queryKey: GOOGLE_SIGN_IN_KEY, queryFn: () => false, enabled: false });
-  const googleSignIn = googleQuery.data === true;
+  // Whether "Continue with Google" is set up, and whether the hub sends email: the session's answer says, alongside
+  // who is signed in. Until it has, neither is offered.
+  const setupQuery = useQuery<HubSetup>({ queryKey: HUB_SETUP_KEY, queryFn: () => NOT_SET_UP, enabled: false });
+  const googleSignIn = setupQuery.data?.googleSignIn === true;
+  const emailOn = setupQuery.data?.email === true;
 
   // The guest list of features. Signed in, /me carries the list; it's fetched for admins too, to mark what's off for
   // others. /features answers a signed-in person with their own list, so it always goes without credentials.
@@ -214,6 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       offForOthers: (feature) => offForOthers(me, guestFeatures.list, feature),
       isAdmin: isActiveAdmin(me),
       googleSignIn,
+      emailOn,
       manages: managerBoxes(me).length > 0,
       roles: me?.roles ?? [],
       refresh,
@@ -228,6 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [
     me,
     googleSignIn,
+    emailOn,
     guestFeatures.list,
     guestFeatures.loading,
     sessionQuery.isPending,
