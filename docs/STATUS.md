@@ -19,6 +19,14 @@ and so Carry on, stay as they are (`chapters_studied`, `PUT /me/progress/chapter
 Career Navigator was re-checked on 8 November 2026 (sources in `web/src/features/career/SOURCES.md`): migration 0062
 brings a saved document up to the seed, and further study lists courses and scholarships with their dates
 (`furtherStudy.options`), which need re-checking every autumn.
+Career Navigator is in tabs (`?part=`): Vacancies, Certificates, Build the skills, Before you apply, Rate my CV and
+Postgraduates, one shown at a time. Vacancies, Certificates and Postgraduates share one search layout (`BoardFilters`:
+a search, active filters and folding filter groups beside the results, with a count and a sort). Certificates have a
+field (49 since migration 0070; the 41 added on 12 November are in SOURCES.md) and postgraduate options a kind, a
+region and a closing day (0069). Rate my CV (`career.cv`, on; migration 0068) scores a student's PDF or Word CV out of
+100 by rules on the server (`services/cv_rules.py`, no AI and no cost) and against a role's skills; the CV is kept for
+its owner only (upload purpose `cv`, deleted with the account), and the tab offers a message to copy into any AI chat
+to write or improve a CV.
 The forum's automatic check (`forum.auto-check`, ARCHITECTURE D20) is built and switched off: with it on, Claude
 checks each new forum picture before others see it ("Picture being checked") and each thread and reply just after it
 is posted; what it flags is hidden and goes to Reports as a report from the Hub, where closing it shows or removes it.

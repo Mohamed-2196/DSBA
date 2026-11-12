@@ -23,6 +23,7 @@ from app.models.board import (
     PaperScore,
 )
 from app.models.bugs import BugReport, BugStatus
+from app.models.career_cv import CvReview
 from app.models.content import (
     CalendarEvent,
     Chapter,
@@ -126,6 +127,7 @@ __all__ = [
     "CheckVerdict",
     "ContentCheck",
     "ContentDoc",
+    "CvReview",
     "DailyGuessWord",
     "DailyItem",
     "DailyNearestWord",

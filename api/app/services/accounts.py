@@ -1022,9 +1022,10 @@ def export_account(db: Session, user: User, current: UserSession | None) -> Acco
 
 # ── deletion ────────────────────────────────────────────────────────────────────────────────
 
-# Uploads that go with the account even when attached: forum pictures (their posts stay), the files on board cards
-# and in notebooks, and bug report screenshots
+# Uploads that go with the account even when attached: CVs, forum pictures (their posts stay), the files on board
+# cards and in notebooks, and bug report screenshots
 GONE_WITH_THE_ACCOUNT = (
+    UploadPurpose.cv,
     UploadPurpose.forum_image,
     UploadPurpose.board,
     UploadPurpose.note_file,
@@ -1033,8 +1034,8 @@ GONE_WITH_THE_ACCOUNT = (
 
 
 def delete_account(db: Session, user: User, storage: Storage) -> None:
-    """Deletes the account. Files that never reached the library, forum pictures, notebook files, files on board
-    cards and bug report screenshots go (objects first: if the bucket fails, nothing is deleted and the person can
+    """Deletes the account. Files that never reached the library, CVs, forum pictures, notebook files, files on
+    board cards and bug report screenshots go (objects first: if the bucket fails, nothing is deleted and the person can
     try again); pending and rejected library items go; published items stay without an uploader; posts stay as
     'deleted user' (the foreign keys set NULL); everything personal (boards and practice scores, sessions,
     notifications, queued emails, progress, notebooks and notes, stars, votes, me-toos, reactions, follows, poll votes,

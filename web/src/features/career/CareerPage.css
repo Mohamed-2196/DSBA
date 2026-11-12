@@ -132,7 +132,7 @@
   gap: var(--sp-16);
 }
 
-/* ── The parts of the page: a row of links under the title, sticky under the top bar ───────────────────────── */
+/* ── The parts of the page: a row of tabs, sticky under the top bar ───────────────────────── */
 .career-parts {
   position: sticky;
   top: var(--topbar-h);
@@ -165,14 +165,15 @@
   background: var(--surface-2);
   color: var(--ink);
 }
-/* The part in view sits on the section's pill, bold and in its text colour: as the active nav item does. */
+/* The chosen part's tab sits on the section's pill, bold and in its text colour: as the active nav item does. */
 .career-parts__link.is-current {
   background: var(--sec-pill);
   color: var(--sec-text);
   font-weight: var(--fw-bold);
 }
 /* A part scrolled to keeps its heading clear of the top bar and this row. */
-.career-page :is(#career-opportunities, #career-certificates, #career-role-fit, #career-after) {
+.career-page
+  :is(#career-opportunities, #career-certificates, #career-role-fit, #career-after, #career-cv, #career-postgrad) {
   scroll-margin-top: calc(var(--topbar-h) + 72px);
 }
 @media (pointer: coarse) {
@@ -189,7 +190,8 @@
     padding-inline: var(--content-pad);
     scroll-padding-inline: var(--content-pad);
   }
-  .career-page :is(#career-opportunities, #career-certificates, #career-role-fit, #career-after) {
+  .career-page
+    :is(#career-opportunities, #career-certificates, #career-role-fit, #career-after, #career-cv, #career-postgrad) {
     scroll-margin-top: calc(56px + 72px);
   }
 }

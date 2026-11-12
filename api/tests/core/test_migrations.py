@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import importlib.util
 import json
 import uuid
@@ -82,7 +83,17 @@ def test_the_baseline_seeds_what_the_api_needs(scratch: tuple[Config, Engine]) -
             "student": "forum.post,library.upload,newsletter.react,reports.create",
         }
         switches = dict(c.execute(text("SELECT feature, mode FROM feature_switches")).tuples().all())
-        features = ("forum", "library", "library.uploads", "newsletter", "calendar", "career", "grades", "push")
+        features = (
+            "forum",
+            "library",
+            "library.uploads",
+            "newsletter",
+            "calendar",
+            "career",
+            "career.cv",
+            "grades",
+            "push",
+        )
         assert switches == dict.fromkeys(features, "everyone") | {
             "notes": "off",
             "board": "off",
@@ -477,6 +488,20 @@ def test_a_saved_career_document_gets_the_november_recheck_and_keeps_an_editors_
         assert c.scalar(text("SELECT data->>'checkedOn' FROM content_docs WHERE key = 'career'")) == "8 November 2026"
 
 
+def _postgrad_filled() -> Callable[[dict[str, Any]], dict[str, Any] | None]:
+    """0069's filled(): a document with its postgraduate options' kind, region and closing day."""
+    spec = importlib.util.spec_from_file_location(
+        "postgrad_filters_0069",
+        Path(__file__).parents[2] / "migrations" / "versions" / "20261112_0069_postgrad_filters.py",
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    fn: Callable[[dict[str, Any]], dict[str, Any] | None] = module.filled
+    return fn
+
+
 def _career_refresh() -> Callable[[dict[str, Any]], dict[str, Any]]:
     """0062's refresh(), loaded from its file (migration files aren't a package)."""
     path = Path(__file__).parents[2] / "migrations" / "versions" / "20261108_0062_career_refresh.py"
@@ -547,14 +572,15 @@ def test_the_november_recheck_keeps_an_edited_document_valid_and_an_editors_own_
     assert out["certNote"] == "An editor's own note."
     assert out["employersNote"] == seed["employersNote"]
     assert out["furtherStudy"]["body"] == "An editor's own text."
-    assert out["furtherStudy"]["options"] == seed["furtherStudy"]["options"]
+    after_0069 = _postgrad_filled()(out) or out
+    assert after_0069["furtherStudy"]["options"] == seed["furtherStudy"]["options"]
 
     off = _seed_before_0062()
     off["furtherStudy"] = None
     assert refresh(off)["furtherStudy"] is None
 
     plain = refresh(_seed_before_0062())
-    assert plain["furtherStudy"] == seed["furtherStudy"]
+    assert (_postgrad_filled()(plain) or plain)["furtherStudy"] == seed["furtherStudy"]
     assert plain["certNote"] == seed["certNote"]
     assert refresh(plain) == plain
 
@@ -581,3 +607,65 @@ def test_push_is_stored_on_for_everyone_unless_an_admin_already_set_it(scratch: 
     command.upgrade(cfg, "0067")
     with engine.connect() as c:
         assert _switch(c, "push") == ("off", None, [])
+
+
+def test_postgrad_options_get_their_kind_region_and_closing_day_and_an_editors_own_are_kept() -> None:
+    """0069 fills the six seeded options by their official page, keeps what an editor set, leaves an option an editor
+    added alone, and changes nothing the second time."""
+    filled = _postgrad_filled()
+    seed = read("career")
+    bare = copy.deepcopy(seed)
+    for o in bare["furtherStudy"]["options"]:
+        for key in ("kind", "region", "closes"):
+            o.pop(key)
+    bare["furtherStudy"]["options"][0]["region"] = "England"  # an editor's own word
+    bare["furtherStudy"]["options"].append(
+        {"name": "Own course", "note": "Added in Manage.", "url": "https://x.example"}
+    )
+    out = filled(bare)
+    assert out is not None
+    CareerDoc.model_validate(out)
+    options = out["furtherStudy"]["options"]
+    assert (options[0]["kind"], options[0]["region"], options[0]["closes"]) == ("scholarship", "England", "2026-12-08")
+    assert options[1:6] == seed["furtherStudy"]["options"][1:6]
+    assert options[6] == bare["furtherStudy"]["options"][6]
+    assert filled(out) is None
+    assert filled({**seed, "furtherStudy": None}) is None
+
+
+def _more_certificates() -> Callable[[dict[str, Any]], dict[str, Any] | None]:
+    """0070's added(): a document with the certificates' fields and the 41 new certificates."""
+    spec = importlib.util.spec_from_file_location(
+        "more_certificates_0070",
+        Path(__file__).parents[2] / "migrations" / "versions" / "20261112_0070_more_certificates.py",
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    fn: Callable[[dict[str, Any]], dict[str, Any] | None] = module.added
+    return fn
+
+
+def test_more_certificates_come_in_once_and_an_editors_own_stay() -> None:
+    """0070 gives the eight seeded certificates their field (keeping one an editor set), adds the 41 new ones after
+    an editor's own, skips one already there by id or by page, and changes nothing the second time."""
+    added = _more_certificates()
+    seed = read("career")
+    before = copy.deepcopy(seed)
+    new_ids = [c["id"] for c in seed["certs"][8:]]
+    before["certs"] = [{k: v for k, v in c.items() if k != "field"} for c in seed["certs"][:8]]
+    before["certs"][0]["field"] = "An editor's own field"
+    before["certs"].append(
+        {**seed["certs"][8], "id": "own-ibm", "name": "Already added in Manage"}
+    )  # same page as one of the new ones
+    out = added(before)
+    assert out is not None
+    CareerDoc.model_validate(out)
+    ids = [c["id"] for c in out["certs"]]
+    assert out["certs"][0]["field"] == "An editor's own field"
+    assert out["certs"][1]["field"] == seed["certs"][1]["field"]
+    assert ids[:9] == [c["id"] for c in seed["certs"][:8]] + ["own-ibm"]
+    assert ids[9:] == new_ids[1:]  # the first new one's page was there already
+    assert added(out) is None
+    assert added(seed) is None

@@ -80,16 +80,9 @@ function CloseAction({ close }: { close: CloseStep }) {
         </button>
       );
     case 'opps':
-      // The competition beside the page title (the board when it is not on screen).
+      // The vacancies, under their tab.
       return (
-        <button
-          type="button"
-          className="career-close"
-          onClick={() => {
-            const featured = document.querySelector<HTMLElement>('[data-hub="career-featured"]');
-            if (!(featured && jumpTo(featured.id, { flash: true, block: 'center' }))) jumpTo('career-opportunities');
-          }}
-        >
+        <button type="button" className="career-close" onClick={() => jumpTo('career-opportunities')}>
           <CloseBody close={close} />
         </button>
       );

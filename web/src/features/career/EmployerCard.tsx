@@ -1,132 +1,82 @@
-// One employer on the board: its logo slot, what it offers, why it is there, the tracks it suits and one button to
-// its own careers or programme page.
-import type { CareerEmployer, CareerOffer, CareerTrack } from '../../api/types';
+// One employer in the results: its logo tile, its name and programmes, a line of what it offers, its sector and the
+// tracks it suits, why it is listed, its next application date, and one button to its own careers or programme page.
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../auth';
-import { Badge, Button, glyph, Icon, Panel, cx } from '../../ui';
-import { applicationLine, dayKeyFromToday, useCalendarEvents, type CalendarEvent } from '../calendar/public';
+import type { CareerEmployer, CareerTrack } from '../../api/types';
+import { Button, glyph, Icon, cx } from '../../ui';
 import { hostOf } from '../../lib/share';
 import { useCareerData } from './context';
+import { offerTypesOf, programmeLine } from './lib/board';
 import { webUrl } from './lib/links';
-import { SECTOR_ICONS } from './lib/sectors';
 import { LogoSlot } from './LogoSlot';
-
-type OfferType = CareerOffer['type'];
-
-const TYPE_TONE: Record<OfferType, 'cobalt' | 'signal' | 'outline'> = {
-  graduate: 'cobalt',
-  internship: 'signal',
-  careers: 'outline',
-};
-
-const OFFER_ORDER: readonly OfferType[] = ['graduate', 'internship', 'careers'];
-
-/** The distinct offer types of an employer, in the order graduate, internship, careers. */
-const offerTypes = (employer: CareerEmployer): OfferType[] =>
-  OFFER_ORDER.filter((type) => employer.offers.some((o) => o.type === type));
-
-/** 'EVOLVE and THRIVE' from the named offers of an employer. */
-function programmeLine(employer: CareerEmployer): string {
-  const names = employer.offers.map((o) => o.name).filter((n): n is string => !!n);
-  if (names.length < 2) return names[0] ?? '';
-  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
-}
-
-/** The employer's next application date on the calendar, with what its card says about it. */
-function useApplicationDate(employerId: string): { event: CalendarEvent; line: string } | null {
-  const { featureOn } = useAuth();
-  const today = dayKeyFromToday();
-  const dates = useCalendarEvents({ type: 'careers', from: today }, { enabled: featureOn('calendar') });
-  for (const event of dates.data ?? []) {
-    if (event.employerId !== employerId) continue;
-    const line = applicationLine(event, today);
-    if (line) return { event, line };
-  }
-  return null;
-}
+import type { ApplicationDate } from './useApplicationDates';
 
 export function EmployerCard({
   employer,
-  track,
+  picked,
   tracks,
+  application,
 }: {
   employer: CareerEmployer;
-  track: string;
-  tracks: Map<string, CareerTrack>;
+  /** the tracks the student filtered by, marked on the row */
+  picked: readonly string[];
+  tracks: ReadonlyMap<string, CareerTrack>;
+  application: ApplicationDate | undefined;
 }) {
   const { offerTypes: labels, ctaLabel } = useCareerData();
-  const types = offerTypes(employer);
+  const types = offerTypesOf(employer);
   const programme = programmeLine(employer);
   const url = webUrl(employer.url);
   const host = hostOf(url);
-  const sectorGlyph = SECTOR_ICONS[employer.sector] ?? glyph.building;
-  const applications = useApplicationDate(employer.id);
   return (
-    <Panel
-      as="li"
-      padding="none"
+    <li
       id={`career-emp-${employer.id}`}
       className="career-emp"
       data-hub="career-employer"
       data-employer-id={employer.id}
       data-offer-types={types.join(' ')}
     >
-      <div className="career-emp__top">
-        <LogoSlot kind="employer" id={employer.id} logo={employer.logo} mono={employer.mono} />
-        <ul role="list" className="career-emp__types" aria-label="What it offers">
-          {types.map((t) => (
-            <li key={t}>
-              <Badge tone={TYPE_TONE[t]}>{labels[t].label}</Badge>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <LogoSlot kind="employer" id={employer.id} logo={employer.logo} mono={employer.mono} />
 
-      <div className="career-emp__who">
+      <div className="career-emp__main">
         <h3 className="career-emp__name">{employer.name}</h3>
-        <p className="career-emp__sector">
-          <Icon glyph={sectorGlyph} className="career-emp__sector-icon" />
-          {employer.sector}
-        </p>
-      </div>
-
-      <div className="career-emp__body">
         {programme ? <p className="career-emp__programme">{programme}</p> : null}
+        <p className="career-emp__meta">
+          <span>{types.map((t) => labels[t].label).join(', ')}</span>
+          <span>{employer.sector}</span>
+          {employer.tracks.length ? (
+            <span>
+              {employer.tracks.map((id, i) => (
+                <span key={id} className={cx('career-emp__track', picked.includes(id) && 'is-active')}>
+                  {i ? ', ' : ''}
+                  {tracks.get(id)?.short ?? id}
+                </span>
+              ))}
+            </span>
+          ) : null}
+        </p>
         <p className="career-emp__why">{employer.why}</p>
-        {applications ? (
+        {application ? (
           <p className="career-emp__dates" data-hub="career-application-date">
-            <Link to={`/calendar?event=${encodeURIComponent(applications.event.id)}`}>{applications.line}</Link>
-            <span className="career-emp__dates-title">{applications.event.title}</span>
+            <Icon glyph={glyph.calendar} className="career-emp__dates-icon" />
+            <Link to={`/calendar?event=${encodeURIComponent(application.event.id)}`}>{application.line}</Link>
+            <span className="career-emp__dates-title">{application.event.title}</span>
           </p>
         ) : null}
       </div>
 
-      <ul role="list" className="career-emp__tracks" aria-label="Good for">
-        {employer.tracks.map((id) => (
-          <li key={id} className={cx('career-track', id === track && 'is-active')}>
-            {tracks.get(id)?.short ?? id}
-          </li>
-        ))}
-      </ul>
-
       {url ? (
-        <footer className="career-emp__foot">
-          <Button
-            variant="secondary"
-            size="sm"
-            href={url}
-            trailingIcon={<Icon glyph={glyph.external} />}
-            className="career-emp__cta"
-            data-hub="career-apply"
-          >
-            {ctaLabel[employer.cta]}
-            <span className="visually-hidden">{` at ${employer.name}, opens ${host} in a new tab`}</span>
-          </Button>
-          <span className="career-emp__host" aria-hidden="true">
-            {host}
-          </span>
-        </footer>
+        <Button
+          variant="secondary"
+          size="sm"
+          href={url}
+          trailingIcon={<Icon glyph={glyph.external} />}
+          className="career-emp__cta"
+          data-hub="career-apply"
+        >
+          {ctaLabel[employer.cta]}
+          <span className="visually-hidden">{` at ${employer.name}, opens ${host} in a new tab`}</span>
+        </Button>
       ) : null}
-    </Panel>
+    </li>
   );
 }

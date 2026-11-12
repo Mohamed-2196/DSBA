@@ -334,6 +334,7 @@ class UploadPurpose(enum.StrEnum):
     note_file = "note_file"  # a picture, file or PDF in a student's own note
     career_logo = "career_logo"  # an employer's or a certificate's logo on Career Navigator
     module_art = "module_art"  # a module's logo or illustration in the catalogue
+    cv = "cv"  # a student's CV, rated in Career Navigator and seen by its owner only
 
 
 class UploadStatus(enum.StrEnum):

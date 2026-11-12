@@ -120,6 +120,14 @@ function CertForm({ cert: c, index }: { cert: CareerCert; index: number }) {
           error={err(`${at}.mono`)}
           maxLength={6}
         />
+        <TextField
+          label="Field"
+          hint="For the page’s filter, e.g. Machine learning & AI or Healthcare. Use the same words as the others in it."
+          value={c.field ?? ''}
+          onChange={(v) => set(c.id, { field: v.target.value || null })}
+          error={err(`${at}.field`)}
+          maxLength={60}
+        />
         <IdField section="certs" kind="cert" id={c.id} error={err(`${at}.id`)} />
       </div>
       <Switch
@@ -535,7 +543,9 @@ function StudyOptionsField({ options, onChange }: { options: StudyOption[]; onCh
         titleOf={(o) => o.name}
         metaOf={(o) => o.when || 'No date'}
         max={MAX_STUDY_OPTIONS}
-        hasError={(n) => ['name', 'when', 'url', 'note'].some((f) => err(`furtherStudy.options.${n}.${f}`))}
+        hasError={(n) =>
+          ['name', 'kind', 'region', 'when', 'closes', 'url', 'note'].some((f) => err(`furtherStudy.options.${n}.${f}`))
+        }
         onMove={(from, by) => {
           onChange(moveItem(options, from, by));
           // the two rows swap their keys with their places, so focus stays on the moved item's button
@@ -547,7 +557,10 @@ function StudyOptionsField({ options, onChange }: { options: StudyOption[]; onCh
         }}
         onRemove={(id) => onChange(strip(items.filter((o) => String(o.n) !== id)))}
         onAdd={() => {
-          onChange([...options, { name: '', note: '', when: null, url: 'https://' }]);
+          onChange([
+            ...options,
+            { name: '', kind: 'course', region: null, note: '', when: null, closes: null, url: 'https://' },
+          ]);
           return String(options.length);
         }}
       >
@@ -592,6 +605,33 @@ function StudyOptionForm({
           onChange={(v) => onChange({ when: v.target.value || null })}
           error={err(`${at}.when`)}
           maxLength={60}
+        />
+      </div>
+      <div className="cedit-grid">
+        <Select
+          label="Type"
+          value={o.kind}
+          options={[
+            { value: 'course', label: 'Master’s course' },
+            { value: 'scholarship', label: 'Scholarship' },
+          ]}
+          onChange={(v) => onChange({ kind: v.target.value === 'scholarship' ? 'scholarship' : 'course' })}
+        />
+        <TextField
+          label="Where"
+          hint="For the page’s filter, e.g. UK, Europe, Gulf or Bahrain. Use the same word for places that go together."
+          value={o.region ?? ''}
+          onChange={(v) => onChange({ region: v.target.value || null })}
+          error={err(`${at}.region`)}
+          maxLength={60}
+        />
+        <TextField
+          label="Last day to apply"
+          type="date"
+          hint="Sorts it and shows the days left. Leave empty if none is published."
+          value={o.closes ?? ''}
+          onChange={(v) => onChange({ closes: v.target.value || null })}
+          error={err(`${at}.closes`)}
         />
       </div>
       <TextField

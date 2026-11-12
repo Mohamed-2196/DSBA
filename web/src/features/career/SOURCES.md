@@ -130,6 +130,60 @@ job seeker was not confirmed, so the note says "job seekers".
 No prices, pass marks or exam dates appear on the page. "Already in DSBA" on each card comes from the module
 catalogue (`GET /api/v1/modules`), as before.
 
+## Certificates and courses added on 12 November 2026 (41)
+
+A list of 45 courses for data science students, given by a student, was checked on 12 November 2026. Three were on
+the page already (Google Data Analytics, Power BI PL-300, Tableau) and stay as they are. Every other link was opened
+by an automated fetch: the page had to answer and, where it could be read, its title had to name the course. One was
+left off: the “Cybersecurity Analytics and Operations Specialization (Georgia Tech)” link was gone (404) and no such
+course could be found on Coursera. Each certificate also got a field for the page's filter. Effort levels and the
+time each takes are an editorial guide from the format (a short course, a specialization, an exam), not the
+providers' figures, and the modules and roles each one names are our guide too.
+
+| Name | Field | Link | Checked | Note |
+|---|---|---|---|---|
+| IBM Data Science Professional Certificate | Core data science | https://www.coursera.org/professional-certificates/ibm-data-science | Loaded |  |
+| HarvardX Professional Certificate in Data Science | Core data science | https://www.edx.org/certificates/professional-certificate/harvardx-data-science | Loaded |  |
+| MITx MicroMasters in Statistics and Data Science | Maths & statistics | https://micromasters.mit.edu/ds/ | Loaded | The list's edX link opened a general listing, so the programme's own MIT page is used. |
+| Google AI Essentials | Machine learning & AI | https://www.coursera.org/specializations/ai-essentials-google | Loaded | Its link now opens this page. |
+| Machine Learning Specialization | Machine learning & AI | https://www.coursera.org/specializations/machine-learning-introduction | Loaded |  |
+| Deep Learning Specialization | Machine learning & AI | https://www.coursera.org/specializations/deep-learning | Loaded |  |
+| Natural Language Processing Specialization | Machine learning & AI | https://www.coursera.org/specializations/natural-language-processing | Loaded |  |
+| Machine Learning in Production | Machine learning & AI | https://www.coursera.org/learn/introduction-to-machine-learning-in-production | Loaded | Asked for as the MLOps specialization: its link now opens this course, which replaces it. |
+| Associate AI Engineer for Data Scientists | Machine learning & AI | https://www.datacamp.com/tracks/associate-ai-engineer-for-data-scientists | Index only (the site refuses automated visits) |  |
+| AWS Certified Machine Learning – Specialty | Cloud & big data | https://aws.amazon.com/certification/certified-machine-learning-specialty/ | Loaded |  |
+| Google Cloud Professional Data Engineer | Cloud & big data | https://cloud.google.com/learn/certification/data-engineer | Loaded |  |
+| Microsoft Certified: Azure Data Scientist Associate (DP-100) | Cloud & big data | https://learn.microsoft.com/en-us/credentials/certifications/azure-data-scientist/ | Loaded |  |
+| Databricks Certified Associate Developer for Apache Spark | Cloud & big data | https://www.databricks.com/learn/certification/apache-spark-developer-associate | Loaded | The list's link was gone (404); the current page has the same certification. |
+| Cloudera Data Platform Generalist Certification | Cloud & big data | https://www.cloudera.com/services-and-support/training/certification.html | Loaded |  |
+| Programming for Data Science with Python Nanodegree | Tools, BI & databases | https://www.udacity.com/course/programming-for-data-science-nanodegree--nd104 | Loaded |  |
+| SQL Fundamentals | Tools, BI & databases | https://www.datacamp.com/tracks/sql-fundamentals | Index only (the site refuses automated visits) |  |
+| Google IT Automation with Python Professional Certificate | Tools, BI & databases | https://www.coursera.org/professional-certificates/google-it-automation | Loaded | The list's link was gone (404); the certificate moved to this page. |
+| Mathematics for Machine Learning and Data Science Specialization | Maths & statistics | https://www.coursera.org/specializations/mathematics-for-machine-learning-and-data-science | Loaded |  |
+| A/B Testing | Maths & statistics | https://www.udacity.com/course/ab-testing--ud257 | Loaded |  |
+| Financial Engineering and Risk Management Specialization | Finance | https://www.coursera.org/specializations/financialengineering | Loaded | The list's link was gone (404); the specialization's page is this one. |
+| DASCA Senior Data Scientist (SDS) | Professional credentials | https://www.dasca.org/data-science-certifications/senior-data-scientist | Loaded | The list's link opened an error page; this is the credential's page. |
+| INFORMS Certified Analytics Professional (CAP) | Professional credentials | https://www.informs.org/Certified-Analytics-Professional | Index only (the site refuses automated visits) |  |
+| SAS Certified Specialist: Base Programming Using SAS 9.4 | Professional credentials | https://www.sas.com/en_us/certification/credentials/foundation-tools/base-programming-specialist.html | Loaded | The list's link was gone (404); the credential's page is this one. |
+| IIBA Certification in Business Data Analytics (CBDA) | Professional credentials | https://www.iiba.org/business-analysis-certifications/iiba-certifications/ | Loaded | Asked for as “Certified Analytics Practitioner”, which IIBA doesn't offer; its data analytics certification is CBDA, on this page. |
+| Agile with Jira: Plan and Track Sprint Work | Professional credentials | https://www.coursera.org/learn/agile-atlassian-jira | Loaded |  |
+| Health Informatics Specialization | Healthcare | https://www.coursera.org/specializations/health-informatics | Loaded | Asked for as “Healthcare Data Specialization”: that page was gone (404). Johns Hopkins’ Health Informatics specialization covers the same ground. |
+| AI for Medicine Specialization | Healthcare | https://www.coursera.org/specializations/ai-for-medicine | Loaded |  |
+| AI in Healthcare Specialization | Healthcare | https://www.coursera.org/specializations/ai-healthcare | Loaded |  |
+| Data Science in Stratified Healthcare and Precision Medicine | Healthcare | https://www.coursera.org/learn/datascimed | Loaded |  |
+| Data Science for Healthcare Specialization | Healthcare | https://www.coursera.org/specializations/data-science-for-healthcare | Loaded |  |
+| AI for Healthcare Nanodegree | Healthcare | https://www.udacity.com/course/ai-for-healthcare-nanodegree--nd320 | Loaded |  |
+| Data Engineering Professional Certificate | Engineering | https://www.coursera.org/professional-certificates/data-engineering | Loaded |  |
+| Machine Learning for Engineering and Science Applications | Engineering | https://nptel.ac.in/courses/106106198 | Loaded | Answered, but the page is drawn by script, so its title couldn't be read: click through by hand. |
+| IBM Data Engineering Professional Certificate | Engineering | https://www.coursera.org/professional-certificates/ibm-data-engineer | Loaded |  |
+| Data Engineering Zoomcamp | Engineering | https://github.com/DataTalksClub/data-engineering-zoomcamp | Loaded |  |
+| Snowflake Data Engineering Professional Certificate | Engineering | https://www.coursera.org/professional-certificates/snowflake-data-engineering | Loaded |  |
+| Sports Performance Analytics Specialization | Sports | https://www.coursera.org/specializations/sports-analytics | Loaded |  |
+| Sports Analytics | Sports | https://learn.mit.edu/courses/course-v1:MITxT+2.980x | Loaded |  |
+| Foundations of Sports Analytics | Sports | https://www.coursera.org/learn/foundations-sports-analytics | Loaded |  |
+| Wearable Technologies and Sports Analytics | Sports | https://www.coursera.org/learn/wearable-technologies | Loaded | The list's link was gone (404); the course is at this page. |
+| Introduction to Machine Learning in Sports Analytics | Sports | https://www.coursera.org/learn/machine-learning-sports-analytics | Loaded |  |
+
 ## The note under the employers
 
 - "Many are for Bahraini nationals only": the pages of Bapco Energies, SICO, stc Bahrain, Bahrain Bourse, KPMG, EY,

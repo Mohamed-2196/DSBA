@@ -3294,6 +3294,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/career/cvs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Cvs
+         * @description The signed-in student's kept CVs and their latest ratings, newest first.
+         */
+        get: operations["my_cvs_api_v1_career_cvs_get"];
+        put?: never;
+        /**
+         * Rate Cv
+         * @description Rates a CV just uploaded (purpose 'cv') against a role, and keeps it.
+         *
+         *     Errors: not_found (404: not the student's CV upload), not_uploaded (409), limit_reached (409: ten CVs kept),
+         *     invalid_input (422: an unknown role, or no readable text), rate_limited (429: ten a day).
+         */
+        post: operations["rate_cv_api_v1_career_cvs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/career/cvs/{review_id}/rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rerate Cv
+         * @description Rates a kept CV again against another role. Errors: not_found (404), invalid_input (422: an unknown role).
+         */
+        post: operations["rerate_cv_api_v1_career_cvs__review_id__rate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/career/cvs/{review_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cv File
+         * @description A short-lived link to the student's own CV file. Errors: not_found (404 for anyone else).
+         */
+        get: operations["cv_file_api_v1_career_cvs__review_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/career/cvs/{review_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Cv
+         * @description Deletes the CV, its file and its rating. Errors: not_found (404), storage_unavailable (503).
+         */
+        delete: operations["delete_cv_api_v1_career_cvs__review_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/features": {
         parameters: {
             query?: never;
@@ -6346,6 +6433,8 @@ export interface components {
             issuer: string;
             /** Mono */
             mono?: string | null;
+            /** Field */
+            field?: string | null;
             /** Url */
             url?: string | null;
             file?: components["schemas"]["CertFile"] | null;
@@ -6940,6 +7029,120 @@ export interface components {
             programme: string;
             /** Roles */
             roles: string;
+        };
+        /**
+         * CvCheck
+         * @description One of the checks behind the score: what it saw and, when it fell short, what to do.
+         */
+        CvCheck: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Earned */
+            earned: number;
+            /** Max */
+            max: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pass" | "warn" | "fail";
+            /** Found */
+            found: string;
+            /** Tip */
+            tip: string | null;
+        };
+        /** CvFileLink */
+        CvFileLink: {
+            /**
+             * Url
+             * @description A short-lived link to the file
+             */
+            url: string;
+        };
+        /**
+         * CvFit
+         * @description How well the CV fits a role: the share of the role's skills it names, those it names and those it doesn't.
+         */
+        CvFit: {
+            /** Roleid */
+            roleId: string;
+            /** Roletitle */
+            roleTitle: string;
+            /** Percent */
+            percent: number;
+            /** Found */
+            found: components["schemas"]["CvSkill"][];
+            /** Missing */
+            missing: components["schemas"]["CvSkill"][];
+        };
+        /**
+         * CvRate
+         * @description Rate a CV just uploaded (purpose 'cv', completed) against a role from Career Navigator.
+         */
+        CvRate: {
+            /**
+             * Uploadid
+             * Format: uuid
+             */
+            uploadId: string;
+            /** Roleid */
+            roleId: string;
+        };
+        /**
+         * CvRerate
+         * @description Rate a kept CV again, against this role.
+         */
+        CvRerate: {
+            /** Roleid */
+            roleId: string;
+        };
+        /**
+         * CvReviewOut
+         * @description A kept CV and its latest rating.
+         */
+        CvReviewOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Filename */
+            fileName: string;
+            /** Sizebytes */
+            sizeBytes: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Ratedat
+             * Format: date-time
+             */
+            ratedAt: string;
+            /** Score */
+            score: number;
+            /** Pages */
+            pages: number;
+            /** Words */
+            words: number;
+            /** Checks */
+            checks: components["schemas"]["CvCheck"][];
+            fit: components["schemas"]["CvFit"];
+        };
+        /**
+         * CvSkill
+         * @description A skill of the role: its name and the modules that teach it.
+         */
+        CvSkill: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Modules */
+            modules: string[];
         };
         /** DailyCalendar */
         DailyCalendar: {
@@ -7999,7 +8202,7 @@ export interface components {
              * Feature
              * @enum {string}
              */
-            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push";
+            feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "career.cv" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push";
             /** Label */
             label: string;
             /** Hides */
@@ -8025,7 +8228,7 @@ export interface components {
         /** FeaturesOut */
         FeaturesOut: {
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "career.cv" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push")[];
         };
         /** FileLink */
         FileLink: {
@@ -8288,10 +8491,20 @@ export interface components {
         FurtherStudyOption: {
             /** Name */
             name: string;
+            /**
+             * Kind
+             * @default course
+             * @enum {string}
+             */
+            kind: "course" | "scholarship";
+            /** Region */
+            region?: string | null;
             /** Note */
             note: string;
             /** When */
             when?: string | null;
+            /** Closes */
+            closes?: string | null;
             /** Url */
             url: string;
         };
@@ -9423,7 +9636,7 @@ export interface components {
             /** Boxes */
             boxes: ("forum.post" | "library.upload" | "newsletter.react" | "reports.create" | "forum.moderate" | "library.manage" | "newsletter.manage" | "calendar.manage" | "career.edit" | "content.edit" | "guides.edit" | "requests.manage" | "summary.share" | "stats.view" | "people.suspend" | "audit.read")[];
             /** Features */
-            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push")[];
+            features: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "career.cv" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push")[];
             /**
              * Status
              * @enum {string}
@@ -10556,7 +10769,7 @@ export interface components {
             /** Label */
             label: string;
             /** Feature */
-            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push") | null;
+            feature?: ("forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "career.cv" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push") | null;
         };
         /** Page[ItemOut] */
         Page_ItemOut_: {
@@ -13353,7 +13566,7 @@ export interface components {
              * Purpose
              * @enum {string}
              */
-            purpose: "library" | "forum_image" | "newsletter_image" | "bug_screenshot" | "board" | "note_file" | "career_logo" | "module_art";
+            purpose: "library" | "forum_image" | "newsletter_image" | "bug_screenshot" | "board" | "note_file" | "career_logo" | "module_art" | "cv";
             /** Filename */
             fileName: string;
             /** Contenttype */
@@ -13763,6 +13976,13 @@ export type Contributor = components['schemas']['Contributor'];
 export type CoverLine = components['schemas']['CoverLine'];
 export type CtaBlock = components['schemas']['CtaBlock'];
 export type CtaLabels = components['schemas']['CtaLabels'];
+export type CvCheck = components['schemas']['CvCheck'];
+export type CvFileLink = components['schemas']['CvFileLink'];
+export type CvFit = components['schemas']['CvFit'];
+export type CvRate = components['schemas']['CvRate'];
+export type CvRerate = components['schemas']['CvRerate'];
+export type CvReviewOut = components['schemas']['CvReviewOut'];
+export type CvSkill = components['schemas']['CvSkill'];
 export type DailyCalendar = components['schemas']['DailyCalendar'];
 export type DailyContentOverview = components['schemas']['DailyContentOverview'];
 export type DailyMe = components['schemas']['DailyMe'];
@@ -17747,7 +17967,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push";
+                feature: "forum" | "forum.help-below" | "forum.anonymous" | "forum.follow" | "forum.auto-check" | "library" | "library.uploads" | "library.questions" | "library.daily-question" | "library.practice" | "library.autotag" | "newsletter" | "newsletter.polls" | "calendar" | "career" | "career.seniors" | "career.cv" | "grades" | "noora" | "noora.ai" | "notes" | "notes.share" | "board" | "board.plan" | "requests" | "requests.autoclose" | "requests.done" | "summary" | "modules.video-suggestions" | "modules.time-stamps" | "daily" | "mcp" | "push";
             };
             cookie?: never;
         };
@@ -30414,6 +30634,433 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    my_cvs_api_v1_career_cvs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CvReviewOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    rate_cv_api_v1_career_cvs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CvRate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CvReviewOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    rerate_cv_api_v1_career_cvs__review_id__rate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CvRerate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CvReviewOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    cv_file_api_v1_career_cvs__review_id__file_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CvFileLink"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_cv_api_v1_career_cvs__review_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
