@@ -201,6 +201,8 @@ const ACTIONS: Record<string, Describe> = {
   'module.seed_lessons': (d) =>
     `added ${countOf(count(d.lessons), 'lesson')} from the Hub’s seed to the module${quoted(d.title)}`,
   'module.seed_order': (d) => `put the chapters of the module${quoted(d.title)} in the Hub’s seed order`,
+  'chapter.seed_order': (d) =>
+    `put the lessons of the chapter${quoted(d.title)}${quoted(d.module) ? ` in${quoted(d.module)}` : ''} in the Hub’s seed order`,
   'request.status': (d) => {
     const title = quoted(d.title);
     const to = str(d.to);

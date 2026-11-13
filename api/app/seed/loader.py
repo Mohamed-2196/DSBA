@@ -251,18 +251,41 @@ CHAPTER_ORDERS: dict[str, tuple[str, ...]] = {
     "2026-11e": ("business",),  # MN1178: the guide's ch 14 (international HRM) before ch 15 (project management)
     "2026-11f": ("econometrics",),  # EC2020: the guide's chapters 2-15 in order (Time series after Binary response)
 }
+SEED_LESSON_ORDER = "chapter.seed_order"
+# Chapters whose lessons the seed file puts in a new order, by batch, the same way.
+LESSON_ORDERS: dict[str, tuple[str, ...]] = {
+    # MT3095 Mathematical analysis: the 2026-11b lessons (guide 8.4, 8.7.5, 8.7.6, 8.8.1) and the 8.8.3-8.8.4 ones
+    # after them move from the chapter's end to their places in the guide's chapter 8 order
+    "2026-11i": ("mssrt47e",),
+}
+
+
+def _seed_orders_done(db: Session, action: str) -> set[tuple[str | None, str | None]]:
+    return {
+        (target, (data or {}).get("batch"))
+        for target, data in db.execute(select(AuditEntry.target_id, AuditEntry.data).where(AuditEntry.action == action))
+    }
+
+
+def _in_seed_order(items: list[_Placed], seed_ids: list[str]) -> tuple[list[_Placed], int]:
+    """The items in the seed file's order: the seed's items take the places they hold among themselves, so one a
+    content manager added keeps its own; the positions follow. -> (the items, how many changed place)."""
+    order = {i: n for n, i in enumerate(seed_ids)}
+    items = list(items)
+    slots = [i for i, x in enumerate(items) if x.id in order]
+    ordered = sorted((items[i] for i in slots), key=lambda x: order[x.id])
+    moved = sum(items[i] is not x for i, x in zip(slots, ordered, strict=True))
+    for i, x in zip(slots, ordered, strict=True):
+        items[i] = x
+    for position, x in enumerate(items):
+        x.position = position
+    return items, moved
 
 
 def load_chapter_order(db: Session) -> int:
-    """The chapters of a module CHAPTER_ORDERS names, put in the seed file's order, once per (module, batch): the
-    seed's chapters take the places they hold among themselves, so a chapter a content manager added keeps its own.
-    How many modules it reordered."""
-    done = {
-        (target, (data or {}).get("batch"))
-        for target, data in db.execute(
-            select(AuditEntry.target_id, AuditEntry.data).where(AuditEntry.action == SEED_ORDER)
-        )
-    }
+    """The chapters of a module CHAPTER_ORDERS names, put in the seed file's order, once per (module, batch)
+    (_in_seed_order). How many modules it reordered."""
+    done = _seed_orders_done(db, SEED_ORDER)
     specs = {m["id"]: m for m in read("modules")}
     n = 0
     for batch, module_ids in CHAPTER_ORDERS.items():
@@ -270,21 +293,36 @@ def load_chapter_order(db: Session) -> int:
             module = db.get(Module, module_id)
             if module is None or (module_id, batch) in done or module_id not in specs:
                 continue
-            order = {c["id"]: i for i, c in enumerate(specs[module_id].get("chapters") or [])}
-            chapters = list(module.chapters)
-            slots = [i for i, c in enumerate(chapters) if c.id in order]
-            ordered = sorted((chapters[i] for i in slots), key=lambda c: order[c.id])
-            moved = sum(chapters[i] is not c for i, c in zip(slots, ordered, strict=True))
-            for i, c in zip(slots, ordered, strict=True):
-                chapters[i] = c
-            for position, c in enumerate(chapters):
-                c.position = position
-            module.chapters = chapters
+            seed = [c["id"] for c in specs[module_id].get("chapters") or []]
+            module.chapters, moved = _in_seed_order(module.chapters, seed)
             if moved:
                 module.version += 1
                 n += 1
             data = {"title": module.name, "batch": batch, "moved": moved, "via": "cli"}
             audit.record(db, None, SEED_ORDER, "module", module.id, data)
+    db.flush()
+    return n
+
+
+def load_lesson_order(db: Session) -> int:
+    """The lessons of a chapter LESSON_ORDERS names, put in the seed file's order, once per (chapter, batch)
+    (_in_seed_order); the module's version goes up, so an editor open on it reloads first. How many chapters it
+    reordered."""
+    done = _seed_orders_done(db, SEED_LESSON_ORDER)
+    specs = {c["id"]: c for m in read("modules") for c in m.get("chapters") or []}
+    n = 0
+    for batch, chapter_ids in LESSON_ORDERS.items():
+        for chapter_id in chapter_ids:
+            chapter = db.get(Chapter, chapter_id)
+            if chapter is None or (chapter_id, batch) in done or chapter_id not in specs:
+                continue
+            seed = [v["id"] for v in specs[chapter_id].get("videos") or []]
+            chapter.lessons, moved = _in_seed_order(chapter.lessons, seed)
+            if moved:
+                chapter.module.version += 1
+                n += 1
+            data = {"title": chapter.title, "module": chapter.module.name, "batch": batch, "moved": moved, "via": "cli"}
+            audit.record(db, None, SEED_LESSON_ORDER, "chapter", chapter.id, data)
     db.flush()
     return n
 
@@ -633,6 +671,7 @@ SECTIONS: dict[str, Callable[[Session], int]] = {
     "retired-lessons": remove_retired_lessons,
     "unit-codes": load_unit_codes,
     "chapter-order": load_chapter_order,
+    "lesson-order": load_lesson_order,
     "chapter-words": load_chapter_words,
     "chapter-outlines": load_chapter_outlines,
     "calendar": load_calendar,

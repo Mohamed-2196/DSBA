@@ -42,6 +42,7 @@ from app.seed.loader import (
     RETIRED_FILES,
     RETIRED_FOLDERS,
     RETIRED_LESSONS,
+    SEED_LESSON_ORDER,
     SEED_LESSONS,
     SEED_ORDER,
     daily_guess_words,
@@ -168,6 +169,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
         "retired-lessons": 0,
         "unit-codes": 0,
         "chapter-order": 0,
+        "lesson-order": 0,
         "chapter-words": 0,  # the modules arrive with their words
         "chapter-outlines": outlines,
         "career": 1,
@@ -201,6 +203,7 @@ def test_seed_loads_everything_once(db: Session) -> None:
         "retired-lessons": 0,
         "unit-codes": 0,
         "chapter-order": 0,
+        "lesson-order": 0,
         "chapter-words": 0,
         "chapter-outlines": 0,
         "calendar": 0,
@@ -316,6 +319,7 @@ def test_seed_keeps_what_moderators_changed(db: Session, client_for: Clients, ma
         "retired-lessons": 0,
         "unit-codes": 0,
         "chapter-order": 0,
+        "lesson-order": 0,
         "chapter-words": 0,
         "chapter-outlines": 0,
         "calendar": 0,
@@ -623,6 +627,104 @@ def test_the_seed_puts_a_modules_chapters_in_its_new_order_once_and_then_leaves_
     module = db.get(Module, "business")
     assert module is not None
     assert [c.id for c in module.chapters] == before
+
+
+# MT3095's "Mathematical analysis": one lesson per study guide section, in the guide's chapter 8 order (8.3
+# quantifiers, 8.4 triangle inequality, 8.5 supremum, 8.7.4 monotone sequences, 8.7.5 algebra of limits, 8.7.6
+# sandwich theorem, 8.8.1 functional limits, 8.8.3 their algebra, 8.8.4 one-sided limits, 8.9.1 continuity).
+ANALYSIS = "mssrt47e"
+ANALYSIS_GUIDE_ORDER = [
+    "y4vv44wo",
+    "8rpfwi6t",
+    "sismvwhy",
+    "argui295",
+    "gq3q2sac",
+    "ym7fk89z",
+    "h65xyfqg",
+    "k0j6lccv",
+    "fgko3q8g",
+    "rsdgvqe9",
+]
+# the four 2026-11b lessons and the two 8.8 lessons after them, which a catalogue loaded before had last
+ANALYSIS_MOVED = ["8rpfwi6t", "gq3q2sac", "ym7fk89z", "h65xyfqg", "k0j6lccv", "fgko3q8g"]
+
+
+def seed_lessons(chapter_id: str) -> list[str]:
+    return next(
+        [v["id"] for v in c.get("videos") or []]
+        for m in read("modules")
+        for c in m.get("chapters") or []
+        if c["id"] == chapter_id
+    )
+
+
+def test_mt3095_analysis_lessons_follow_the_study_guides_order_in_the_seed() -> None:
+    seed = seed_lessons(ANALYSIS)
+    assert [i for i in seed if i in ANALYSIS_GUIDE_ORDER] == ANALYSIS_GUIDE_ORDER
+
+
+def test_the_seed_puts_a_chapters_lessons_in_its_new_order_once_and_then_leaves_them_to_content_managers(
+    db: Session,
+) -> None:
+    first_load(db)
+    seed = seed_lessons(ANALYSIS)
+
+    def reorder(ids: list[str]) -> None:
+        chapter = db.get(Chapter, ANALYSIS)
+        assert chapter is not None
+        by_id = {v.id: v for v in chapter.lessons}
+        chapter.lessons = [by_id[i] for i in ids]
+        for position, lesson in enumerate(chapter.lessons):
+            lesson.position = position
+        db.commit()
+        db.expire_all()
+
+    def lessons() -> list[str]:
+        chapter = db.get(Chapter, ANALYSIS)
+        assert chapter is not None
+        assert [v.position for v in chapter.lessons] == list(range(len(chapter.lessons)))
+        return [v.id for v in chapter.lessons]
+
+    # a catalogue loaded before the new order (the moved lessons last, as dev had them), which it hasn't reached,
+    # with a lesson a content manager added among them
+    db.execute(delete(AuditEntry).where(AuditEntry.action == SEED_LESSON_ORDER))
+    chapter = db.get(Chapter, ANALYSIS)
+    assert chapter is not None
+    chapter.lessons.append(Lesson(id="cmadded1", module_id=chapter.module_id, kind="youtube", video_id="x"))
+    db.commit()
+    before = [*(i for i in seed if i not in ANALYSIS_MOVED), *ANALYSIS_MOVED]
+    before.insert(before.index("8rpfwi6t"), "cmadded1")
+    reorder(before)
+    module = db.get(Module, chapter.module_id)
+    assert module is not None
+    version = module.version
+
+    assert load_all(db, only="lesson-order") == {"lesson-order": 1}
+    db.commit()
+    db.expire_all()
+    after = lessons()
+    assert [i for i in after if i != "cmadded1"] == seed
+    assert after.index("cmadded1") == before.index("cmadded1")
+    module = db.get(Module, chapter.module_id)
+    assert module is not None
+    assert module.version == version + 1
+    entry = db.scalars(
+        select(AuditEntry).where(AuditEntry.action == SEED_LESSON_ORDER, AuditEntry.target_id == ANALYSIS)
+    ).one()
+    moved = sum(a != b for a, b in zip([i for i in before if i in seed], seed, strict=True))
+    assert (entry.actor_id, entry.target_type, entry.data["moved"], entry.data["via"]) == (
+        None,
+        "chapter",
+        moved,
+        "cli",
+    )
+
+    # a content manager's own order afterwards stays
+    reorder(before)
+    assert load_all(db, only="lesson-order") == {"lesson-order": 0}
+    db.commit()
+    db.expire_all()
+    assert lessons() == before
 
 
 def test_the_seed_gives_a_module_without_a_unit_code_the_seeds_and_keeps_one_a_content_manager_set(db: Session) -> None:

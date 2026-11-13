@@ -169,6 +169,18 @@ describe('describeAudit', () => {
     expect(
       describeAudit(entry('module.seed_order', { title: 'Business and Management', batch: '2026-11e', moved: 2 })),
     ).toBe('put the chapters of the module “Business and Management” in the Hub’s seed order');
+    expect(
+      describeAudit(
+        entry('chapter.seed_order', {
+          title: 'Mathematical analysis',
+          module: 'Further Mathematics for Economists',
+          batch: '2026-11i',
+          moved: 21,
+        }),
+      ),
+    ).toBe(
+      'put the lessons of the chapter “Mathematical analysis” in “Further Mathematics for Economists” in the Hub’s seed order',
+    );
     expect(describeAudit(entry('request.status', { title: 'ST2133 2019 paper', from: 'open', to: 'done' }))).toBe(
       'marked the request “ST2133 2019 paper” done',
     );

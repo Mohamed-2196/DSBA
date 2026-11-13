@@ -10177,6 +10177,14 @@
             "addedIn": "2026-11g"
           },
           {
+            "id": "8rpfwi6t",
+            "kind": "youtube",
+            "videoId": "051WWg9twO0",
+            "title": "Proof: Triangle Inequality Theorem | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11b"
+          },
+          {
             "id": "sismvwhy",
             "kind": "youtube",
             "videoId": "QRGIhqz9vh4",
@@ -10212,6 +10220,46 @@
             "videoId": "4NURDmE79VU",
             "title": "Detailed Proof of the Monotone Convergence Theorem | Real Analysis",
             "channel": "Wrath of Math"
+          },
+          {
+            "id": "gq3q2sac",
+            "kind": "youtube",
+            "videoId": "dWLhfYUb3wc",
+            "title": "Proving All the Sequence Limit Laws | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "ym7fk89z",
+            "kind": "youtube",
+            "videoId": "hYY9piVkB6g",
+            "title": "Proof: Sequence Squeeze Theorem | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "h65xyfqg",
+            "kind": "youtube",
+            "videoId": "kVQNhAIFZYc",
+            "title": "Epsilon-Delta Definition of Functional Limits | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11b"
+          },
+          {
+            "id": "k0j6lccv",
+            "kind": "youtube",
+            "videoId": "iCN2IMgRpUw",
+            "title": "Proving all the Function Limit Laws | Real Analysis",
+            "channel": "Wrath of Math",
+            "addedIn": "2026-11g"
+          },
+          {
+            "id": "fgko3q8g",
+            "kind": "youtube",
+            "videoId": "ymJ9lbWdeZk",
+            "title": "One-sided limits",
+            "channel": "Andrew McCrady",
+            "addedIn": "2026-11g"
           },
           {
             "id": "rsdgvqe9",
@@ -10287,54 +10335,6 @@
             "videoId": "dAz9ax-bjzU",
             "title": "Open Covers, Finite Subcovers, and Compact Sets | Real Analysis",
             "channel": "Wrath of Math",
-            "addedIn": "2026-11g"
-          },
-          {
-            "id": "8rpfwi6t",
-            "kind": "youtube",
-            "videoId": "051WWg9twO0",
-            "title": "Proof: Triangle Inequality Theorem | Real Analysis",
-            "channel": "Wrath of Math",
-            "addedIn": "2026-11b"
-          },
-          {
-            "id": "gq3q2sac",
-            "kind": "youtube",
-            "videoId": "dWLhfYUb3wc",
-            "title": "Proving All the Sequence Limit Laws | Real Analysis",
-            "channel": "Wrath of Math",
-            "addedIn": "2026-11b"
-          },
-          {
-            "id": "ym7fk89z",
-            "kind": "youtube",
-            "videoId": "hYY9piVkB6g",
-            "title": "Proof: Sequence Squeeze Theorem | Real Analysis",
-            "channel": "Wrath of Math",
-            "addedIn": "2026-11b"
-          },
-          {
-            "id": "h65xyfqg",
-            "kind": "youtube",
-            "videoId": "kVQNhAIFZYc",
-            "title": "Epsilon-Delta Definition of Functional Limits | Real Analysis",
-            "channel": "Wrath of Math",
-            "addedIn": "2026-11b"
-          },
-          {
-            "id": "k0j6lccv",
-            "kind": "youtube",
-            "videoId": "iCN2IMgRpUw",
-            "title": "Proving all the Function Limit Laws | Real Analysis",
-            "channel": "Wrath of Math",
-            "addedIn": "2026-11g"
-          },
-          {
-            "id": "fgko3q8g",
-            "kind": "youtube",
-            "videoId": "ymJ9lbWdeZk",
-            "title": "One-sided limits",
-            "channel": "Andrew McCrady",
             "addedIn": "2026-11g"
           }
         ]

@@ -268,6 +268,14 @@ The password and cover release passed both GitHub CI jobs. Railway's
 - The deployment check now fails when storage is unhealthy, so broken file access cannot pass the health check
   as a warning. Recovery instructions are in DEPLOYMENT section 12.
 
+### MT3095 analysis lessons in the guide's order, 2026-11-13 (COM-299)
+
+MT3095's "Mathematical analysis" (`mssrt47e`) had its four `2026-11b` lessons (guide 8.4 triangle inequality, 8.7.5
+algebra of limits, 8.7.6 sandwich theorem, 8.8.1 functional limits) and the 8.8.3-8.8.4 lessons after them at the
+chapter's end, after compactness. The seed file now has them in the guide's chapter 8 order, and a catalogue loaded
+before moves them once, by the seed's new lesson-order step (LESSON_ORDERS batch 2026-11i, audit chapter.seed_order;
+it works like CHAPTER_ORDERS, and a lesson a content manager added keeps its place).
+
 ### EC2020 in its guide's chapters, 2026-11-02
 
 EC2020 now has the 2023 guide's chapters 2-15 as its own chapters, in the guide's order (once, by CHAPTER_ORDERS batch
