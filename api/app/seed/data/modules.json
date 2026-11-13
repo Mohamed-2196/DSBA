@@ -5357,7 +5357,7 @@
             "id": "5h40ljyw",
             "kind": "youtube",
             "videoId": "AYKxZF6Qo4U",
-            "title": "Get the Data from Excel in Tableau | Connect Data Sources",
+            "title": "Get the Data from Excel in Tableau",
             "channel": "Amit Thinks",
             "addedIn": "2026-11h"
           },
@@ -5540,7 +5540,7 @@
             "id": "fhzmt3tu",
             "kind": "youtube",
             "videoId": "3wILlHGBOsQ",
-            "title": "Formatting menu in Tableau | Simplified",
+            "title": "Formatting menu in Tableau",
             "channel": "Tech Talk with Niket",
             "addedIn": "2026-11h"
           },
@@ -5548,7 +5548,7 @@
             "id": "jzdy5809",
             "kind": "youtube",
             "videoId": "wstwADQ0G3k",
-            "title": "How to Change Colors, Fonts, Labels in Tableau | Edit Axis & Format",
+            "title": "How to Change Colors, Fonts, Labels in Tableau",
             "channel": "Online Quick Learn Academy",
             "addedIn": "2026-11h"
           },
@@ -5556,7 +5556,7 @@
             "id": "vbr3xd2z",
             "kind": "youtube",
             "videoId": "KU9WEfRBu5k",
-            "title": "How to in Tableau in 5 mins: Create Lines using the Analytics Pane",
+            "title": "Create Lines using the Analytics Pane",
             "channel": "The Information Lab",
             "addedIn": "2026-11h"
           },
@@ -5564,7 +5564,7 @@
             "id": "b72rg599",
             "kind": "youtube",
             "videoId": "xF-6lcrrJks",
-            "title": "Maps in Tableau | Choropleth or Filled, Point Distribution, Proportional Symbol, Heat & Route maps",
+            "title": "Maps in Tableau",
             "channel": "DataQueen",
             "addedIn": "2026-11h"
           },
@@ -5580,7 +5580,7 @@
             "id": "8upmln3b",
             "kind": "youtube",
             "videoId": "EA2FrFJ_4YE",
-            "title": "Tableau Story Points | Create Interactive Reporting With Tableau Stories",
+            "title": "Tableau Story Points",
             "channel": "Jellyman Education",
             "addedIn": "2026-11h"
           },
@@ -5772,7 +5772,7 @@
             "id": "nev93h6h",
             "kind": "youtube",
             "videoId": "XV_W1w4Nwoc",
-            "title": "Spearman Rank Correlation [Simply explained]",
+            "title": "Spearman Rank Correlation",
             "channel": "numiqo",
             "addedIn": "2026-11h"
           },
@@ -5874,7 +5874,7 @@
             "id": "1n64ui6o",
             "kind": "youtube",
             "videoId": "pA83XtLeVig",
-            "title": "Probability Axioms",
+            "title": "L01.4 Probability Axioms",
             "channel": "MIT OpenCourseWare",
             "addedIn": "2026-11h"
           },
@@ -5980,7 +5980,7 @@
             "id": "ooubr08v",
             "kind": "youtube",
             "videoId": "cSZvSy4Vopc",
-            "title": "Expected Utility (1): Risk Aversion, Risk Loving, and Risk Neutral",
+            "title": "Expected Utility: Risk Aversion, Risk Loving, and Risk Neutral",
             "channel": "Iris Franz",
             "addedIn": "2026-11h"
           },
@@ -6114,7 +6114,7 @@
             "id": "yckus73i",
             "kind": "youtube",
             "videoId": "ENnlSlvQHO0",
-            "title": "Confidence Interval [Simply explained]",
+            "title": "Confidence Interval",
             "channel": "numiqo",
             "addedIn": "2026-11h"
           },
@@ -6672,11 +6672,11 @@
             "addedIn": "2026-11h"
           },
           {
-            "id": "g2gsce6b",
+            "id": "tq4vf948",
             "kind": "youtube",
-            "videoId": "_eMA0LWsRQQ",
-            "title": "Alternate solutions, Infeasibility, Unboundedness, & Redundancy",
-            "channel": "Joshua Emmanuel",
+            "videoId": "llqhvtxr9U4",
+            "title": "Introduction to Operations Research - History, OR Today, Models, Structure, & Phases of OR",
+            "channel": "Bikey Bonn Kleiford Seranilla",
             "addedIn": "2026-11h"
           },
           {
@@ -6854,7 +6854,7 @@
             "id": "ek6l67ej",
             "kind": "youtube",
             "videoId": "dFSPmjSynCs",
-            "title": "Getting Started - R for Economists Basics 1",
+            "title": "Getting Started - R for Economists",
             "channel": "Econometrics, Causality, and Coding with Dr. HK",
             "addedIn": "2026-11h"
           }
@@ -6881,7 +6881,7 @@
             "id": "523ao6ma",
             "kind": "youtube",
             "videoId": "M7QNuq53oOQ",
-            "title": "Linear Regression (OLS) - R for Economists Basics 11",
+            "title": "Linear Regression (OLS) - R for Economists",
             "channel": "Econometrics, Causality, and Coding with Dr. HK",
             "addedIn": "2026-11h"
           }
@@ -6909,7 +6909,7 @@
             "id": "wbdb4fq5",
             "kind": "youtube",
             "videoId": "pwZFqdTPcB4",
-            "title": "R6. Testing Multiple Linear Hypotheses (Econometrics in R)",
+            "title": "Testing Multiple Linear Hypotheses (Econometrics in R)",
             "channel": "Intromediate Econ",
             "addedIn": "2026-11h"
           }
@@ -7024,7 +7024,7 @@
             "id": "94s2v187",
             "kind": "youtube",
             "videoId": "hFoDDwTF4KY",
-            "title": "R12. Robust/White Standard Errors. (Econometrics in R)",
+            "title": "Robust/White Standard Errors (Econometrics in R)",
             "channel": "Intromediate Econ",
             "addedIn": "2026-11h"
           }
@@ -7052,7 +7052,7 @@
             "id": "evko85lb",
             "kind": "youtube",
             "videoId": "YtVNvucdPqY",
-            "title": "Instrumental Variables Regression (IV Regression) - R for Economists Moderate 4",
+            "title": "Instrumental Variables Regression (IV Regression) - R for Economists",
             "channel": "Econometrics, Causality, and Coding with Dr. HK",
             "addedIn": "2026-11h"
           }
@@ -7348,7 +7348,7 @@
             "id": "ykt4pe08",
             "kind": "youtube",
             "videoId": "esjUgiZwJGE",
-            "title": "Time Series - R for Economists Moderate 5",
+            "title": "Time Series - R for Economists",
             "channel": "Econometrics, Causality, and Coding with Dr. HK",
             "addedIn": "2026-11h"
           }
@@ -7434,7 +7434,7 @@
             "id": "oqwypieq",
             "kind": "youtube",
             "videoId": "5TJH4xoDNe4",
-            "title": "2. Stationarity and Unit Root Testing in R & R-Studio || Dr. Dhaval Maheta",
+            "title": "Stationarity and Unit Root Testing in R & R-Studio",
             "channel": "Dhaval Maheta (DM)",
             "addedIn": "2026-11h"
           }
@@ -8279,7 +8279,7 @@
             "id": "t0oppd4a",
             "kind": "youtube",
             "videoId": "QJTRNxUxmuc",
-            "title": "Machine Learning Model Drift - Concept Drift & Data Drift in ML - Explanation",
+            "title": "Machine Learning Model Drift - Concept Drift & Data Drift in ML",
             "channel": "1littlecoder",
             "addedIn": "2026-11h"
           },
@@ -8874,7 +8874,7 @@
             "id": "6w4yy7dq",
             "kind": "youtube",
             "videoId": "IZ0qGEZkTIw",
-            "title": "Regression Trees - Video 4: Regression Trees",
+            "title": "Regression Trees",
             "channel": "MIT OpenCourseWare",
             "addedIn": "2026-11h"
           },
@@ -9319,7 +9319,7 @@
             "id": "86wvtj8f",
             "kind": "youtube",
             "videoId": "5b1B2gcEJKg",
-            "title": "Evaluating Secondary Data and Research in Marketing - Part 1 of 2",
+            "title": "Evaluating Secondary Data and Research in Marketing",
             "channel": "Dr. Baker SDSU Marketing",
             "addedIn": "2026-11h"
           },
@@ -10179,7 +10179,7 @@
             "id": "n42qfkg5",
             "kind": "youtube",
             "videoId": "fSytzGwwBVw",
-            "title": "Cross Validation",
+            "title": "Machine Learning Fundamentals: Cross Validation",
             "channel": "StatQuest with Josh Starmer",
             "addedIn": "2026-11h"
           }
@@ -10887,11 +10887,11 @@
             "addedIn": "2026-11h"
           },
           {
-            "id": "tmhxqqw2",
+            "id": "xs58fy4g",
             "kind": "youtube",
-            "videoId": "yiSrxuZW1zI",
-            "title": "Price Ceilings: Misallocation of Resources",
-            "channel": "Marginal Revolution University",
+            "videoId": "SxZVceVsgTw",
+            "title": "How do ticket scalpers help measure consumer surplus created by performers?",
+            "channel": "AP Microeconomics with MIT Professor Jon Gruber",
             "addedIn": "2026-11h"
           },
           {

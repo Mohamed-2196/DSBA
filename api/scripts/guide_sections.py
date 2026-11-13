@@ -180,27 +180,35 @@ def same(a: str | None, b: str | None) -> bool:
     return bool(a and b) and norm(a) == norm(b)
 
 
+def choose(body: list[tuple[str, str, int]], toc_sections: dict[str, str]) -> dict[str, tuple[str, int]]:
+    """Each section number's heading (title, page) among the body's headings with that number. The first is it (a
+    number set again later in the heading font is a summary box or an answer), unless only a later one is the
+    contents' (a front chapter numbered like chapter 1, as in MN1178). A subsection's heading comes after its
+    section's: one before it belongs to that front chapter, and with none after it the subsection is left out."""
+    candidates: dict[str, list[tuple[str, int]]] = {}
+    for num, title, page in body:
+        candidates.setdefault(num, []).append((title, page))
+    chosen: dict[str, tuple[str, int]] = {}
+    for num in sorted(candidates, key=lambda n: n.count(".")):  # sections before their subsections
+        options = candidates[num]
+        parent = chosen.get(num.rsplit(".", 1)[0]) if num.count(".") > 1 else None
+        if parent:
+            options = [o for o in options if o[1] >= parent[1]]
+        if options:
+            chosen[num] = next((o for o in options if same(o[0], toc_sections.get(num))), options[0])
+    return chosen
+
+
 def parse_numbered(path: str) -> tuple[list[dict[str, Any]], list[str]]:
     lines = lines_of(path)
     words = {w.lower() for _, _, t in lines for w in re.findall(r"[A-Za-z]+", t)}
     toc_chapters, toc_sections, toc_end = contents(lines)
     body = headings(lines, toc_end)
     notes: list[str] = []
-    seen: dict[str, dict[str, Any]] = {}
-    for num, title, page in body:
-        if num in seen and not (same(title, toc_sections.get(num)) and not same(seen[num]["body"], toc_sections[num])):
-            continue  # a number set again in the heading font later (a summary box, an answer): the first is it,
-            # unless only the later one is the contents' (a front chapter numbered like chapter 1, as in MN1178)
-        # The contents' wording when it has the section (the body's heading can lose a superscript: "R" for "Rn").
-        best = toc_sections.get(num) or title
-        seen[num] = {"number": num, "title": fix_ligatures(best, words), "page": page, "body": title}
-    # A subsection before its section's heading belongs to that front chapter, not to the section.
-    for num in [n for n in seen if n.count(".") > 1]:
-        parent = seen.get(num.rsplit(".", 1)[0])
-        if parent and seen[num]["page"] < parent["page"]:
-            del seen[num]
-    for s in seen.values():
-        del s["body"]
+    seen = {
+        num: {"number": num, "title": fix_ligatures(toc_sections.get(num) or title, words), "page": page}
+        for num, (title, page) in choose(body, toc_sections).items()
+    }  # the contents' wording when it has the section (the body's heading can lose a superscript: "R" for "Rn")
     for num, title in toc_sections.items():
         if num not in seen:
             notes.append(f"in the contents, not a body heading: {num} {title}")
