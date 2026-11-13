@@ -176,7 +176,10 @@ def headings(lines: list[tuple[int, str, str]], after: int) -> list[tuple[str, s
 
 def same(a: str | None, b: str | None) -> bool:
     """Two titles of one heading (the body's and the contents'), up to case, spacing and punctuation."""
-    norm = lambda t: re.sub(r"[^a-z0-9]+", "", (t or "").lower())  # noqa: E731
+
+    def norm(t: str | None) -> str:
+        return re.sub(r"[^a-z0-9]+", "", (t or "").lower())
+
     return bool(a and b) and norm(a) == norm(b)
 
 
@@ -275,7 +278,9 @@ def _outline(path: str) -> list[tuple[int, str, int]]:
             if isinstance(x, list):
                 walk(x, depth + 1)
             else:
-                out.append((depth, clean(x.title), reader.get_destination_page_number(x) + 1))
+                page = reader.get_destination_page_number(x)
+                if page is not None:  # a bookmark with no target page has nowhere to point
+                    out.append((depth, clean(x.title), page + 1))
 
     walk(reader.outline, 0)
     return out
@@ -360,8 +365,8 @@ def parse_sized(path: str, page_title: float, heading: float) -> list[dict[str, 
             elif height is None and ch.isalpha():
                 height = 0.0
             line.append(ch)
-    for c in chapters:
-        del c["_page"]
+    for chapter in chapters:
+        del chapter["_page"]
     return chapters
 
 
