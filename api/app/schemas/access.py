@@ -74,7 +74,7 @@ class PrivacyOut(ApiModel):
 
     noora_answers: bool  # Anthropic writes Mini Noora's answers
     forum_check: bool  # Anthropic reads new forum posts and pictures (the forum's automatic check)
-    ai_apps: bool  # students may connect an AI app to their account
+    ai_apps: bool  # an AI app can be connected: by students while "mcp" is on, by active admins always
 
 
 class RoleSummary(ApiModel):

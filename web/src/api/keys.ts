@@ -15,6 +15,9 @@ export const FEATURES_KEY = ['features'] as const;
 export const ACCESS_ROLES_KEY = ['admin', 'roles'] as const;
 export const ACCESS_FEATURES_KEY = ['admin', 'features'] as const;
 
+/** GET /privacy: which outside services the privacy notice names. Refetched after a switch changes. */
+export const PRIVACY_KEY = ['privacy'] as const;
+
 /** GET /me/progress, per account. Refetched when lesson tracking is turned on or off: the API hides what was saved
  *  while it is off. */
 export const PROGRESS_KEY = ['progress'] as const;

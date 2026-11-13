@@ -77,7 +77,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 
 export default function PrivacyPage() {
   const services = usePrivacyServices();
-  const shown = shownSections(services.data, services.isError, Boolean(import.meta.env.VITE_POSTHOG_KEY));
+  const shown = shownSections(services, Boolean(import.meta.env.VITE_POSTHOG_KEY));
   const d = PRIVACY_DETAILS;
   const region = <Detail value={d.bucketRegion} gap="BUCKET REGION" />;
   return (
