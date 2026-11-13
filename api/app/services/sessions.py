@@ -19,7 +19,7 @@ from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.core.errors import ApiError
+from app.core.errors import ApiError, unauthenticated
 from app.core.security import client_ip, hash_token, new_token, set_session_cookie
 from app.core.time import utcnow
 from app.models import PushSubscription, User, UserSession
@@ -118,6 +118,30 @@ def live(db: Session, user_id: uuid.UUID) -> list[UserSession]:
         .order_by(func.coalesce(UserSession.last_seen_at, UserSession.created_at).desc(), UserSession.id)
     )
     return list(db.scalars(q))
+
+
+def lock_account(db: Session, user_id: uuid.UUID) -> None:
+    """Takes the account's row lock until the transaction ends. Whatever makes access that outlives a session (a
+    calendar or widget link, an AI app) and whatever ends it (signin.end_other_access) take it first, so the two
+    never interleave (SEC-66)."""
+    db.execute(select(User.id).where(User.id == user_id).with_for_update())
+
+
+def hold_live(db: Session, user: User, sess: UserSession | None) -> None:
+    """Before making access that outlives this session: takes the account's lock, then checks again that this
+    request's session still works. A request that was signed in when it started can't make a link after a sign-out
+    everywhere that finished meanwhile (SEC-66). Errors: unauthenticated (401)."""
+    lock_account(db, user.id)
+    still = sess is not None and db.scalar(
+        select(UserSession.id).where(
+            UserSession.id == sess.id,
+            UserSession.user_id == user.id,
+            UserSession.revoked_at.is_(None),
+            UserSession.expires_at > utcnow(),
+        )
+    )
+    if not still:
+        raise unauthenticated()
 
 
 def step_up_left(sess: UserSession | None) -> int:

@@ -34,7 +34,7 @@ export function ResetLinkDialog({ person, onClose }: { person: AdminUser | null;
       description={
         link
           ? 'Pass it on to them yourself, in person or by message. Anyone holding it can set the password.'
-          : 'They open it and choose a new password. It works once, within an hour, signs them out everywhere else, turns off their private calendar links and disconnects their AI apps.'
+          : 'They open it and choose a new password. It works once, within an hour. It signs them out everywhere else and disconnects their calendar link, widget link and AI apps.'
       }
       size="sm"
       data-hub="reset-link"

@@ -35,8 +35,8 @@ from app.services.notify import notify
 RESET_TTL = timedelta(hours=1)
 NOTICE_SUBJECT = "Your DSBA Hub account changed"
 SIGNED_OUT = (
-    "Your other devices were signed out, your private calendar links were turned off and your AI apps were "
-    "disconnected. You can make new links and connect apps again at any time."
+    "Your other devices were signed out, and your calendar link, widget link and AI apps disconnected. You can make "
+    "new links and connect apps again at any time."
 )
 
 
@@ -88,7 +88,11 @@ def _end_ai_apps(db: Session, user: User) -> None:
 
 def end_other_access(db: Session, user: User) -> None:
     """Ends the account's access that needs no session (SEC-66): the private calendar and widget links stop working
-    (the student can make new ones) and AI apps are disconnected. Sessions are the caller's. The caller commits."""
+    (the student can make new ones) and AI apps are disconnected. Sessions are the caller's. The caller commits.
+
+    It takes the account's lock first, the one sessions.hold_live takes before making a link or connecting an app: a
+    request already making one finishes before this clears it, and one that comes later finds its session ended."""
+    sessions.lock_account(db, user.id)
     _end_ai_apps(db, user)
     db.execute(
         update(CalendarPrefs)
@@ -261,6 +265,7 @@ def link_google(db: Session, user: User, sess: UserSession | None, identity: Goo
     except IntegrityError:  # taken a moment ago by a parallel request
         raise GoogleFlowError("email_taken") from None
     sessions.revoke_others(db, user.id, keep=sess)
+    sessions.lock_account(db, user.id)  # as end_other_access: an app being connected finishes first
     _end_ai_apps(db, user)
     queue_notice(
         db,

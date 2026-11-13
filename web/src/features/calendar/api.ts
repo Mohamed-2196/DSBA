@@ -6,7 +6,7 @@
 //   POST/PATCH/DELETE /api/v1/calendar/events[/id]   moderators only
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiUrl, call } from '../../api/client';
-import { HOME_KEY } from '../../api/keys';
+import { HOME_KEY, MY_CALENDAR_SETTINGS_KEY } from '../../api/keys';
 import { appUrl } from '../../lib/share';
 import type { CohortYear } from '../../state';
 import { sortEvents } from './queries';
@@ -192,7 +192,7 @@ export function useDeleteEvent() {
 
 export const mineKeys = {
   events: [...CALENDAR_KEY, 'mine', 'events'] as const,
-  settings: [...CALENDAR_KEY, 'mine', 'settings'] as const,
+  settings: MY_CALENDAR_SETTINGS_KEY,
   plan: [...CALENDAR_KEY, 'mine', 'plan'] as const,
 };
 

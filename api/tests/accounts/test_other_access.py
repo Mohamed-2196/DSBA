@@ -103,7 +103,7 @@ def test_a_reset_link_ends_feeds_and_ai_apps(
     _all_cut_off(client_for, feeds, ai, tokens, db, victim)
     deliver()
     (notice,) = outbox.to("sec66-reset@gmail.com")
-    assert "private calendar links were turned off and your AI apps were disconnected" in notice.text
+    assert "and your calendar link, widget link and AI apps disconnected" in notice.text
 
 
 def test_a_password_change_ends_feeds_and_ai_apps_but_keeps_this_browser(
@@ -124,7 +124,7 @@ def test_a_password_change_ends_feeds_and_ai_apps_but_keeps_this_browser(
     _all_cut_off(client_for, feeds, ai, tokens, db, student)
     deliver()
     (notice,) = outbox.to("sec66-change@gmail.com")
-    assert "private calendar links were turned off and your AI apps were disconnected" in notice.text
+    assert "and your calendar link, widget link and AI apps disconnected" in notice.text
 
 
 def test_linking_google_disconnects_ai_apps(

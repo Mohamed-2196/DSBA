@@ -11,7 +11,7 @@ from fastapi import Query, Request, Response, status
 
 from app.core.access import Box, Feature
 from app.core.pagination import YearParam
-from app.core.security import DB, ActiveUser, CurrentUser, client_ip, needs_feature, requires
+from app.core.security import DB, ActiveUser, CurrentSession, CurrentUser, client_ip, needs_feature, requires
 from app.models import User
 from app.routers._base import router_for
 from app.schemas.auth import MAX_PAPERS
@@ -296,9 +296,9 @@ def change_my_settings(body: CalendarPrefsUpdate, user: ActiveUser, db: DB) -> C
 
 
 @router.post("/calendar/mine/feed", response_model=CalendarPrefsOut)
-def new_my_feed(user: ActiveUser, db: DB) -> CalendarPrefsOut:
+def new_my_feed(user: ActiveUser, sess: CurrentSession, db: DB) -> CalendarPrefsOut:
     """Turns your private feed on at a new address. An address you had before stops working."""
-    prefs = mine.new_feed(db, user)
+    prefs = mine.new_feed(db, user, sess)
     db.commit()
     return mine.prefs_out(user, prefs)
 
@@ -312,10 +312,10 @@ def stop_my_feed(user: ActiveUser, db: DB) -> CalendarPrefsOut:
 
 
 @router.post("/calendar/mine/widget", response_model=CalendarPrefsOut)
-def new_my_widget(user: ActiveUser, db: DB) -> CalendarPrefsOut:
+def new_my_widget(user: ActiveUser, sess: CurrentSession, db: DB) -> CalendarPrefsOut:
     """Turns your widget feed on at a new address (what a widget app on your phone reads). An address you had before
     stops working; your calendar feed's stays as it is."""
-    prefs = mine.new_widget(db, user)
+    prefs = mine.new_widget(db, user, sess)
     db.commit()
     return mine.prefs_out(user, prefs)
 

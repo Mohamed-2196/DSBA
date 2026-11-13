@@ -8,6 +8,10 @@ export const ADMIN_STATS_KEY = ['admin', 'stats'] as const;
 /** Everything on Your account (its sessions, …): refreshed after signing in again or stepping up. */
 export const ACCOUNT_KEY = ['account'] as const;
 
+/** GET /calendar/mine/settings: the dates a student hides and their calendar and widget links. Your account reads it
+ *  again after a password change, which turns those links off. */
+export const MY_CALENDAR_SETTINGS_KEY = ['calendar', 'mine', 'settings'] as const;
+
 /** GET /features: the features switched on for whoever asks. Signed in, /me carries the same list. */
 export const FEATURES_KEY = ['features'] as const;
 

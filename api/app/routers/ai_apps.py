@@ -11,7 +11,7 @@ from fastapi import Query, Response, status
 from sqlalchemy import and_, or_, select
 
 from app.core.access import Feature
-from app.core.security import DB, ActiveUser, CurrentUser, needs_feature
+from app.core.security import DB, ActiveUser, CurrentSession, CurrentUser, needs_feature
 from app.models import AiAppConnection
 from app.routers._base import router_for
 from app.schemas.ai_apps import CONSENT_REQUEST_MAX, ConnectedApp, ConsentAnswer, ConsentAsk, ConsentRedirect
@@ -39,10 +39,10 @@ def ask(
 
 
 @router.post("/ai-apps/consent", response_model=ConsentRedirect)
-def answer(body: ConsentAnswer, db: DB, user: ActiveUser) -> ConsentRedirect:
+def answer(body: ConsentAnswer, db: DB, user: ActiveUser, sess: CurrentSession) -> ConsentRedirect:
     """The student's answer. Yes connects the app (read-only) and gives it a one-time code; either way the web app
     sends the student to `redirectUrl`, back to the app. Errors: invalid_input (422: out of date)."""
-    return ConsentRedirect(redirect_url=consent.answer(db, user, body.request, allow=body.allow))
+    return ConsentRedirect(redirect_url=consent.answer(db, user, sess, body.request, allow=body.allow))
 
 
 @router.get("/ai-apps", response_model=list[ConnectedApp])

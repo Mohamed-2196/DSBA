@@ -43,7 +43,12 @@ export function GoogleReturn({ me, ready, openSignIn }: GoogleReturnProps) {
     if (!me || trip.current === null) return;
     if (me.needsProfile) openSignIn();
     else if (trip.current === 'link')
-      push({ tone: 'success', title: 'Google is linked', body: 'You can continue with Google from now on.' });
+      push({
+        tone: 'success',
+        title: 'Google is linked',
+        body: 'You can continue with Google from now on. Other devices were signed out and your AI apps disconnected.',
+        duration: 8000,
+      });
     else push({ tone: 'success', title: `Signed in${me.displayName ? ` as ${me.displayName}` : ''}` });
   }, [ready, me, location, navigate, push, openSignIn]);
 

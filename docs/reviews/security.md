@@ -47,7 +47,8 @@ exact attack the takeover exists to defeat.
 | SEC-70 | minor | deployment (go-live B9; DEPLOYMENT.md §5) | The SEC-50 check on Railway doesn't test a forged `X-Forwarded-For` |
 | SEC-71 | nit (D19 trade-off) | sign-up (`services/signin.py:93`) | Sign-up tells whether an address has an account |
 
-Status on `com-265-signin-fixes` (`e605b7a1`): **SEC-66 fixed** and **SEC-68 fixed** in code, with regression tests;
+Status on `com-265-signin-fixes` (`e605b7a1`, and the code review's race fixed after it): **SEC-66 fixed** and **SEC-68
+fixed** in code, with regression tests;
 **SEC-69 decided**: launch-fortnight values in DEPLOYMENT.md section 13, set on Railway for launch day and put back
 on Mon 14 Dec. **SEC-70** is a deployment step (go-live checklist B9). **SEC-67** and **SEC-71** stay open, after
 launch; Mohamed is asked on the final yes.
@@ -64,7 +65,7 @@ Top three things to do:
 
 ### SEC-66. Feeds and AI apps survive a takeover, a reset link and a password change: the squatter keeps reading the owner's calendar (major)
 
-- **Status (round 17 fixes, branch `com-265-signin-fixes`):** fixed in `e605b7a1`: `signin.end_other_access` turns off the private calendar and widget links (salts and hashes cleared; the student can make new ones) and deletes the account's AI-app connections with their codes and tokens. A Google takeover, a reset link and a password change call it; linking Google disconnects AI apps. The account notices and the toasts say so. Regression: `api/tests/accounts/test_other_access.py` (after each, the feed and widget answer 404, the AI app's access token 401 and its refresh token 400). Follow-up, not done: a squatter's display name, profile and forum posts stay on the owner's account after a takeover; clearing the name and flagging earlier posts for a moderator is for after launch.
+- **Status (round 17 fixes, branch `com-265-signin-fixes`):** fixed in `e605b7a1`: `signin.end_other_access` turns off the private calendar and widget links (salts and hashes cleared; the student can make new ones) and deletes the account's AI-app connections with their codes and tokens. A Google takeover, a reset link and a password change call it; linking Google disconnects AI apps. The account notices and the toasts say so. Regression: `api/tests/accounts/test_other_access.py` (after each, the feed and widget answer 404, the AI app's access token 401 and its refresh token 400). The code review (COM-270) then found a race: a request signed in just before the change could still make a calendar or widget link, or connect an AI app, after it. Fixed: making any of them takes the account's row lock and reads its session again under it (`sessions.hold_live`), and `end_other_access` (and linking Google) take the same lock (`sessions.lock_account`) before clearing, so a request already making a link finishes first and then loses it, and a later one gets 401. Regression: `api/tests/accounts/test_other_access_races.py` (22 tests on separate database connections: each of calendar link, widget link and AI app against each of the three changes, and a link being made with and without a calendar settings row). After a password change, Your account also reads its AI apps and the calendar settings again, so removed apps and dead links don't stay on screen. Follow-up, not done: a squatter's display name, profile and forum posts stay on the owner's account after a takeover; clearing the name and flagging earlier posts for a moderator is for after launch.
 - **Owner:** accounts. **Where:**
   - `api/app/services/signin.py:159` `_take_over`: clears the password, ends sessions and retires reset links. It
     leaves `CalendarPrefs.feed_salt`/`widget_salt` and the `AiAppConnection` rows (and their tokens) alone.
