@@ -66,6 +66,25 @@ const KEPT: { what: string; why: string; required: string }[] = [
   },
 ];
 
+/** Only while Mini Noora's AI answers are on. */
+const NOORA_ROW = {
+  what: 'How many questions you asked Mini Noora each day',
+  why: 'To keep to the daily limit and the Hub’s monthly budget',
+  required: 'Only if you use Mini Noora',
+};
+
+/** The row's label: the phrase before the first colon, or all of it when there's none. The rest stays regular. */
+function What({ text }: { text: string }) {
+  const at = text.indexOf(': ');
+  if (at < 0) return <span className="privacy__label">{text}</span>;
+  return (
+    <>
+      <span className="privacy__label">{text.slice(0, at + 1)}</span>
+      {text.slice(at + 1)}
+    </>
+  );
+}
+
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <PageSection aria-labelledby={id}>
@@ -117,10 +136,10 @@ export default function PrivacyPage() {
             </tr>
           </thead>
           <tbody>
-            {KEPT.map((row) => (
+            {(shown.nooraAnswers ? [...KEPT, NOORA_ROW] : KEPT).map((row) => (
               <tr key={row.what} role="row">
                 <th scope="row" role="rowheader">
-                  {row.what}
+                  <What text={row.what} />
                 </th>
                 <td data-label="Why:" role="cell">
                   {row.why}
@@ -160,10 +179,11 @@ export default function PrivacyPage() {
             address and confirms it’s yours. Google learns that you signed in to DSBA Hub.
           </li>
           <li>
-            <strong>Apple, Google, Mozilla and Microsoft</strong> deliver notifications if you turn on “Notifications on
-            this device”. Your browser picks the service: Apple’s for Safari and iPhone, Google’s for Chrome and
-            Android, Mozilla’s for Firefox, Microsoft’s for Edge. They get a device address and the notification’s text.
-            Turn it off in Your account, or sign out, and that device stops getting them.
+            <strong>Apple, Google, Mozilla and Microsoft</strong> deliver notifications to a device where you turn them
+            on (“On this device”, under “Notifications on your devices” in Your account). Your browser picks the
+            service: Apple’s for Safari and iPhone, Google’s for Chrome and Android, Mozilla’s for Firefox, Microsoft’s
+            for Edge. They get a device address and the notification’s text. Turn it off in Your account, or sign out,
+            and that device stops getting them.
           </li>
           <li>
             <strong>YouTube (Google)</strong>: lesson videos play from YouTube. When a video loads, YouTube sees your IP
@@ -176,8 +196,13 @@ export default function PrivacyPage() {
           </li>
           {shown.nooraAnswers ? (
             <li>
-              <strong>Anthropic</strong>: when you ask Mini Noora a question, your question and the conversation so far
-              go to Anthropic (the maker of Claude) to write the answer. Your name, email and account aren’t sent.
+              <strong>Anthropic</strong>: when you ask Mini Noora a question, Anthropic (the maker of Claude) writes the
+              answer. It gets your question and the conversation so far, and what Mini Noora needs to fit the answer to
+              you: your year of study, the page you’re on, the module and lesson you have open, and the programme
+              calendar’s next dates for your year and any resits you’ve marked. If you choose to ask about one of your
+              notes or a past paper’s question, it also gets that note, or the paper’s pages and its examiners’ report.
+              Your name, email and account aren’t sent. Your conversations with Mini Noora stay in your browser, not on
+              the Hub.
             </li>
           ) : null}
           {shown.forumCheck ? (
@@ -207,9 +232,11 @@ export default function PrivacyPage() {
           it for marketing, and we don’t send advertising.
         </p>
         <p>
-          Railway, Google, Apple, Mozilla, Microsoft and Anthropic are based in the United States, and Railway keeps the
-          Hub in Singapore and {region}. Bahrain’s Personal Data Protection Authority lists these countries as giving
-          adequate protection (Order No. 42 of 2022).
+          {shown.nooraAnswers || shown.forumCheck
+            ? 'Railway, Google, Apple, Mozilla, Microsoft and Anthropic'
+            : 'Railway, Google, Apple, Mozilla and Microsoft'}{' '}
+          are based in the United States, and Railway keeps the Hub in Singapore and {region}. Bahrain’s Personal Data
+          Protection Authority lists these countries as giving adequate protection (Order No. 42 of 2022).
         </p>
       </Section>
 
@@ -220,6 +247,9 @@ export default function PrivacyPage() {
             at once: notes, notebooks, boards, calendar, progress, scores, stars, votes, notifications, devices,
             sessions, bug reports. Your forum posts stay, shown as “deleted user”, so threads still make sense. Files
             you published in the library stay, without your name. Pictures, notebook and board files are deleted.
+            {shown.nooraAnswers
+              ? ' Mini Noora’s daily question counts stay, without your name, so the month’s spending adds up.'
+              : null}
           </li>
           <li>
             <strong>Backups:</strong> one copy of the database is made each day, and only the newest 14 are kept. A

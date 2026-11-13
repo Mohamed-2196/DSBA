@@ -1,14 +1,18 @@
-/* The privacy notice: one reading column on the narrow page, lines under about 75 characters. */
+/* The privacy notice: one reading column on the narrow page. Paragraphs and lists take the Hub's measure (lines
+   under about 75 characters); the table keeps the column's full width so its three columns aren't squeezed. */
 .privacy__intro {
   margin-bottom: var(--sp-48);
 }
 .privacy__prose {
   display: grid;
   gap: var(--sp-16);
-  max-width: 68ch;
   color: var(--ink);
   font-size: var(--fs-16);
   line-height: 1.6;
+}
+.privacy__prose > p,
+.privacy__prose > ul {
+  max-width: var(--measure);
 }
 .privacy__prose ul {
   display: grid;
@@ -53,6 +57,10 @@
 }
 .privacy__table tbody th {
   width: 44%;
+  font-weight: var(--fw-regular);
+}
+/* The phrase before a colon is the row's label; the list after it stays regular, so a long cell doesn't read heavy. */
+.privacy__label {
   font-weight: var(--fw-semibold);
 }
 .privacy__table tr > :last-child {
@@ -62,6 +70,11 @@
 /* Phones: each row becomes a short block, its column names inline ("Why:", "Required?"), so nothing scrolls
    sideways. */
 @media (max-width: 599px) {
+  /* Stacked, the rows are sentences, so they read at body size. */
+  .privacy__table {
+    font-size: var(--fs-16);
+    line-height: 1.55;
+  }
   .privacy__table thead {
     position: absolute;
     width: 1px;
