@@ -67,7 +67,7 @@
   padding-right: 0;
 }
 
-/* Phones: each row becomes a short block, its column names inline ("Why:", "Required?"), so nothing scrolls
+/* Phones: each row becomes a short block, its column names inline ("Why:", "Do you have to give it?"), so nothing scrolls
    sideways. */
 @media (max-width: 599px) {
   /* Stacked, the rows are sentences, so they read at body size. */
