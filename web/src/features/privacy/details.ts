@@ -17,7 +17,7 @@ export interface PrivacyDetails {
 
 export const PRIVACY_DETAILS: PrivacyDetails = {
   updated: null,
-  fullName: null,
+  fullName: 'Mohamed Alnooh', // founder, 13 Nov 2026: as in the footer
   poBox: null,
   area: null,
   contactEmail: null,
