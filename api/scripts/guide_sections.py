@@ -14,8 +14,8 @@ It reads two things and checks one against the other:
 Guides without section numbers (EC1002's blocks, ST2195's block notes, ST3189's VLE pages) are read from the PDF's
 bookmarks instead (--bookmarks): each chapter-level bookmark is a chapter, and its children are its sections, with no
 number. A section's "taught" is false for front and back matter (introduction, aims, learning outcomes, reading,
-overview, summary, sample or test questions, answers); tests/content/test_outline_sections.py checks that every
-taught section is one topic of its chapter's outline."""
+overview, summary, sample or test questions, answers); tests/content/test_guide_coverage.py checks that every
+taught section has a video in its Hub chapter."""
 
 from __future__ import annotations
 
@@ -113,6 +113,7 @@ def contents(lines: list[tuple[int, str, str]]) -> tuple[dict[str, str], dict[st
     chapters: dict[str, str] = {}
     sections: dict[str, str] = {}
     last = start
+    chapter = ""  # the chapter whose contents entries these are
     by_page = collections.defaultdict(list)
     for p, _, t in lines:
         by_page[p].append(t)
@@ -127,12 +128,17 @@ def contents(lines: list[tuple[int, str, str]]) -> tuple[dict[str, str], dict[st
             pending = ""
             m = NUMBERED.match(t)
             if m and (LEADERS.search(t) or re.search(r"\s\d+$", t)):
-                sections.setdefault(m.group("num"), clean(re.sub(r"\s\d+$", "", m.group("title"))))
+                title = clean(re.sub(r"\s\d+$", "", m.group("title")))
+                if m.group("num").split(".")[0] == chapter:
+                    sections[m.group("num")] = title  # under its own "Chapter N": wins over a front chapter's N.x
+                else:
+                    sections.setdefault(m.group("num"), title)
                 hits += 1
                 continue
             c = CHAPTER.match(t)
             if c:
                 chapters.setdefault(c.group("num"), clean(c.group("title")))
+                chapter = c.group("num")
                 hits += 1
                 continue
             if m or re.match(r"^(?:Chapter\s+)?\d{1,2}[:.]?\s+[A-Z]", t):
@@ -168,6 +174,12 @@ def headings(lines: list[tuple[int, str, str]], after: int) -> list[tuple[str, s
     return out
 
 
+def same(a: str | None, b: str | None) -> bool:
+    """Two titles of one heading (the body's and the contents'), up to case, spacing and punctuation."""
+    norm = lambda t: re.sub(r"[^a-z0-9]+", "", (t or "").lower())  # noqa: E731
+    return bool(a and b) and norm(a) == norm(b)
+
+
 def parse_numbered(path: str) -> tuple[list[dict[str, Any]], list[str]]:
     lines = lines_of(path)
     words = {w.lower() for _, _, t in lines for w in re.findall(r"[A-Za-z]+", t)}
@@ -176,11 +188,19 @@ def parse_numbered(path: str) -> tuple[list[dict[str, Any]], list[str]]:
     notes: list[str] = []
     seen: dict[str, dict[str, Any]] = {}
     for num, title, page in body:
-        if num in seen:
-            continue  # a number set again in the heading font later (a summary box, an answer): the first is it
+        if num in seen and not (same(title, toc_sections.get(num)) and not same(seen[num]["body"], toc_sections[num])):
+            continue  # a number set again in the heading font later (a summary box, an answer): the first is it,
+            # unless only the later one is the contents' (a front chapter numbered like chapter 1, as in MN1178)
         # The contents' wording when it has the section (the body's heading can lose a superscript: "R" for "Rn").
         best = toc_sections.get(num) or title
-        seen[num] = {"number": num, "title": fix_ligatures(best, words), "page": page}
+        seen[num] = {"number": num, "title": fix_ligatures(best, words), "page": page, "body": title}
+    # A subsection before its section's heading belongs to that front chapter, not to the section.
+    for num in [n for n in seen if n.count(".") > 1]:
+        parent = seen.get(num.rsplit(".", 1)[0])
+        if parent and seen[num]["page"] < parent["page"]:
+            del seen[num]
+    for s in seen.values():
+        del s["body"]
     for num, title in toc_sections.items():
         if num not in seen:
             notes.append(f"in the contents, not a body heading: {num} {title}")

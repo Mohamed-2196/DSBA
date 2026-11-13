@@ -1,0 +1,11481 @@
+[
+ {
+  "unitCode": "EC1002",
+  "module": "economics",
+  "sections": [
+   {
+    "key": "1/Scarcity",
+    "hubChapter": "jvnrh7sx",
+    "videos": [
+     "W9IjktFC9Tg"
+    ]
+   },
+   {
+    "key": "1/Rationality",
+    "hubChapter": "jvnrh7sx",
+    "videos": [
+     "4_h0kT4DrYE"
+    ]
+   },
+   {
+    "key": "1/The production possibility frontier (PPF)",
+    "hubChapter": "jvnrh7sx",
+    "videos": [
+     "IzccVWouIxM"
+    ]
+   },
+   {
+    "key": "1/Opportunity cost and absolute and comparative advantage",
+    "hubChapter": "jvnrh7sx",
+    "videos": [
+     "IzccVWouIxM",
+     "YboSszwySzU",
+     "HneRNVtahYw",
+     "AebGGq5n3Ec"
+    ]
+   },
+   {
+    "key": "1/Markets",
+    "hubChapter": "jvnrh7sx",
+    "videos": [
+     "YtX6SGw7E3c"
+    ]
+   },
+   {
+    "key": "1/Microeconomics and macroeconomics",
+    "hubChapter": "jvnrh7sx",
+    "videos": [
+     "nJbWj_kHCJQ"
+    ]
+   },
+   {
+    "key": "1/A note on mathematics",
+    "hubChapter": "jvnrh7sx",
+    "videos": [],
+    "skip": "Study-advice note (guide pp.24-25) on the role of maths in economics and the maths this course needs; no economics content to teach."
+   },
+   {
+    "key": "1/Models and theory",
+    "hubChapter": "jvnrh7sx",
+    "videos": [
+     "R4Pf1OQQTPY"
+    ]
+   },
+   {
+    "key": "1/Criticisms of economics",
+    "hubChapter": "jvnrh7sx",
+    "videos": [
+     "WkifWobyLOM"
+    ]
+   },
+   {
+    "key": "2/Equilibrium",
+    "hubChapter": "3gu4spfp",
+    "videos": [
+     "b1QL1BZ7jJM",
+     "JcN4dBoerwc"
+    ]
+   },
+   {
+    "key": "2/Demand and supply curves",
+    "hubChapter": "3gu4spfp",
+    "videos": [
+     "b1QL1BZ7jJM",
+     "JcN4dBoerwc"
+    ]
+   },
+   {
+    "key": "2/Shifts in the demand and supply curves",
+    "hubChapter": "3gu4spfp",
+    "videos": [
+     "b1QL1BZ7jJM",
+     "JcN4dBoerwc"
+    ]
+   },
+   {
+    "key": "2/Consumer and producer surplus",
+    "hubChapter": "3gu4spfp",
+    "videos": [
+     "r1Xq9FcxDB8",
+     "ROF15eoLkrg",
+     "aKpsUBbD8jM"
+    ]
+   },
+   {
+    "key": "3/Price elasticity of demand",
+    "hubChapter": "tyiz8fqt",
+    "videos": [
+     "QtQohZw_4Gg",
+     "AiIN0zXMVFc",
+     "hyMohEr3VIk"
+    ]
+   },
+   {
+    "key": "3/Cross-price elasticity of demand",
+    "hubChapter": "tyiz8fqt",
+    "videos": [
+     "QtQohZw_4Gg",
+     "AiIN0zXMVFc"
+    ]
+   },
+   {
+    "key": "3/Income elasticity of demand",
+    "hubChapter": "tyiz8fqt",
+    "videos": [
+     "QtQohZw_4Gg",
+     "AiIN0zXMVFc"
+    ]
+   },
+   {
+    "key": "3/Price elasticity of supply",
+    "hubChapter": "tyiz8fqt",
+    "videos": [
+     "QtQohZw_4Gg",
+     "AiIN0zXMVFc"
+    ]
+   },
+   {
+    "key": "3/Incidence of a tax",
+    "hubChapter": "tyiz8fqt",
+    "videos": [
+     "1H5uU_6Ax_4"
+    ]
+   },
+   {
+    "key": "4/Consumer choice and demand decisions",
+    "hubChapter": "xg9aypby",
+    "videos": [
+     "iFbnwKv2o7w",
+     "TkFJdeF2Ifo"
+    ]
+   },
+   {
+    "key": "4/Utility maximisation and choice",
+    "hubChapter": "xg9aypby",
+    "videos": [
+     "iFbnwKv2o7w"
+    ]
+   },
+   {
+    "key": "4/Income and price changes",
+    "hubChapter": "xg9aypby",
+    "videos": [
+     "iFbnwKv2o7w",
+     "pLhh_D5b_Lg"
+    ]
+   },
+   {
+    "key": "4/Deriving demand: 'The individual demand curve'",
+    "hubChapter": "xg9aypby",
+    "videos": [
+     "iFbnwKv2o7w"
+    ]
+   },
+   {
+    "key": "4/Deriving demand: 'The market demand curve'",
+    "hubChapter": "xg9aypby",
+    "videos": [
+     "dGjPguqHBXE"
+    ]
+   },
+   {
+    "key": "4/Complements and substitutes",
+    "hubChapter": "xg9aypby",
+    "videos": [
+     "iFbnwKv2o7w"
+    ]
+   },
+   {
+    "key": "5/Introduction to the firm",
+    "hubChapter": "tjy8vbcf",
+    "videos": [
+     "06j_zPdPWOY"
+    ]
+   },
+   {
+    "key": "5/The firm's supply decision",
+    "hubChapter": "tjy8vbcf",
+    "videos": [
+     "5ISuhZw3PG4"
+    ]
+   },
+   {
+    "key": "5/Profit = Total revenue – Total cost",
+    "hubChapter": "tjy8vbcf",
+    "videos": [
+     "dsxK018YXLI"
+    ]
+   },
+   {
+    "key": "5/Cost, production and output",
+    "hubChapter": "tjy8vbcf",
+    "videos": [
+     "5ISuhZw3PG4",
+     "m9bXUYwvx2c"
+    ]
+   },
+   {
+    "key": "6/Assumptions and implications",
+    "hubChapter": "j86yz7hk",
+    "videos": [
+     "k0vSP8ayY0g"
+    ]
+   },
+   {
+    "key": "6/The firm's supply decision",
+    "hubChapter": "j86yz7hk",
+    "videos": [
+     "k0vSP8ayY0g"
+    ]
+   },
+   {
+    "key": "6/Industry supply curves",
+    "hubChapter": "j86yz7hk",
+    "videos": [
+     "k0vSP8ayY0g"
+    ]
+   },
+   {
+    "key": "6/Comparative statics",
+    "hubChapter": "j86yz7hk",
+    "videos": [
+     "k0vSP8ayY0g"
+    ]
+   },
+   {
+    "key": "6/Perfect competition and efficiency",
+    "hubChapter": "j86yz7hk",
+    "videos": [
+     "k0vSP8ayY0g"
+    ]
+   },
+   {
+    "key": "7/Perfect competition and perfect monopoly",
+    "hubChapter": "zzcvaauv",
+    "videos": [
+     "E07bl-TUmmY"
+    ]
+   },
+   {
+    "key": "7/Monopoly analysis",
+    "hubChapter": "zzcvaauv",
+    "videos": [
+     "E07bl-TUmmY"
+    ]
+   },
+   {
+    "key": "7/Social cost of monopoly",
+    "hubChapter": "zzcvaauv",
+    "videos": [
+     "E07bl-TUmmY"
+    ]
+   },
+   {
+    "key": "7/Price discrimination",
+    "hubChapter": "zzcvaauv",
+    "videos": [
+     "D7vYXago3-A"
+    ]
+   },
+   {
+    "key": "7/When can monopolies be justified?",
+    "hubChapter": "zzcvaauv",
+    "videos": [
+     "E07bl-TUmmY"
+    ]
+   },
+   {
+    "key": "8/A theory of market structure",
+    "hubChapter": "bibtm6gq",
+    "videos": [
+     "lqAKI6remoQ"
+    ]
+   },
+   {
+    "key": "8/Monopolistic competition",
+    "hubChapter": "bibtm6gq",
+    "videos": [
+     "AoCVu3Tr2tk",
+     "ECMD9OAsBmQ",
+     "idFuhMRzr0Y"
+    ]
+   },
+   {
+    "key": "8/Oligopoly",
+    "hubChapter": "bibtm6gq",
+    "videos": [
+     "AoCVu3Tr2tk",
+     "ECMD9OAsBmQ",
+     "idFuhMRzr0Y"
+    ]
+   },
+   {
+    "key": "8/Game theory",
+    "hubChapter": "bibtm6gq",
+    "videos": [
+     "AoCVu3Tr2tk",
+     "ECMD9OAsBmQ",
+     "idFuhMRzr0Y"
+    ]
+   },
+   {
+    "key": "8/Models of oligopoly",
+    "hubChapter": "bibtm6gq",
+    "videos": [
+     "AoCVu3Tr2tk",
+     "ECMD9OAsBmQ",
+     "idFuhMRzr0Y"
+    ]
+   },
+   {
+    "key": "9/The factors of production",
+    "hubChapter": "j9gz9bqm",
+    "videos": [
+     "_2Xi866KB8A"
+    ]
+   },
+   {
+    "key": "9/Analysis of the labour market",
+    "hubChapter": "j9gz9bqm",
+    "videos": [
+     "_2Xi866KB8A"
+    ]
+   },
+   {
+    "key": "9/Labour supply",
+    "hubChapter": "j9gz9bqm",
+    "videos": [
+     "_2Xi866KB8A"
+    ]
+   },
+   {
+    "key": "9/Labour market equilibrium",
+    "hubChapter": "j9gz9bqm",
+    "videos": [
+     "_2Xi866KB8A"
+    ]
+   },
+   {
+    "key": "9/Disequilibrium in the labour market",
+    "hubChapter": "j9gz9bqm",
+    "videos": [
+     "sEtSp2ALOEI"
+    ]
+   },
+   {
+    "key": "10/Equity and efficiency",
+    "hubChapter": "nynrjjzb",
+    "videos": [
+     "PC3qooaF5Xs",
+     "osvoVuESEKY",
+     "894I5bb5bos",
+     "7QFAQJBq1uk",
+     "Bjg-KPQhWyM",
+     "d3YtlAd7-tY"
+    ]
+   },
+   {
+    "key": "10/Distortion of the market",
+    "hubChapter": "nynrjjzb",
+    "videos": [
+     "dbuU8S1x0Ro"
+    ]
+   },
+   {
+    "key": "10/Sources of market failure",
+    "hubChapter": "nynrjjzb",
+    "videos": [
+     "2HU2ZLRGyOM"
+    ]
+   },
+   {
+    "key": "10/Taxes and externalities",
+    "hubChapter": "nynrjjzb",
+    "videos": [
+     "6D_qvKjiye4"
+    ]
+   },
+   {
+    "key": "10/Public goods",
+    "hubChapter": "nynrjjzb",
+    "videos": [
+     "fQy9mVR3I1o"
+    ]
+   },
+   {
+    "key": "11/Macroeconomic analysis",
+    "hubChapter": "kbwa3msw",
+    "videos": [
+     "OPV1BOs1ISI"
+    ]
+   },
+   {
+    "key": "11/The circular flow of income",
+    "hubChapter": "kbwa3msw",
+    "videos": [
+     "b8bgNufhjZs"
+    ]
+   },
+   {
+    "key": "11/Measuring GDP",
+    "hubChapter": "kbwa3msw",
+    "videos": [
+     "qtNZSbzRP3A",
+     "ZdGnhusKnRU",
+     "iNfNZ1mIGRE"
+    ]
+   },
+   {
+    "key": "12/Supply-side economics",
+    "hubChapter": "tvwq6cff",
+    "videos": [
+     "PvfdPfEd-gk"
+    ]
+   },
+   {
+    "key": "12/Economic growth",
+    "hubChapter": "tvwq6cff",
+    "videos": [
+     "VNWGEIXSuEQ"
+    ]
+   },
+   {
+    "key": "12/Inputs to production",
+    "hubChapter": "tvwq6cff",
+    "videos": [
+     "u5P8AZRBLac"
+    ]
+   },
+   {
+    "key": "12/Solow growth model",
+    "hubChapter": "tvwq6cff",
+    "videos": [
+     "E3Niu4E1kbI",
+     "EUOcBo-gzdE",
+     "7yeWBFzGHS4",
+     "SAgt0oAv2FI"
+    ]
+   },
+   {
+    "key": "12/Romer's model of endogenous growth",
+    "hubChapter": "tvwq6cff",
+    "videos": [
+     "mHP8q-em1wo"
+    ]
+   },
+   {
+    "key": "12/Costs of growth",
+    "hubChapter": "tvwq6cff",
+    "videos": [
+     "j20SzgOqAIc"
+    ]
+   },
+   {
+    "key": "13/Components of aggregate demand: consumption and investment",
+    "hubChapter": "yfigvsjd",
+    "videos": [
+     "o5iot_ZsoV0"
+    ]
+   },
+   {
+    "key": "13/Equilibrium output",
+    "hubChapter": "yfigvsjd",
+    "videos": [
+     "sTw0e-hwYAQ"
+    ]
+   },
+   {
+    "key": "13/The multiplier",
+    "hubChapter": "yfigvsjd",
+    "videos": [
+     "25KlFCoDW34"
+    ]
+   },
+   {
+    "key": "13/Foreign trade: exports and imports",
+    "hubChapter": "yfigvsjd",
+    "videos": [
+     "25KlFCoDW34"
+    ]
+   },
+   {
+    "key": "14/Money and banking",
+    "hubChapter": "tie7ydjt",
+    "videos": [
+     "5dTvjezJz6s"
+    ]
+   },
+   {
+    "key": "14/Financial crises",
+    "hubChapter": "tie7ydjt",
+    "videos": [
+     "GPOv72Awo68"
+    ]
+   },
+   {
+    "key": "14/Demand for money",
+    "hubChapter": "tie7ydjt",
+    "videos": [
+     "vc7wmTT8m0M"
+    ]
+   },
+   {
+    "key": "14/Money market equilibrium and monetary control",
+    "hubChapter": "tie7ydjt",
+    "videos": [
+     "vc7wmTT8m0M"
+    ]
+   },
+   {
+    "key": "14/Monetary policy: targets, instruments and the transmission mechanisms",
+    "hubChapter": "tie7ydjt",
+    "videos": [
+     "rNJNsV_ZaaM"
+    ]
+   },
+   {
+    "key": "15/Monetary policy",
+    "hubChapter": "grazx8hu",
+    "videos": [
+     "0LjQbpIoLp8"
+    ]
+   },
+   {
+    "key": "15/The IS-MP model",
+    "hubChapter": "grazx8hu",
+    "videos": [
+     "FOzxImnSIAw",
+     "m6xo8gxMaCs",
+     "Kf8CTCFEldY"
+    ]
+   },
+   {
+    "key": "15/Deriving the IS curve",
+    "hubChapter": "grazx8hu",
+    "videos": [
+     "Kf8CTCFEldY",
+     "1xI0dDf58XM",
+     "0-pksf2Xfl4",
+     "P6JQI0Ki6Tk"
+    ]
+   },
+   {
+    "key": "15/The MP curve",
+    "hubChapter": "grazx8hu",
+    "videos": [
+     "SM8M2vb_w-o"
+    ]
+   },
+   {
+    "key": "15/The IS-MP in action",
+    "hubChapter": "grazx8hu",
+    "videos": [
+     "1nWhiVNXudk"
+    ]
+   },
+   {
+    "key": "16/Aggregate demand",
+    "hubChapter": "dxsv7nqw",
+    "videos": [
+     "knRHiexdKe8",
+     "efQjQuqzDzM"
+    ]
+   },
+   {
+    "key": "16/Aggregate supply",
+    "hubChapter": "dxsv7nqw",
+    "videos": [
+     "knRHiexdKe8",
+     "xXNrloLHOzI"
+    ]
+   },
+   {
+    "key": "16/Equilibrium inflation",
+    "hubChapter": "dxsv7nqw",
+    "videos": [
+     "knRHiexdKe8"
+    ]
+   },
+   {
+    "key": "16/Wage rigidity",
+    "hubChapter": "dxsv7nqw",
+    "videos": [
+     "knRHiexdKe8",
+     "xXNrloLHOzI"
+    ]
+   },
+   {
+    "key": "16/Short-run aggregate supply",
+    "hubChapter": "dxsv7nqw",
+    "videos": [
+     "knRHiexdKe8"
+    ]
+   },
+   {
+    "key": "16/Adjustment to demand shocks",
+    "hubChapter": "dxsv7nqw",
+    "videos": [
+     "knRHiexdKe8",
+     "H2rtsMNbkIs"
+    ]
+   },
+   {
+    "key": "17/Money and inflation",
+    "hubChapter": "emgu6tns",
+    "videos": [
+     "dOn2ey5_EYQ",
+     "eF2Xn7Ww2_M",
+     "dE0wIcaCVGE"
+    ]
+   },
+   {
+    "key": "17/The Phillips curve and inflation expectations",
+    "hubChapter": "emgu6tns",
+    "videos": [
+     "ABOGxIHVHO4"
+    ]
+   },
+   {
+    "key": "17/The costs of inflation",
+    "hubChapter": "emgu6tns",
+    "videos": [
+     "dOn2ey5_EYQ",
+     "eF2Xn7Ww2_M",
+     "dE0wIcaCVGE",
+     "uNpezr7XFcw",
+     "_TBxupIhsro"
+    ]
+   },
+   {
+    "key": "17/Controlling inflation",
+    "hubChapter": "emgu6tns",
+    "videos": [
+     "CnoDKqlcR4Y"
+    ]
+   },
+   {
+    "key": "18/Rates of unemployment",
+    "hubChapter": "4vu5nkk4",
+    "videos": [
+     "J-Id_7of0GU",
+     "SfL3jefilPo"
+    ]
+   },
+   {
+    "key": "18/Analysis of unemployment",
+    "hubChapter": "4vu5nkk4",
+    "videos": [
+     "J-Id_7of0GU",
+     "SfL3jefilPo"
+    ]
+   },
+   {
+    "key": "18/Changes in unemployment",
+    "hubChapter": "4vu5nkk4",
+    "videos": [
+     "J-Id_7of0GU",
+     "SfL3jefilPo"
+    ]
+   },
+   {
+    "key": "18/Cyclical unemployment",
+    "hubChapter": "4vu5nkk4",
+    "videos": [
+     "J-Id_7of0GU",
+     "SfL3jefilPo"
+    ]
+   },
+   {
+    "key": "18/Cost of unemployment",
+    "hubChapter": "4vu5nkk4",
+    "videos": [
+     "J-Id_7of0GU",
+     "SfL3jefilPo"
+    ]
+   },
+   {
+    "key": "19/The exchange rate",
+    "hubChapter": "5ft2435s",
+    "videos": [
+     "EiXYP93hvGQ",
+     "1Gs1KrTBIBM",
+     "nGvv08etNDI",
+     "DGRknAQNWIk"
+    ]
+   },
+   {
+    "key": "19/The balance of payments",
+    "hubChapter": "5ft2435s",
+    "videos": [
+     "TuyPLN8VR1M",
+     "j2-q3Abvrzs",
+     "IUwB3xDgmFU"
+    ]
+   },
+   {
+    "key": "19/Real and PPP exchange rates",
+    "hubChapter": "5ft2435s",
+    "videos": [
+     "TZyDCMwe-rE"
+    ]
+   },
+   {
+    "key": "19/The current and financial accounts",
+    "hubChapter": "5ft2435s",
+    "videos": [
+     "TuyPLN8VR1M",
+     "j2-q3Abvrzs",
+     "IUwB3xDgmFU",
+     "cg17YTtsk2U"
+    ]
+   },
+   {
+    "key": "19/Long-run equilibrium",
+    "hubChapter": "5ft2435s",
+    "videos": [
+     "iMhJIaYI45w"
+    ]
+   },
+   {
+    "key": "20/The macroeconomy under fixed exchange rates",
+    "hubChapter": "8dzevirm",
+    "videos": [
+     "HLfceACjPNY"
+    ]
+   },
+   {
+    "key": "20/Devalution of a fixed exchange rate",
+    "hubChapter": "8dzevirm",
+    "videos": [
+     "HSd7ybLJUuw"
+    ]
+   },
+   {
+    "key": "20/The macroeconomy under floating exchange rates",
+    "hubChapter": "8dzevirm",
+    "videos": [
+     "xNo3GpWYgKA"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "MN1178",
+  "module": "business",
+  "sections": [
+   {
+    "key": "1.2",
+    "hubChapter": "6r8c733y",
+    "videos": [
+     "aguTvH4Tc-c"
+    ]
+   },
+   {
+    "key": "1.3",
+    "hubChapter": "6r8c733y",
+    "videos": [
+     "aguTvH4Tc-c"
+    ]
+   },
+   {
+    "key": "1.4",
+    "hubChapter": "6r8c733y",
+    "videos": [
+     "aguTvH4Tc-c"
+    ]
+   },
+   {
+    "key": "1.5",
+    "hubChapter": "6r8c733y",
+    "videos": [
+     "aguTvH4Tc-c"
+    ]
+   },
+   {
+    "key": "2.2",
+    "hubChapter": "g8u2nfmy",
+    "videos": [
+     "k1wbj3aXPsQ"
+    ]
+   },
+   {
+    "key": "2.3.1",
+    "hubChapter": "g8u2nfmy",
+    "videos": [
+     "k1wbj3aXPsQ"
+    ]
+   },
+   {
+    "key": "2.3.2",
+    "hubChapter": "g8u2nfmy",
+    "videos": [
+     "k1wbj3aXPsQ"
+    ]
+   },
+   {
+    "key": "2.3.3",
+    "hubChapter": "g8u2nfmy",
+    "videos": [
+     "k1wbj3aXPsQ"
+    ]
+   },
+   {
+    "key": "2.4",
+    "hubChapter": "g8u2nfmy",
+    "videos": [
+     "k1wbj3aXPsQ"
+    ]
+   },
+   {
+    "key": "2.5",
+    "hubChapter": "g8u2nfmy",
+    "videos": [
+     "k1wbj3aXPsQ"
+    ]
+   },
+   {
+    "key": "2.6",
+    "hubChapter": "g8u2nfmy",
+    "videos": [
+     "k1wbj3aXPsQ"
+    ]
+   },
+   {
+    "key": "3.2.1",
+    "hubChapter": "nivt387r",
+    "videos": [
+     "9GFyMXHWo6w"
+    ]
+   },
+   {
+    "key": "3.2.2",
+    "hubChapter": "nivt387r",
+    "videos": [
+     "9GFyMXHWo6w"
+    ]
+   },
+   {
+    "key": "3.2.3",
+    "hubChapter": "nivt387r",
+    "videos": [
+     "9GFyMXHWo6w"
+    ]
+   },
+   {
+    "key": "3.3",
+    "hubChapter": "nivt387r",
+    "videos": [
+     "9GFyMXHWo6w"
+    ]
+   },
+   {
+    "key": "3.4.1",
+    "hubChapter": "nivt387r",
+    "videos": [
+     "9GFyMXHWo6w"
+    ]
+   },
+   {
+    "key": "3.4.2",
+    "hubChapter": "nivt387r",
+    "videos": [
+     "9GFyMXHWo6w"
+    ]
+   },
+   {
+    "key": "3.5",
+    "hubChapter": "nivt387r",
+    "videos": [
+     "9GFyMXHWo6w"
+    ]
+   },
+   {
+    "key": "3.6",
+    "hubChapter": "nivt387r",
+    "videos": [
+     "9GFyMXHWo6w"
+    ]
+   },
+   {
+    "key": "3.7",
+    "hubChapter": "nivt387r",
+    "videos": [
+     "9GFyMXHWo6w"
+    ]
+   },
+   {
+    "key": "4.2",
+    "hubChapter": "uzjmuvcd",
+    "videos": [
+     "KROTqSzz4BQ"
+    ]
+   },
+   {
+    "key": "4.3",
+    "hubChapter": "uzjmuvcd",
+    "videos": [
+     "KROTqSzz4BQ"
+    ]
+   },
+   {
+    "key": "4.4",
+    "hubChapter": "uzjmuvcd",
+    "videos": [
+     "KROTqSzz4BQ"
+    ]
+   },
+   {
+    "key": "4.5",
+    "hubChapter": "uzjmuvcd",
+    "videos": [
+     "KROTqSzz4BQ"
+    ]
+   },
+   {
+    "key": "4.6",
+    "hubChapter": "uzjmuvcd",
+    "videos": [
+     "KROTqSzz4BQ"
+    ]
+   },
+   {
+    "key": "4.7",
+    "hubChapter": "uzjmuvcd",
+    "videos": [
+     "KROTqSzz4BQ"
+    ]
+   },
+   {
+    "key": "5.2",
+    "hubChapter": "x7fewq6r",
+    "videos": [
+     "CkhdBMXcu0k"
+    ]
+   },
+   {
+    "key": "5.3",
+    "hubChapter": "x7fewq6r",
+    "videos": [
+     "CkhdBMXcu0k"
+    ]
+   },
+   {
+    "key": "5.4",
+    "hubChapter": "x7fewq6r",
+    "videos": [
+     "CkhdBMXcu0k"
+    ]
+   },
+   {
+    "key": "5.5",
+    "hubChapter": "x7fewq6r",
+    "videos": [
+     "CkhdBMXcu0k"
+    ]
+   },
+   {
+    "key": "5.6.1",
+    "hubChapter": "x7fewq6r",
+    "videos": [
+     "CkhdBMXcu0k"
+    ]
+   },
+   {
+    "key": "5.6.2",
+    "hubChapter": "x7fewq6r",
+    "videos": [
+     "CkhdBMXcu0k"
+    ]
+   },
+   {
+    "key": "5.7",
+    "hubChapter": "x7fewq6r",
+    "videos": [
+     "CkhdBMXcu0k"
+    ]
+   },
+   {
+    "key": "6.2",
+    "hubChapter": "f7bedikd",
+    "videos": [
+     "NQXwvmRgIf0"
+    ]
+   },
+   {
+    "key": "6.3",
+    "hubChapter": "f7bedikd",
+    "videos": [
+     "NQXwvmRgIf0"
+    ]
+   },
+   {
+    "key": "6.4.1",
+    "hubChapter": "f7bedikd",
+    "videos": [
+     "NQXwvmRgIf0"
+    ]
+   },
+   {
+    "key": "6.4.2",
+    "hubChapter": "f7bedikd",
+    "videos": [
+     "NQXwvmRgIf0"
+    ]
+   },
+   {
+    "key": "6.5",
+    "hubChapter": "f7bedikd",
+    "videos": [
+     "NQXwvmRgIf0"
+    ]
+   },
+   {
+    "key": "7.2.1",
+    "hubChapter": "4dhhuihn",
+    "videos": [
+     "ldGfvoeq0IA"
+    ]
+   },
+   {
+    "key": "7.2.2",
+    "hubChapter": "4dhhuihn",
+    "videos": [
+     "ldGfvoeq0IA"
+    ]
+   },
+   {
+    "key": "7.3",
+    "hubChapter": "4dhhuihn",
+    "videos": [
+     "ldGfvoeq0IA"
+    ]
+   },
+   {
+    "key": "7.4.1",
+    "hubChapter": "4dhhuihn",
+    "videos": [
+     "ldGfvoeq0IA"
+    ]
+   },
+   {
+    "key": "7.4.2",
+    "hubChapter": "4dhhuihn",
+    "videos": [
+     "ldGfvoeq0IA"
+    ]
+   },
+   {
+    "key": "7.4.3",
+    "hubChapter": "4dhhuihn",
+    "videos": [
+     "ldGfvoeq0IA"
+    ]
+   },
+   {
+    "key": "7.4.4",
+    "hubChapter": "4dhhuihn",
+    "videos": [
+     "ldGfvoeq0IA"
+    ]
+   },
+   {
+    "key": "7.5",
+    "hubChapter": "4dhhuihn",
+    "videos": [
+     "ldGfvoeq0IA"
+    ]
+   },
+   {
+    "key": "7.6",
+    "hubChapter": "4dhhuihn",
+    "videos": [
+     "ldGfvoeq0IA"
+    ]
+   },
+   {
+    "key": "8.2.1",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.2.2",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.2.3",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.2.4",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.2.5",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.2.6",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.3.1",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.3.2",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.3.3",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.4",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.5",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.6",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "8.7",
+    "hubChapter": "s3qgzhaj",
+    "videos": [
+     "c0XJDVKBBwc"
+    ]
+   },
+   {
+    "key": "9.2.1",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.2.2",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.2.3",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.2.4",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.3.1",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.3.2",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.3.3",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.3.4",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.3.5",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.3.6",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.4",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "9.5",
+    "hubChapter": "zc4vwrqj",
+    "videos": [
+     "SNjn9h3QVUk"
+    ]
+   },
+   {
+    "key": "10.2",
+    "hubChapter": "j7gsqmv3",
+    "videos": [
+     "nG2fesHT0Ss"
+    ]
+   },
+   {
+    "key": "10.3",
+    "hubChapter": "j7gsqmv3",
+    "videos": [
+     "nG2fesHT0Ss"
+    ]
+   },
+   {
+    "key": "10.4",
+    "hubChapter": "j7gsqmv3",
+    "videos": [
+     "nG2fesHT0Ss"
+    ]
+   },
+   {
+    "key": "10.5",
+    "hubChapter": "j7gsqmv3",
+    "videos": [
+     "nG2fesHT0Ss"
+    ]
+   },
+   {
+    "key": "10.6",
+    "hubChapter": "j7gsqmv3",
+    "videos": [
+     "nG2fesHT0Ss"
+    ]
+   },
+   {
+    "key": "10.7",
+    "hubChapter": "j7gsqmv3",
+    "videos": [
+     "nG2fesHT0Ss"
+    ]
+   },
+   {
+    "key": "10.8",
+    "hubChapter": "j7gsqmv3",
+    "videos": [
+     "nG2fesHT0Ss"
+    ]
+   },
+   {
+    "key": "11.2",
+    "hubChapter": "skmfmztw",
+    "videos": [
+     "jviFsd4hhfE",
+     "CJXft25tRYs"
+    ]
+   },
+   {
+    "key": "11.3",
+    "hubChapter": "skmfmztw",
+    "videos": [
+     "ZtdxJ2YnC44",
+     "Ux16-Y5zZzg"
+    ]
+   },
+   {
+    "key": "11.4",
+    "hubChapter": "skmfmztw",
+    "videos": [
+     "ZtdxJ2YnC44",
+     "Ux16-Y5zZzg",
+     "CJXft25tRYs"
+    ]
+   },
+   {
+    "key": "11.5",
+    "hubChapter": "skmfmztw",
+    "videos": [
+     "ZtdxJ2YnC44",
+     "Ux16-Y5zZzg",
+     "CJXft25tRYs"
+    ]
+   },
+   {
+    "key": "11.6",
+    "hubChapter": "skmfmztw",
+    "videos": [
+     "ZtdxJ2YnC44",
+     "Ux16-Y5zZzg",
+     "CJXft25tRYs"
+    ]
+   },
+   {
+    "key": "11.7",
+    "hubChapter": "skmfmztw",
+    "videos": [
+     "ZtdxJ2YnC44",
+     "Ux16-Y5zZzg",
+     "hJ9wbFgmtKM",
+     "CJXft25tRYs"
+    ]
+   },
+   {
+    "key": "11.8",
+    "hubChapter": "skmfmztw",
+    "videos": [
+     "ZtdxJ2YnC44",
+     "Ux16-Y5zZzg"
+    ]
+   },
+   {
+    "key": "11.9",
+    "hubChapter": "skmfmztw",
+    "videos": [
+     "OY3g2wyXUWw",
+     "ZtdxJ2YnC44"
+    ]
+   },
+   {
+    "key": "11.10",
+    "hubChapter": "skmfmztw",
+    "videos": [
+     "OY3g2wyXUWw"
+    ]
+   },
+   {
+    "key": "12.2",
+    "hubChapter": "n5et3j85",
+    "videos": [
+     "u1pS_hwYkkc"
+    ]
+   },
+   {
+    "key": "12.3",
+    "hubChapter": "n5et3j85",
+    "videos": [
+     "u1pS_hwYkkc"
+    ]
+   },
+   {
+    "key": "12.4",
+    "hubChapter": "n5et3j85",
+    "videos": [
+     "u1pS_hwYkkc"
+    ]
+   },
+   {
+    "key": "12.5",
+    "hubChapter": "n5et3j85",
+    "videos": [
+     "u1pS_hwYkkc"
+    ]
+   },
+   {
+    "key": "12.6",
+    "hubChapter": "n5et3j85",
+    "videos": [
+     "u1pS_hwYkkc"
+    ]
+   },
+   {
+    "key": "13.2",
+    "hubChapter": "zhirjh9f",
+    "videos": [
+     "ADEyI7AvEcI"
+    ]
+   },
+   {
+    "key": "13.3",
+    "hubChapter": "zhirjh9f",
+    "videos": [
+     "ADEyI7AvEcI"
+    ]
+   },
+   {
+    "key": "13.4",
+    "hubChapter": "zhirjh9f",
+    "videos": [
+     "ADEyI7AvEcI"
+    ]
+   },
+   {
+    "key": "13.5",
+    "hubChapter": "zhirjh9f",
+    "videos": [
+     "ADEyI7AvEcI"
+    ]
+   },
+   {
+    "key": "13.6",
+    "hubChapter": "zhirjh9f",
+    "videos": [
+     "ADEyI7AvEcI"
+    ]
+   },
+   {
+    "key": "13.7",
+    "hubChapter": "zhirjh9f",
+    "videos": [
+     "ADEyI7AvEcI"
+    ]
+   },
+   {
+    "key": "14.2",
+    "hubChapter": "aypy998e",
+    "videos": [
+     "U9ogq9pqkl8",
+     "awiUMdgyfq0"
+    ]
+   },
+   {
+    "key": "14.3",
+    "hubChapter": "aypy998e",
+    "videos": [
+     "tl3ZAR8PMcM",
+     "awiUMdgyfq0"
+    ]
+   },
+   {
+    "key": "14.4.1",
+    "hubChapter": "aypy998e",
+    "videos": [
+     "awiUMdgyfq0",
+     "yU8DEithHsc"
+    ]
+   },
+   {
+    "key": "14.4.2",
+    "hubChapter": "aypy998e",
+    "videos": [
+     "awiUMdgyfq0"
+    ]
+   },
+   {
+    "key": "14.5",
+    "hubChapter": "aypy998e",
+    "videos": [
+     "awiUMdgyfq0"
+    ]
+   },
+   {
+    "key": "14.6",
+    "hubChapter": "aypy998e",
+    "videos": [
+     "4Ho5UObReRg",
+     "awiUMdgyfq0"
+    ]
+   },
+   {
+    "key": "14.7",
+    "hubChapter": "aypy998e",
+    "videos": [
+     "AyZKOPcuftU",
+     "awiUMdgyfq0"
+    ]
+   },
+   {
+    "key": "14.8",
+    "hubChapter": "aypy998e",
+    "videos": [
+     "8KenNOYOiq4"
+    ]
+   },
+   {
+    "key": "15.2.1",
+    "hubChapter": "p96a6t6q",
+    "videos": [
+     "ngiDb1ugbnM"
+    ]
+   },
+   {
+    "key": "15.2.2",
+    "hubChapter": "p96a6t6q",
+    "videos": [
+     "ngiDb1ugbnM"
+    ]
+   },
+   {
+    "key": "15.2.3",
+    "hubChapter": "p96a6t6q",
+    "videos": [
+     "ngiDb1ugbnM"
+    ]
+   },
+   {
+    "key": "15.3",
+    "hubChapter": "p96a6t6q",
+    "videos": [
+     "ngiDb1ugbnM"
+    ]
+   },
+   {
+    "key": "15.4",
+    "hubChapter": "p96a6t6q",
+    "videos": [
+     "ngiDb1ugbnM"
+    ]
+   },
+   {
+    "key": "15.5",
+    "hubChapter": "p96a6t6q",
+    "videos": [
+     "ngiDb1ugbnM"
+    ]
+   },
+   {
+    "key": "15.6.1",
+    "hubChapter": "p96a6t6q",
+    "videos": [
+     "ngiDb1ugbnM"
+    ]
+   },
+   {
+    "key": "15.6.2",
+    "hubChapter": "p96a6t6q",
+    "videos": [
+     "ngiDb1ugbnM"
+    ]
+   },
+   {
+    "key": "16.2",
+    "hubChapter": "z33gh628",
+    "videos": [
+     "uJSwD5Vzbhk"
+    ]
+   },
+   {
+    "key": "16.3",
+    "hubChapter": "z33gh628",
+    "videos": [
+     "uJSwD5Vzbhk"
+    ]
+   },
+   {
+    "key": "16.4",
+    "hubChapter": "z33gh628",
+    "videos": [
+     "uJSwD5Vzbhk"
+    ]
+   },
+   {
+    "key": "16.5.1",
+    "hubChapter": "z33gh628",
+    "videos": [
+     "uJSwD5Vzbhk"
+    ]
+   },
+   {
+    "key": "16.5.2",
+    "hubChapter": "z33gh628",
+    "videos": [
+     "uJSwD5Vzbhk"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "MT1186",
+  "module": "mathematics",
+  "sections": [
+   {
+    "key": "2.1",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "1EGFSefe5II",
+     "KyOQhC8ctxc"
+    ]
+   },
+   {
+    "key": "2.2.1",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "Kr_Z61NVW-w"
+    ]
+   },
+   {
+    "key": "2.2.2",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "tAaDItpC8OI"
+    ]
+   },
+   {
+    "key": "2.2.3",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "75dMcyCUo2g"
+    ]
+   },
+   {
+    "key": "2.3.1",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "f-_UsIP5jyA"
+    ]
+   },
+   {
+    "key": "2.3.2",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "f-_UsIP5jyA"
+    ]
+   },
+   {
+    "key": "2.3.3",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "f-_UsIP5jyA"
+    ]
+   },
+   {
+    "key": "2.4.1",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "GsIo3B46yjU"
+    ]
+   },
+   {
+    "key": "2.4.2",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "-nptxS9rZNA"
+    ]
+   },
+   {
+    "key": "2.4.3",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "ih01YszlraY"
+    ]
+   },
+   {
+    "key": "2.5.1",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "bowrJ31ojOg"
+    ]
+   },
+   {
+    "key": "2.5.2",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "m1OitPmkydY"
+    ]
+   },
+   {
+    "key": "2.6.1",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "vUyRQ066tw0"
+    ]
+   },
+   {
+    "key": "2.6.2",
+    "hubChapter": "r8fe2s9j",
+    "videos": [
+     "6UcdivsrgcM"
+    ]
+   },
+   {
+    "key": "3.1",
+    "hubChapter": "w8t2b3p7",
+    "videos": [
+     "962lLfW-8Jo"
+    ]
+   },
+   {
+    "key": "3.2.1",
+    "hubChapter": "w8t2b3p7",
+    "videos": [
+     "EY6FHX6asU0",
+     "RJJSiNz5oto",
+     "zmnh448y_ZU"
+    ]
+   },
+   {
+    "key": "3.2.2",
+    "hubChapter": "w8t2b3p7",
+    "videos": [
+     "EY6FHX6asU0",
+     "AvCQQ3X4Nuc",
+     "8dr1dZjfhmc"
+    ]
+   },
+   {
+    "key": "3.2.3",
+    "hubChapter": "w8t2b3p7",
+    "videos": [
+     "s7rd9YPJrNc"
+    ]
+   },
+   {
+    "key": "3.3.1",
+    "hubChapter": "w8t2b3p7",
+    "videos": [
+     "962lLfW-8Jo",
+     "qr1WXiq3S3k"
+    ]
+   },
+   {
+    "key": "3.3.2",
+    "hubChapter": "w8t2b3p7",
+    "videos": [
+     "FIbpibkywmk"
+    ]
+   },
+   {
+    "key": "3.3.3",
+    "hubChapter": "w8t2b3p7",
+    "videos": [
+     "itkoiNNxNa4",
+     "2g8zJzMViXU"
+    ]
+   },
+   {
+    "key": "3.3.4",
+    "hubChapter": "w8t2b3p7",
+    "videos": [
+     "fml0-ELYLaE"
+    ]
+   },
+   {
+    "key": "4.1",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "SWZcq_biZLw"
+    ]
+   },
+   {
+    "key": "4.2.1",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "Mx39JbbzEAo",
+     "nQ6tOORDQ3I"
+    ]
+   },
+   {
+    "key": "4.2.2",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "nQ6tOORDQ3I"
+    ]
+   },
+   {
+    "key": "4.2.3",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "Udltkvm9HLc"
+    ]
+   },
+   {
+    "key": "4.3.1",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "29GbRaQxtzY"
+    ]
+   },
+   {
+    "key": "4.3.2",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "Mx39JbbzEAo",
+     "29GbRaQxtzY"
+    ]
+   },
+   {
+    "key": "4.3.3",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "29GbRaQxtzY"
+    ]
+   },
+   {
+    "key": "4.4.1",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "8u6woY05aL0"
+    ]
+   },
+   {
+    "key": "4.4.2",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "8u6woY05aL0"
+    ]
+   },
+   {
+    "key": "4.4.3",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "qGCKjuhA4eQ",
+     "-PYebK8DKPc"
+    ]
+   },
+   {
+    "key": "4.5.1",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "3wrXDw5ETh4"
+    ]
+   },
+   {
+    "key": "4.5.2",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "lDY9JcFaRd4"
+    ]
+   },
+   {
+    "key": "4.5.3",
+    "hubChapter": "35u3dquu",
+    "videos": [
+     "SWZcq_biZLw",
+     "JZCg6zmrmDI"
+    ]
+   },
+   {
+    "key": "5.1",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "o75AqTInKDU",
+     "SVrn1tRtZmg"
+    ]
+   },
+   {
+    "key": "5.2.1",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "o75AqTInKDU"
+    ]
+   },
+   {
+    "key": "5.2.2",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "o75AqTInKDU"
+    ]
+   },
+   {
+    "key": "5.2.3",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "aiBD9aI69C8",
+     "t3rzxSgvZZk"
+    ]
+   },
+   {
+    "key": "5.2.4",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "zNU8iK8sGD0",
+     "2I-_SV8cwsw"
+    ]
+   },
+   {
+    "key": "5.2.5",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "KJGp0pyPoVo"
+    ]
+   },
+   {
+    "key": "5.2.6",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "t3rzxSgvZZk"
+    ]
+   },
+   {
+    "key": "5.3.1",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "UjTTx2eYrx8"
+    ]
+   },
+   {
+    "key": "5.3.2",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "tM4RWc9ryx0"
+    ]
+   },
+   {
+    "key": "5.4.1",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "VpzTPHQfonw"
+    ]
+   },
+   {
+    "key": "5.4.2",
+    "hubChapter": "skkqwgvk",
+    "videos": [
+     "DcfYmzt4jnY"
+    ]
+   },
+   {
+    "key": "6.2.1",
+    "hubChapter": "7m3yeibe",
+    "videos": [
+     "nIJQPX5kxp4"
+    ]
+   },
+   {
+    "key": "6.2.2",
+    "hubChapter": "7m3yeibe",
+    "videos": [
+     "nIJQPX5kxp4",
+     "acdX4YamDtU",
+     "CBgn0z0huW8",
+     "IXuu7szVnN8"
+    ]
+   },
+   {
+    "key": "6.3.1",
+    "hubChapter": "7m3yeibe",
+    "videos": [
+     "EkZGBdY0vlg"
+    ]
+   },
+   {
+    "key": "6.3.2",
+    "hubChapter": "7m3yeibe",
+    "videos": [
+     "EkZGBdY0vlg"
+    ]
+   },
+   {
+    "key": "6.3.3",
+    "hubChapter": "7m3yeibe",
+    "videos": [
+     "tXryaM-mTpY"
+    ]
+   },
+   {
+    "key": "6.3.4",
+    "hubChapter": "7m3yeibe",
+    "videos": [
+     "fZhHJdPjtYc"
+    ]
+   },
+   {
+    "key": "6.3.5",
+    "hubChapter": "7m3yeibe",
+    "videos": [
+     "EkZGBdY0vlg",
+     "J08-L2buigM"
+    ]
+   },
+   {
+    "key": "7.2.1",
+    "hubChapter": "hk43786w",
+    "videos": [
+     "kPL28zgEFk8",
+     "_Ffcr98c7EE"
+    ]
+   },
+   {
+    "key": "7.2.2",
+    "hubChapter": "hk43786w",
+    "videos": [
+     "kPL28zgEFk8",
+     "_Ffcr98c7EE"
+    ]
+   },
+   {
+    "key": "7.2.3",
+    "hubChapter": "hk43786w",
+    "videos": [
+     "w_4bqCqOgPc"
+    ]
+   },
+   {
+    "key": "7.3.1",
+    "hubChapter": "hk43786w",
+    "videos": [
+     "kPL28zgEFk8"
+    ]
+   },
+   {
+    "key": "7.3.2",
+    "hubChapter": "hk43786w",
+    "videos": [
+     "nUfYR5FBGZc"
+    ]
+   },
+   {
+    "key": "7.3.3",
+    "hubChapter": "hk43786w",
+    "videos": [
+     "m-G3K2GPmEQ"
+    ]
+   },
+   {
+    "key": "7.3.4",
+    "hubChapter": "hk43786w",
+    "videos": [
+     "BVXXswCM4CU"
+    ]
+   },
+   {
+    "key": "8.1.1",
+    "hubChapter": "hmv8hbuk",
+    "videos": [
+     "KBSCMTYaH1s"
+    ]
+   },
+   {
+    "key": "8.1.2",
+    "hubChapter": "hmv8hbuk",
+    "videos": [
+     "P5GJJ02OG08"
+    ]
+   },
+   {
+    "key": "8.1.3",
+    "hubChapter": "hmv8hbuk",
+    "videos": [
+     "CcbyMH3Noow"
+    ]
+   },
+   {
+    "key": "8.1.4",
+    "hubChapter": "hmv8hbuk",
+    "videos": [
+     "kWorj5BBy9k"
+    ]
+   },
+   {
+    "key": "8.2.1",
+    "hubChapter": "hmv8hbuk",
+    "videos": [
+     "T2Gtt8WygiU"
+    ]
+   },
+   {
+    "key": "8.2.2",
+    "hubChapter": "hmv8hbuk",
+    "videos": [
+     "RdLo-9jh2EM"
+    ]
+   },
+   {
+    "key": "8.3.1",
+    "hubChapter": "hmv8hbuk",
+    "videos": [
+     "TQvxWaQnrqI"
+    ]
+   },
+   {
+    "key": "8.3.2",
+    "hubChapter": "hmv8hbuk",
+    "videos": [
+     "WTLl03D4TNA"
+    ]
+   },
+   {
+    "key": "9.1",
+    "hubChapter": "2uwhnans",
+    "videos": [
+     "EWVSxND_iWA",
+     "5LkQEOPwqfk",
+     "HjioXdmwze0",
+     "_4Bq6I68Yn4"
+    ]
+   },
+   {
+    "key": "9.2.1",
+    "hubChapter": "2uwhnans",
+    "videos": [
+     "WfX20b-peDw",
+     "ZWXG3c7A_9s"
+    ]
+   },
+   {
+    "key": "9.2.2",
+    "hubChapter": "2uwhnans",
+    "videos": [
+     "kATxKuVSc9I",
+     "fpQoL5u5ihs"
+    ]
+   },
+   {
+    "key": "9.3.1",
+    "hubChapter": "2uwhnans",
+    "videos": [
+     "UFWAu8Ptth0",
+     "SPVqgkOZMAc",
+     "UyCwAFQt4v0",
+     "3uO_uPb9H8w",
+     "6xEO4BeawzA",
+     "jJyRrIZ595c",
+     "rGaM6pwqhB0",
+     "NW9JfMvIsxw"
+    ]
+   },
+   {
+    "key": "9.3.2",
+    "hubChapter": "2uwhnans",
+    "videos": [
+     "znE4Nq9NJCQ",
+     "hbJ2o9EUmJ0",
+     "I3vIAzMcm4Y",
+     "vAepSNDLZRM"
+    ]
+   },
+   {
+    "key": "9.4.1",
+    "hubChapter": "2uwhnans",
+    "videos": [
+     "Qzu5D0mtKwo"
+    ]
+   },
+   {
+    "key": "9.4.2",
+    "hubChapter": "2uwhnans",
+    "videos": [
+     "YavFKipIeio"
+    ]
+   },
+   {
+    "key": "9.5.1",
+    "hubChapter": "2uwhnans",
+    "videos": [
+     "t4ipP4OMDbk"
+    ]
+   },
+   {
+    "key": "9.5.2",
+    "hubChapter": "2uwhnans",
+    "videos": [
+     "yvFr5D7UAMQ"
+    ]
+   },
+   {
+    "key": "9.5.3",
+    "hubChapter": "2uwhnans",
+    "videos": [
+     "FlNsogP8aJM"
+    ]
+   },
+   {
+    "key": "10.1.1",
+    "hubChapter": "d74wxfxt",
+    "videos": [
+     "Tj89FA-d0f8"
+    ]
+   },
+   {
+    "key": "10.1.2",
+    "hubChapter": "d74wxfxt",
+    "videos": [
+     "Tj89FA-d0f8"
+    ]
+   },
+   {
+    "key": "10.2",
+    "hubChapter": "d74wxfxt",
+    "videos": [
+     "YIoukM31_nI"
+    ]
+   },
+   {
+    "key": "10.3.1",
+    "hubChapter": "d74wxfxt",
+    "videos": [
+     "IKtROKsWVR4"
+    ]
+   },
+   {
+    "key": "10.3.2",
+    "hubChapter": "d74wxfxt",
+    "videos": [
+     "IKtROKsWVR4"
+    ]
+   },
+   {
+    "key": "10.4.1",
+    "hubChapter": "d74wxfxt",
+    "videos": [
+     "Hk8Q0pd5G1s"
+    ]
+   },
+   {
+    "key": "10.4.2",
+    "hubChapter": "d74wxfxt",
+    "videos": [
+     "Hk8Q0pd5G1s"
+    ]
+   },
+   {
+    "key": "10.5.1",
+    "hubChapter": "d74wxfxt",
+    "videos": [
+     "CnxNPNEqL2M"
+    ]
+   },
+   {
+    "key": "10.5.2",
+    "hubChapter": "d74wxfxt",
+    "videos": [
+     "vkKfkv2w-FU"
+    ]
+   },
+   {
+    "key": "10.5.3",
+    "hubChapter": "d74wxfxt",
+    "videos": [
+     "UNbdDi08Ud8"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "ST1215",
+  "module": "statistics",
+  "sections": [
+   {
+    "key": "1.4",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "ZxV-kf0yBss"
+    ]
+   },
+   {
+    "key": "1.5.1",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "Rx8wSEDq5Hs"
+    ]
+   },
+   {
+    "key": "1.5.2",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "qBigTkBLU6g"
+    ]
+   },
+   {
+    "key": "1.5.3",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "2Y2l9QJCe6M"
+    ]
+   },
+   {
+    "key": "1.6.1",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "5br3OuB4lks"
+    ]
+   },
+   {
+    "key": "1.6.2",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "5br3OuB4lks"
+    ]
+   },
+   {
+    "key": "1.6.3",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "NM_iOLUwZFA"
+    ]
+   },
+   {
+    "key": "1.6.4",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "NM_iOLUwZFA"
+    ]
+   },
+   {
+    "key": "1.6.5",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "NM_iOLUwZFA"
+    ]
+   },
+   {
+    "key": "1.6.6",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "NM_iOLUwZFA",
+     "2Y2l9QJCe6M"
+    ]
+   },
+   {
+    "key": "1.6.7",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "NM_iOLUwZFA"
+    ]
+   },
+   {
+    "key": "1.7.1",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "Cx2tGUze60s"
+    ]
+   },
+   {
+    "key": "1.7.2",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "Ky7QeVgv-BA"
+    ]
+   },
+   {
+    "key": "1.7.3",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "Ky7QeVgv-BA",
+     "Cx2tGUze60s"
+    ]
+   },
+   {
+    "key": "1.7.4",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "2-dJCrgKnaY"
+    ]
+   },
+   {
+    "key": "1.8.1",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "sbsY6neZ07g"
+    ]
+   },
+   {
+    "key": "1.8.2",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "GUq_tO2BjaU"
+    ]
+   },
+   {
+    "key": "1.8.3",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "sbsY6neZ07g",
+     "2-dJCrgKnaY"
+    ]
+   },
+   {
+    "key": "1.8.4",
+    "hubChapter": "m4edgan5",
+    "videos": [
+     "sbsY6neZ07g"
+    ]
+   },
+   {
+    "key": "2.4",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "B1v9OeCTlu0"
+    ]
+   },
+   {
+    "key": "2.5",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "pA83XtLeVig"
+    ]
+   },
+   {
+    "key": "2.6.1",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "SkidyDQuupA"
+    ]
+   },
+   {
+    "key": "2.6.2",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "XJnIdRXUi7A"
+    ]
+   },
+   {
+    "key": "2.6.3",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "P6vYubWJak0"
+    ]
+   },
+   {
+    "key": "2.7.1",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "UbQcqFH33G0"
+    ]
+   },
+   {
+    "key": "2.7.2",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "L5tLN1PP9OI"
+    ]
+   },
+   {
+    "key": "2.7.3",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "SrEmzdOT65s"
+    ]
+   },
+   {
+    "key": "2.7.4",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "ugzs7dgQ-JE"
+    ]
+   },
+   {
+    "key": "2.7.5",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "7t9jyikrG7w"
+    ]
+   },
+   {
+    "key": "2.7.6",
+    "hubChapter": "935gqnys",
+    "videos": [
+     "kz2tvO_ZAKI"
+    ]
+   },
+   {
+    "key": "3.4.1",
+    "hubChapter": "hqnvqdi4",
+    "videos": [
+     "oHcrna8Fk18"
+    ]
+   },
+   {
+    "key": "3.4.2",
+    "hubChapter": "hqnvqdi4",
+    "videos": [
+     "YXLVjCKVP7U"
+    ]
+   },
+   {
+    "key": "3.4.3",
+    "hubChapter": "hqnvqdi4",
+    "videos": [
+     "4QeL1ma_XJ0"
+    ]
+   },
+   {
+    "key": "3.4.4",
+    "hubChapter": "hqnvqdi4",
+    "videos": [
+     "4QeL1ma_XJ0"
+    ]
+   },
+   {
+    "key": "3.4.5",
+    "hubChapter": "hqnvqdi4",
+    "videos": [
+     "Vyk8HQOckIE"
+    ]
+   },
+   {
+    "key": "3.4.6",
+    "hubChapter": "hqnvqdi4",
+    "videos": [
+     "Vyk8HQOckIE"
+    ]
+   },
+   {
+    "key": "3.4.7",
+    "hubChapter": "hqnvqdi4",
+    "videos": [
+     "ISaVvSO_3Sg"
+    ]
+   },
+   {
+    "key": "3.4.8",
+    "hubChapter": "hqnvqdi4",
+    "videos": [
+     "wjwLTNYOuI4"
+    ]
+   },
+   {
+    "key": "3.5.1",
+    "hubChapter": "hqnvqdi4",
+    "videos": [
+     "x-W9U6h-Hog"
+    ]
+   },
+   {
+    "key": "3.5.2",
+    "hubChapter": "hqnvqdi4",
+    "videos": [
+     "oCaabzXG2sA"
+    ]
+   },
+   {
+    "key": "4.1",
+    "hubChapter": "57vcz5gf",
+    "videos": [],
+    "skip": "front matter: the chapter 4 'Synopsis of chapter content' is a one-sentence summary of the chapter, followed by the learning outcomes; nothing is taught (guide p. 121)"
+   },
+   {
+    "key": "4.4.1",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "cyIEhL92wiw"
+    ]
+   },
+   {
+    "key": "4.4.2",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "bT1p5tJwn_0"
+    ]
+   },
+   {
+    "key": "4.4.3",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "qIzC1-9PwQo"
+    ]
+   },
+   {
+    "key": "4.4.4",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "jmqZG6roVqU"
+    ]
+   },
+   {
+    "key": "4.4.5",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "eexQyHj6hEA"
+    ]
+   },
+   {
+    "key": "4.4.6",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "eexQyHj6hEA"
+    ]
+   },
+   {
+    "key": "4.4.7",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "UrOXRvG9oYE"
+    ]
+   },
+   {
+    "key": "4.5.1",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "-qt8CPIadWQ"
+    ]
+   },
+   {
+    "key": "4.5.2",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "C7V3d2yB58U"
+    ]
+   },
+   {
+    "key": "4.5.3",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "9IIcHAJlcWc"
+    ]
+   },
+   {
+    "key": "4.5.4",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "4R8xm19DmPM"
+    ]
+   },
+   {
+    "key": "4.5.5",
+    "hubChapter": "57vcz5gf",
+    "videos": [
+     "CCqWkJ_pqNU"
+    ]
+   },
+   {
+    "key": "5.4",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "7nu97OYx4X4"
+    ]
+   },
+   {
+    "key": "5.5",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "7nu97OYx4X4"
+    ]
+   },
+   {
+    "key": "5.6",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "O4QYcoxuLHE"
+    ]
+   },
+   {
+    "key": "5.7.1",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "T_Q3M_HV94w"
+    ]
+   },
+   {
+    "key": "5.7.2",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "vJAG4EzSQZA"
+    ]
+   },
+   {
+    "key": "5.7.3",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "Kj6iEzXsFkI"
+    ]
+   },
+   {
+    "key": "5.8.1",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "K2Tlj27nkjs"
+    ]
+   },
+   {
+    "key": "5.8.2",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "HTs6Zhc2S1M"
+    ]
+   },
+   {
+    "key": "5.8.3",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "5wIiOFnXSYs"
+    ]
+   },
+   {
+    "key": "5.9",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "F6H50Hbulbk"
+    ]
+   },
+   {
+    "key": "5.10.1",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "GH7dwoXSD0s"
+    ]
+   },
+   {
+    "key": "5.10.2",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "GH7dwoXSD0s"
+    ]
+   },
+   {
+    "key": "5.10.3",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "R4nGGs0m7lo"
+    ]
+   },
+   {
+    "key": "5.10.4",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "551Q9QOKRns"
+    ]
+   },
+   {
+    "key": "5.10.5",
+    "hubChapter": "zwvna9b6",
+    "videos": [
+     "Z6vANdo1L68"
+    ]
+   },
+   {
+    "key": "6.4",
+    "hubChapter": "nycc5z2u",
+    "videos": [
+     "Ruz1wWkFUfM"
+    ]
+   },
+   {
+    "key": "6.5",
+    "hubChapter": "nycc5z2u",
+    "videos": [
+     "Zbw-YvELsaM"
+    ]
+   },
+   {
+    "key": "6.6",
+    "hubChapter": "nycc5z2u",
+    "videos": [
+     "q50GpTdFYyI"
+    ]
+   },
+   {
+    "key": "6.7",
+    "hubChapter": "nycc5z2u",
+    "videos": [
+     "Pujol1yC1_A"
+    ]
+   },
+   {
+    "key": "6.8.1",
+    "hubChapter": "nycc5z2u",
+    "videos": [
+     "80ffqpZdKiA"
+    ]
+   },
+   {
+    "key": "6.8.2",
+    "hubChapter": "nycc5z2u",
+    "videos": [
+     "UetYS3PaHIo"
+    ]
+   },
+   {
+    "key": "6.8.3",
+    "hubChapter": "nycc5z2u",
+    "videos": [
+     "G_RDxAZJ-ug"
+    ]
+   },
+   {
+    "key": "6.9.1",
+    "hubChapter": "nycc5z2u",
+    "videos": [
+     "Mb9BuEkbaHQ"
+    ]
+   },
+   {
+    "key": "6.9.2",
+    "hubChapter": "nycc5z2u",
+    "videos": [
+     "Mb9BuEkbaHQ"
+    ]
+   },
+   {
+    "key": "6.9.3",
+    "hubChapter": "nycc5z2u",
+    "videos": [
+     "tFRXsngz4UQ"
+    ]
+   },
+   {
+    "key": "7.4",
+    "hubChapter": "hhfxb62g",
+    "videos": [
+     "UAefABgvb84"
+    ]
+   },
+   {
+    "key": "7.5",
+    "hubChapter": "hhfxb62g",
+    "videos": [
+     "OL8kf-gKcqI"
+    ]
+   },
+   {
+    "key": "7.6",
+    "hubChapter": "hhfxb62g",
+    "videos": [
+     "NSIEP74ifyg"
+    ]
+   },
+   {
+    "key": "7.7",
+    "hubChapter": "hhfxb62g",
+    "videos": [
+     "p3T-_LMrvBc"
+    ]
+   },
+   {
+    "key": "7.8",
+    "hubChapter": "hhfxb62g",
+    "videos": [
+     "DyLWP5Zx934"
+    ]
+   },
+   {
+    "key": "8.4",
+    "hubChapter": "9xf4eaw6",
+    "videos": [
+     "KG921rfbTDw"
+    ]
+   },
+   {
+    "key": "8.5.1",
+    "hubChapter": "9xf4eaw6",
+    "videos": [
+     "mE5vH2wDoIs"
+    ]
+   },
+   {
+    "key": "8.5.2",
+    "hubChapter": "9xf4eaw6",
+    "videos": [
+     "cEOvgr3_tzc"
+    ]
+   },
+   {
+    "key": "8.6",
+    "hubChapter": "9xf4eaw6",
+    "videos": [
+     "V4Rm4UQHij0"
+    ]
+   },
+   {
+    "key": "8.7",
+    "hubChapter": "9xf4eaw6",
+    "videos": [
+     "qwqB5a7_W44"
+    ]
+   },
+   {
+    "key": "9.5.1",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "tTeMYuS87oU"
+    ]
+   },
+   {
+    "key": "9.5.2",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "m6sGjWz2CPg"
+    ]
+   },
+   {
+    "key": "9.5.3",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "pGv13jvnjKc"
+    ]
+   },
+   {
+    "key": "9.5.4",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "VP1bhopNP74"
+    ]
+   },
+   {
+    "key": "9.6",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "T9nI6vhTU1Y"
+    ]
+   },
+   {
+    "key": "9.7",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "60x86lYtWI4"
+    ]
+   },
+   {
+    "key": "9.8",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "7mE-K_w1v90"
+    ]
+   },
+   {
+    "key": "9.9",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "PweabcpqzYI"
+    ]
+   },
+   {
+    "key": "9.11",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "TMRBGFIj0RM"
+    ]
+   },
+   {
+    "key": "9.12.1",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "86ss6qOTfts"
+    ]
+   },
+   {
+    "key": "9.12.2",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "NaZBdj0nCzQ"
+    ]
+   },
+   {
+    "key": "9.13",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "zMOvsBI5Txo"
+    ]
+   },
+   {
+    "key": "9.14",
+    "hubChapter": "9dhn7cfg",
+    "videos": [
+     "7GJkxSYsX70"
+    ]
+   },
+   {
+    "key": "10.4",
+    "hubChapter": "xt9a3uyv",
+    "videos": [
+     "QUQ6YppWCeg"
+    ]
+   },
+   {
+    "key": "10.5",
+    "hubChapter": "xt9a3uyv",
+    "videos": [
+     "fFnOD7KBSbw"
+    ]
+   },
+   {
+    "key": "10.6",
+    "hubChapter": "xt9a3uyv",
+    "videos": [
+     "zqZ9iuk5Ngk"
+    ]
+   },
+   {
+    "key": "10.7",
+    "hubChapter": "xt9a3uyv",
+    "videos": [
+     "zqZ9iuk5Ngk"
+    ]
+   },
+   {
+    "key": "10.8",
+    "hubChapter": "xt9a3uyv",
+    "videos": [
+     "Y6hjlg0Rpwg"
+    ]
+   },
+   {
+    "key": "11.5",
+    "hubChapter": "6zdqtvng",
+    "videos": [
+     "coQAAN4eY5s"
+    ]
+   },
+   {
+    "key": "11.6",
+    "hubChapter": "6zdqtvng",
+    "videos": [
+     "THzckPB7E8Q"
+    ]
+   },
+   {
+    "key": "11.7",
+    "hubChapter": "6zdqtvng",
+    "videos": [
+     "98yMBOl0vxE"
+    ]
+   },
+   {
+    "key": "11.8",
+    "hubChapter": "6zdqtvng",
+    "videos": [
+     "V-sReSM887I"
+    ]
+   },
+   {
+    "key": "11.9",
+    "hubChapter": "6zdqtvng",
+    "videos": [
+     "V-sReSM887I"
+    ]
+   },
+   {
+    "key": "11.10",
+    "hubChapter": "6zdqtvng",
+    "videos": [
+     "EkAQAi3a4js"
+    ]
+   },
+   {
+    "key": "11.11",
+    "hubChapter": "6zdqtvng",
+    "videos": [
+     "66z_MRwtFJM"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "ST2133",
+  "module": "advanced-stats-distribution",
+  "sections": [
+   {
+    "key": "2.4",
+    "hubChapter": "m6nat6ty",
+    "videos": [
+     "swa1VRYms3Q",
+     "DqGUwoz4d4M"
+    ]
+   },
+   {
+    "key": "2.5.1",
+    "hubChapter": "m6nat6ty",
+    "videos": [
+     "PegyQkhbh0c",
+     "lsHr3Y9-PCA",
+     "V3pnr5gmJC8"
+    ]
+   },
+   {
+    "key": "2.5.2",
+    "hubChapter": "m6nat6ty",
+    "videos": [
+     "ptVgsHPAZ-4",
+     "lsHr3Y9-PCA",
+     "nPK62LCNVcQ"
+    ]
+   },
+   {
+    "key": "2.6.1",
+    "hubChapter": "m6nat6ty",
+    "videos": [
+     "3lmEqp8VhAU",
+     "XJnIdRXUi7A"
+    ]
+   },
+   {
+    "key": "2.6.2",
+    "hubChapter": "m6nat6ty",
+    "videos": [
+     "XJnIdRXUi7A",
+     "N_QU1BiW6sI"
+    ]
+   },
+   {
+    "key": "2.7.1",
+    "hubChapter": "m6nat6ty",
+    "videos": [
+     "8odFouBR2wE",
+     "kz2tvO_ZAKI",
+     "HZGCoVF3YvM"
+    ]
+   },
+   {
+    "key": "2.7.2",
+    "hubChapter": "m6nat6ty",
+    "videos": [
+     "UbQcqFH33G0",
+     "aJXfyfQs2Mc"
+    ]
+   },
+   {
+    "key": "3.4.1",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "vfqPpai_9jI"
+    ]
+   },
+   {
+    "key": "3.4.2",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "vfqPpai_9jI"
+    ]
+   },
+   {
+    "key": "3.5",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "4QeL1ma_XJ0"
+    ]
+   },
+   {
+    "key": "3.6",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "dOr0NKyD31Q"
+    ]
+   },
+   {
+    "key": "3.7.1",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "bYmwxsLjgu4"
+    ]
+   },
+   {
+    "key": "3.7.2",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "Uks98M-dxqM"
+    ]
+   },
+   {
+    "key": "3.7.3",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "bT1p5tJwn_0"
+    ]
+   },
+   {
+    "key": "3.7.4",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "qIzC1-9PwQo"
+    ]
+   },
+   {
+    "key": "3.7.5",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "zq9Oz82iHf0"
+    ]
+   },
+   {
+    "key": "3.7.6",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "BPlmjp2ymxw"
+    ]
+   },
+   {
+    "key": "3.7.7",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "L4Trz6pFut4"
+    ]
+   },
+   {
+    "key": "3.7.8",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "L2KMttDm3aY"
+    ]
+   },
+   {
+    "key": "3.7.9",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "jmqZG6roVqU"
+    ]
+   },
+   {
+    "key": "3.8.1",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "-qt8CPIadWQ"
+    ]
+   },
+   {
+    "key": "3.8.2",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "J3KSjZFVbis"
+    ]
+   },
+   {
+    "key": "3.8.3",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "6UMv4vb4y7c"
+    ]
+   },
+   {
+    "key": "3.8.4",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "gIsoceE4vhg"
+    ]
+   },
+   {
+    "key": "3.8.5",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "juF3r12nM5A"
+    ]
+   },
+   {
+    "key": "3.8.6",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "TwvXhX3bJJM"
+    ]
+   },
+   {
+    "key": "3.9.1",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "_yJsO5955ZE"
+    ]
+   },
+   {
+    "key": "3.9.2",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "gB5TCCfF6e4"
+    ]
+   },
+   {
+    "key": "3.9.3",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "ZWo1XgAQE5k"
+    ]
+   },
+   {
+    "key": "3.9.4",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "vjYanZ1nsZg",
+     "mlelI1LA9o4",
+     "GDJFLfmyb20"
+    ]
+   },
+   {
+    "key": "3.9.5",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "ISaVvSO_3Sg"
+    ]
+   },
+   {
+    "key": "3.10.1",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "N8O6zd6vTZ8"
+    ]
+   },
+   {
+    "key": "3.10.2",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "vp7_Tfrej00"
+    ]
+   },
+   {
+    "key": "3.11.1",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "X-AzW70e2M0"
+    ]
+   },
+   {
+    "key": "3.11.2",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "PaI-oaOBHKU",
+     "XwrnUw6g1dA"
+    ]
+   },
+   {
+    "key": "3.12",
+    "hubChapter": "77mvh6qf",
+    "videos": [
+     "l_YZ096WH74",
+     "ZKqzA81Nz2Y"
+    ]
+   },
+   {
+    "key": "4.4.1",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "J70dP_AECzQ"
+    ]
+   },
+   {
+    "key": "4.4.2",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "J70dP_AECzQ"
+    ]
+   },
+   {
+    "key": "4.4.3",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "J70dP_AECzQ"
+    ]
+   },
+   {
+    "key": "4.5.1",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "7nu97OYx4X4"
+    ]
+   },
+   {
+    "key": "4.5.2",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "F6H50Hbulbk"
+    ]
+   },
+   {
+    "key": "4.5.3",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "N9bid_vlpRo"
+    ]
+   },
+   {
+    "key": "4.6",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "IujCYxtpszU"
+    ]
+   },
+   {
+    "key": "4.7",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "eO2-m8Gqzjk"
+    ]
+   },
+   {
+    "key": "4.8",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "5rF19EitOss"
+    ]
+   },
+   {
+    "key": "4.9.1",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "sktbYva958A",
+     "yXwPUAIvFyg"
+    ]
+   },
+   {
+    "key": "4.9.2",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "yXwPUAIvFyg"
+    ]
+   },
+   {
+    "key": "4.10",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "IaSGqQa5O-M",
+     "yXwPUAIvFyg"
+    ]
+   },
+   {
+    "key": "4.11.1",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "MF-XSJOsGqw",
+     "2xHeg6n89tU"
+    ]
+   },
+   {
+    "key": "4.11.2",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "MF-XSJOsGqw"
+    ]
+   },
+   {
+    "key": "4.11.3",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "sktbYva958A"
+    ]
+   },
+   {
+    "key": "4.11.4",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "2xHeg6n89tU"
+    ]
+   },
+   {
+    "key": "4.11.5",
+    "hubChapter": "kyrya42v",
+    "videos": [
+     "MF-XSJOsGqw"
+    ]
+   },
+   {
+    "key": "5.4",
+    "hubChapter": "a33wzqx2",
+    "videos": [
+     "Kj6iEzXsFkI"
+    ]
+   },
+   {
+    "key": "5.5.1",
+    "hubChapter": "a33wzqx2",
+    "videos": [
+     "2LR5JYbhyjg",
+     "PgawcWisb0I",
+     "gjBvCiRt8QA"
+    ]
+   },
+   {
+    "key": "5.5.2",
+    "hubChapter": "a33wzqx2",
+    "videos": [
+     "mHonq7Gjjqg",
+     "gjBvCiRt8QA"
+    ]
+   },
+   {
+    "key": "5.5.3",
+    "hubChapter": "a33wzqx2",
+    "videos": [
+     "rWQgZGwQ2vw"
+    ]
+   },
+   {
+    "key": "5.6",
+    "hubChapter": "a33wzqx2",
+    "videos": [
+     "OPfmUh06xsI"
+    ]
+   },
+   {
+    "key": "5.7",
+    "hubChapter": "a33wzqx2",
+    "videos": [
+     "xdewLsXI_UQ",
+     "SgM16HNeC3o"
+    ]
+   },
+   {
+    "key": "5.8",
+    "hubChapter": "a33wzqx2",
+    "videos": [
+     "I1Exxswt7d4",
+     "Kj6iEzXsFkI"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "ST2134",
+  "module": "advanced-stats-inferential",
+  "sections": [
+   {
+    "key": "2.4",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "VHYOuWu9jQI"
+    ]
+   },
+   {
+    "key": "2.5.1",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "Zi2sLtCO44A"
+    ]
+   },
+   {
+    "key": "2.5.2",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "of9wD9P7F1I"
+    ]
+   },
+   {
+    "key": "2.5.3",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "sP1-EQJKSgk"
+    ]
+   },
+   {
+    "key": "2.5.4",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "CNHOArE2YRw"
+    ]
+   },
+   {
+    "key": "2.5.5",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "NSIEP74ifyg"
+    ]
+   },
+   {
+    "key": "2.5.6",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "DLpOO79QLTQ"
+    ]
+   },
+   {
+    "key": "2.5.7",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "ISaVvSO_3Sg"
+    ]
+   },
+   {
+    "key": "2.5.8",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "2m18yRb30AE"
+    ]
+   },
+   {
+    "key": "2.5.9",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "2m18yRb30AE"
+    ]
+   },
+   {
+    "key": "2.5.10",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "tXGcs02y9r4"
+    ]
+   },
+   {
+    "key": "2.6.1",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "LnGFL_A6A6A"
+    ]
+   },
+   {
+    "key": "2.6.2",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "GOJkxzkN3m0"
+    ]
+   },
+   {
+    "key": "2.7.1",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "oLW_uzkPZGA"
+    ]
+   },
+   {
+    "key": "2.7.2",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "27iSnzss2wM"
+    ]
+   },
+   {
+    "key": "2.7.3",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "tTeMYuS87oU"
+    ]
+   },
+   {
+    "key": "2.7.4",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "cSXa81aQafs"
+    ]
+   },
+   {
+    "key": "2.8.1",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "5j4E2FRR384",
+     "J-TTqCgRzbM"
+    ]
+   },
+   {
+    "key": "2.8.2",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "5j4E2FRR384"
+    ]
+   },
+   {
+    "key": "2.8.3",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "J-TTqCgRzbM"
+    ]
+   },
+   {
+    "key": "2.9",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "IsgteDaNTFk"
+    ]
+   },
+   {
+    "key": "2.10.1",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "ScduwntrMzc"
+    ]
+   },
+   {
+    "key": "2.10.2",
+    "hubChapter": "79s9wx38",
+    "videos": [
+     "pneluWj-U-o",
+     "3r5Hb3OINQc"
+    ]
+   },
+   {
+    "key": "3.4.1",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "YJRHmv6OpWQ",
+     "lET4uQLpmM0"
+    ]
+   },
+   {
+    "key": "3.4.2",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "QEdmE-aO4_M"
+    ]
+   },
+   {
+    "key": "3.5",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "cHRdyed4-yc"
+    ]
+   },
+   {
+    "key": "3.6.1",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "7mYDHbrLEQo"
+    ]
+   },
+   {
+    "key": "3.6.2",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "Yh5bR7X3ch8"
+    ]
+   },
+   {
+    "key": "3.6.3",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "D1hgiAla3KI"
+    ]
+   },
+   {
+    "key": "3.6.4",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "V4Rm4UQHij0"
+    ]
+   },
+   {
+    "key": "3.6.5",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "OL8kf-gKcqI"
+    ]
+   },
+   {
+    "key": "3.7.1",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "T_tjvTI70lo"
+    ]
+   },
+   {
+    "key": "3.7.2",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "T_tjvTI70lo"
+    ]
+   },
+   {
+    "key": "3.8",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "cd-1fYpAzSg",
+     "RZ511cB-BB8"
+    ]
+   },
+   {
+    "key": "3.9.1",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "7kLHJ-F33GI"
+    ]
+   },
+   {
+    "key": "3.9.2",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "7kLHJ-F33GI"
+    ]
+   },
+   {
+    "key": "3.9.3",
+    "hubChapter": "dzzxifwd",
+    "videos": [
+     "45lb8Xwm1E4"
+    ]
+   },
+   {
+    "key": "4.4",
+    "hubChapter": "kd2j4c7n",
+    "videos": [
+     "EJe3jiZNwUU",
+     "-iYDu8flFXQ"
+    ]
+   },
+   {
+    "key": "4.5",
+    "hubChapter": "kd2j4c7n",
+    "videos": [
+     "EJe3jiZNwUU"
+    ]
+   },
+   {
+    "key": "4.6",
+    "hubChapter": "kd2j4c7n",
+    "videos": [
+     "p8SgfPHd5dk",
+     "bFefxSE5bmo",
+     "q-cHZyOs5DQ"
+    ]
+   },
+   {
+    "key": "4.7",
+    "hubChapter": "kd2j4c7n",
+    "videos": [
+     "DyLWP5Zx934"
+    ]
+   },
+   {
+    "key": "4.8",
+    "hubChapter": "kd2j4c7n",
+    "videos": [
+     "cxUWQCwxQgk"
+    ]
+   },
+   {
+    "key": "5.4.1",
+    "hubChapter": "ijvkf6pq",
+    "videos": [
+     "aepZRBL1Abg"
+    ]
+   },
+   {
+    "key": "5.4.2",
+    "hubChapter": "ijvkf6pq",
+    "videos": [
+     "aepZRBL1Abg"
+    ]
+   },
+   {
+    "key": "5.4.3",
+    "hubChapter": "ijvkf6pq",
+    "videos": [
+     "7mE-K_w1v90",
+     "UsU-O2Z1rAs"
+    ]
+   },
+   {
+    "key": "5.4.4",
+    "hubChapter": "ijvkf6pq",
+    "videos": [
+     "zFBfs01zTnM",
+     "aepZRBL1Abg"
+    ]
+   },
+   {
+    "key": "5.5",
+    "hubChapter": "ijvkf6pq",
+    "videos": [
+     "GnIk8NPQmYc",
+     "uNh4N3IToV4",
+     "SC10j5YZ2es"
+    ]
+   },
+   {
+    "key": "5.6",
+    "hubChapter": "ijvkf6pq",
+    "videos": [
+     "ToSSaZuWXtw"
+    ]
+   },
+   {
+    "key": "5.7",
+    "hubChapter": "ijvkf6pq",
+    "videos": [
+     "ToSSaZuWXtw"
+    ]
+   },
+   {
+    "key": "5.8.1",
+    "hubChapter": "ijvkf6pq",
+    "videos": [
+     "ToSSaZuWXtw"
+    ]
+   },
+   {
+    "key": "5.8.2",
+    "hubChapter": "ijvkf6pq",
+    "videos": [
+     "yzO80fa0_Y4"
+    ]
+   },
+   {
+    "key": "5.9",
+    "hubChapter": "ijvkf6pq",
+    "videos": [
+     "yzO80fa0_Y4"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "ST2195",
+  "module": "programming-data-science",
+  "sections": [
+   {
+    "key": "1a",
+    "hubChapter": "hxxq954f",
+    "videos": [
+     "RBSUwFGa6Fk"
+    ]
+   },
+   {
+    "key": "1b",
+    "hubChapter": "hxxq954f",
+    "videos": [
+     "ivnvzRhm8IM"
+    ]
+   },
+   {
+    "key": "1c",
+    "hubChapter": "hxxq954f",
+    "videos": [
+     "TsnGd6p9oTk"
+    ]
+   },
+   {
+    "key": "1d",
+    "hubChapter": "hxxq954f",
+    "videos": [
+     "K418swtFnik"
+    ]
+   },
+   {
+    "key": "1e",
+    "hubChapter": "hxxq954f",
+    "videos": [
+     "LrMOrMb8-3s"
+    ]
+   },
+   {
+    "key": "1f",
+    "hubChapter": "79mwvkwk",
+    "videos": [
+     "8JJ101D3knE"
+    ]
+   },
+   {
+    "key": "1g",
+    "hubChapter": "79mwvkwk",
+    "videos": [
+     "a9u2yZvsqHA"
+    ]
+   },
+   {
+    "key": "2a",
+    "hubChapter": "cdrdx7q4",
+    "videos": [
+     "cYlzIeXAAtI"
+    ]
+   },
+   {
+    "key": "2b",
+    "hubChapter": "cdrdx7q4",
+    "videos": [
+     "LkriaLlkByM"
+    ]
+   },
+   {
+    "key": "2c",
+    "hubChapter": "cdrdx7q4",
+    "videos": [
+     "fnke98HoSFs"
+    ]
+   },
+   {
+    "key": "2d",
+    "hubChapter": "cdrdx7q4",
+    "videos": [
+     "VtUVQWl0aRA"
+    ]
+   },
+   {
+    "key": "2e",
+    "hubChapter": "cdrdx7q4",
+    "videos": [
+     "k0zLwDAQ6Uw"
+    ]
+   },
+   {
+    "key": "2f",
+    "hubChapter": "cdrdx7q4",
+    "videos": [
+     "R-HLU9Fl5ug"
+    ]
+   },
+   {
+    "key": "2g",
+    "hubChapter": "cdrdx7q4",
+    "videos": [
+     "lLRBYKwP8GQ",
+     "vmEHCJofslg"
+    ]
+   },
+   {
+    "key": "2h",
+    "hubChapter": "cdrdx7q4",
+    "videos": [
+     "q5uM4VKywbA"
+    ]
+   },
+   {
+    "key": "3a",
+    "hubChapter": "jh4w6yes",
+    "videos": [
+     "E9AgJnsEvG4"
+    ]
+   },
+   {
+    "key": "3b",
+    "hubChapter": "jh4w6yes",
+    "videos": [
+     "h0nxCDiD-zg"
+    ]
+   },
+   {
+    "key": "3c",
+    "hubChapter": "jh4w6yes",
+    "videos": [
+     "h0nxCDiD-zg",
+     "m1KcNV-Zhmc"
+    ]
+   },
+   {
+    "key": "3d",
+    "hubChapter": "jh4w6yes",
+    "videos": [
+     "ZfliyOawJFk"
+    ]
+   },
+   {
+    "key": "3e",
+    "hubChapter": "jh4w6yes",
+    "videos": [
+     "ZfliyOawJFk"
+    ]
+   },
+   {
+    "key": "3f",
+    "hubChapter": "jh4w6yes",
+    "videos": [
+     "0zP_nx3-k6E"
+    ]
+   },
+   {
+    "key": "3g",
+    "hubChapter": "jh4w6yes",
+    "videos": [
+     "pd-0G0MigUA"
+    ]
+   },
+   {
+    "key": "3h",
+    "hubChapter": "jh4w6yes",
+    "videos": [
+     "pd-0G0MigUA"
+    ]
+   },
+   {
+    "key": "4a",
+    "hubChapter": "irsu5f86",
+    "videos": [
+     "TmtyFcLWXwo"
+    ]
+   },
+   {
+    "key": "4b",
+    "hubChapter": "irsu5f86",
+    "videos": [
+     "66AkNi2C5tw",
+     "9lP0uSRnih0",
+     "Xza0pUVHRS4"
+    ]
+   },
+   {
+    "key": "4c",
+    "hubChapter": "irsu5f86",
+    "videos": [
+     "7-YclDMngcg"
+    ]
+   },
+   {
+    "key": "5a",
+    "hubChapter": "4c5atm56",
+    "videos": [
+     "RvRKT-jXvko",
+     "5qQQ3yzbKp8"
+    ]
+   },
+   {
+    "key": "5b",
+    "hubChapter": "4c5atm56",
+    "videos": [
+     "9XbeXpKMR_E"
+    ]
+   },
+   {
+    "key": "5c",
+    "hubChapter": "4c5atm56",
+    "videos": [
+     "QVdf0LgmICw"
+    ]
+   },
+   {
+    "key": "5d",
+    "hubChapter": "4c5atm56",
+    "videos": [
+     "NIWwJbo-9_8"
+    ]
+   },
+   {
+    "key": "5e",
+    "hubChapter": "4c5atm56",
+    "videos": [
+     "-mF8yrw0f6g"
+    ]
+   },
+   {
+    "key": "5f",
+    "hubChapter": "4c5atm56",
+    "videos": [
+     "JeznW_7DlB0"
+    ]
+   },
+   {
+    "key": "6a",
+    "hubChapter": "iyjn27be",
+    "videos": [
+     "sV5lwAJ7vnQ"
+    ]
+   },
+   {
+    "key": "6b",
+    "hubChapter": "iyjn27be",
+    "videos": [
+     "oXImkptBpqc",
+     "sV5lwAJ7vnQ"
+    ]
+   },
+   {
+    "key": "6c",
+    "hubChapter": "iyjn27be",
+    "videos": [
+     "bDhvCp3_lYw"
+    ]
+   },
+   {
+    "key": "7a",
+    "hubChapter": "2654m55h",
+    "videos": [
+     "QiqZliDXCCg"
+    ]
+   },
+   {
+    "key": "7b",
+    "hubChapter": "2654m55h",
+    "videos": [
+     "utisKvP0HOM"
+    ]
+   },
+   {
+    "key": "7c",
+    "hubChapter": "2654m55h",
+    "videos": [
+     "HPJn1CMvtmI",
+     "oVQBwHQXXhc"
+    ]
+   },
+   {
+    "key": "8a",
+    "hubChapter": "2654m55h",
+    "videos": [
+     "v3w24XfD5m8"
+    ]
+   },
+   {
+    "key": "8b",
+    "hubChapter": "2654m55h",
+    "videos": [
+     "flwcAf1_1RU"
+    ]
+   },
+   {
+    "key": "9a",
+    "hubChapter": "9q4k2bdt",
+    "videos": [
+     "IpGxLWOIZy4",
+     "fSytzGwwBVw"
+    ]
+   },
+   {
+    "key": "9b",
+    "hubChapter": "9q4k2bdt",
+    "videos": [
+     "oXLxQVyvEa8"
+    ]
+   },
+   {
+    "key": "9c",
+    "hubChapter": "9q4k2bdt",
+    "videos": [
+     "589nCGeWG1w"
+    ]
+   },
+   {
+    "key": "9d",
+    "hubChapter": "9q4k2bdt",
+    "videos": [
+     "SIEaLBXr0rk",
+     "gJo0uNL-5Qw"
+    ]
+   },
+   {
+    "key": "10a",
+    "hubChapter": "v4yitqqt",
+    "videos": [
+     "Fi3_BjVzpqk",
+     "8eVXTyIZ1Hs"
+    ]
+   },
+   {
+    "key": "10b",
+    "hubChapter": "v4yitqqt",
+    "videos": [
+     "79s3z0gIuFU",
+     "DWkIbk_HE9o"
+    ]
+   },
+   {
+    "key": "10c",
+    "hubChapter": "v4yitqqt",
+    "videos": [
+     "4ubEUFgnbLI"
+    ]
+   },
+   {
+    "key": "10d",
+    "hubChapter": "v4yitqqt",
+    "videos": [
+     "DWkIbk_HE9o"
+    ]
+   },
+   {
+    "key": "10e",
+    "hubChapter": "v4yitqqt",
+    "videos": [
+     "B1j6k2j2eJg"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "ST2187",
+  "module": "business-analytics",
+  "sections": [
+   {
+    "key": "1.3",
+    "hubChapter": "ngeg4tv9",
+    "videos": [
+     "ephvKaL2ZoU"
+    ]
+   },
+   {
+    "key": "1.4",
+    "hubChapter": "ngeg4tv9",
+    "videos": [
+     "F9F7Xfh-VTQ"
+    ]
+   },
+   {
+    "key": "1.5",
+    "hubChapter": "ngeg4tv9",
+    "videos": [
+     "qcapWExJpVE"
+    ]
+   },
+   {
+    "key": "1.6",
+    "hubChapter": "ngeg4tv9",
+    "videos": [
+     "4TPnpr5mmD0"
+    ]
+   },
+   {
+    "key": "1.7",
+    "hubChapter": "ngeg4tv9",
+    "videos": [
+     "dD-Vygp_MiM"
+    ]
+   },
+   {
+    "key": "1.8.1",
+    "hubChapter": "ngeg4tv9",
+    "videos": [
+     "UgKrQ2ywVfs"
+    ]
+   },
+   {
+    "key": "1.8.2",
+    "hubChapter": "ngeg4tv9",
+    "videos": [
+     "UgKrQ2ywVfs",
+     "HZGCoVF3YvM"
+    ]
+   },
+   {
+    "key": "2.3",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "DUcXZ08IdMo"
+    ]
+   },
+   {
+    "key": "2.4.1",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "SplCk-t1BeA",
+     "zjHfAhcU6kE"
+    ]
+   },
+   {
+    "key": "2.4.2",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "SplCk-t1BeA"
+    ]
+   },
+   {
+    "key": "2.4.3",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "SplCk-t1BeA"
+    ]
+   },
+   {
+    "key": "2.4.4",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "U0NZu6f5TMI"
+    ]
+   },
+   {
+    "key": "2.4.5",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "SplCk-t1BeA",
+     "zjHfAhcU6kE"
+    ]
+   },
+   {
+    "key": "2.5.1",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "SplCk-t1BeA"
+    ]
+   },
+   {
+    "key": "2.5.2",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "WnMXXWWlylo"
+    ]
+   },
+   {
+    "key": "2.5.3",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "WnMXXWWlylo"
+    ]
+   },
+   {
+    "key": "2.5.4",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "SplCk-t1BeA"
+    ]
+   },
+   {
+    "key": "2.5.5",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "Txylq6RLiK8"
+    ]
+   },
+   {
+    "key": "2.6.1",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "U0NZu6f5TMI"
+    ]
+   },
+   {
+    "key": "2.6.2",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "9dwLKGoaeEs"
+    ]
+   },
+   {
+    "key": "2.7",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "STSP8gTSdT8"
+    ]
+   },
+   {
+    "key": "2.8",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "SplCk-t1BeA"
+    ]
+   },
+   {
+    "key": "2.9",
+    "hubChapter": "66fcg48k",
+    "videos": [
+     "r5_34YnCmMY"
+    ]
+   },
+   {
+    "key": "3.3.1",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "AYKxZF6Qo4U"
+    ]
+   },
+   {
+    "key": "3.3.2",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "L3O3uOhWCgs"
+    ]
+   },
+   {
+    "key": "3.4.1",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "AYKxZF6Qo4U"
+    ]
+   },
+   {
+    "key": "3.4.2",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "QQoETu31JOw"
+    ]
+   },
+   {
+    "key": "3.4.3",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "eFbcuHsAWhs"
+    ]
+   },
+   {
+    "key": "3.4.4",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "eFbcuHsAWhs"
+    ]
+   },
+   {
+    "key": "3.4.5",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "eFbcuHsAWhs"
+    ]
+   },
+   {
+    "key": "3.4.6",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "z8K9KR8D6Ok"
+    ]
+   },
+   {
+    "key": "3.4.7",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "GuJHbHdYUnM"
+    ]
+   },
+   {
+    "key": "3.4.8",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "GuJHbHdYUnM"
+    ]
+   },
+   {
+    "key": "4.3.1",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "FhAxE2pkCKA"
+    ]
+   },
+   {
+    "key": "4.3.2",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "FhAxE2pkCKA"
+    ]
+   },
+   {
+    "key": "4.4",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "TIOCF6UZKpU"
+    ]
+   },
+   {
+    "key": "4.5",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "TyffD69I6-Q"
+    ]
+   },
+   {
+    "key": "4.6",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "TIOCF6UZKpU"
+    ]
+   },
+   {
+    "key": "5.3",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "dahrmqT5GD4"
+    ]
+   },
+   {
+    "key": "5.4",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "dahrmqT5GD4"
+    ]
+   },
+   {
+    "key": "5.5",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "v2hGKOscwlQ"
+    ]
+   },
+   {
+    "key": "5.6",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "n2iySaaElYs"
+    ]
+   },
+   {
+    "key": "6.3",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "Tp3FTpcAntg"
+    ]
+   },
+   {
+    "key": "6.4",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "7gLlCl01Cfw"
+    ]
+   },
+   {
+    "key": "6.5",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "smhSEm_RIUA"
+    ]
+   },
+   {
+    "key": "6.6",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "7aXQhkHIN-E"
+    ]
+   },
+   {
+    "key": "6.7",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "EpzR-Zz24Pk"
+    ]
+   },
+   {
+    "key": "6.8",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "cGbSupolymQ"
+    ]
+   },
+   {
+    "key": "6.9",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "9Mhe5UFwyQg"
+    ]
+   },
+   {
+    "key": "6.10",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "HX9QAFqTeMQ"
+    ]
+   },
+   {
+    "key": "6.11",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "9Mhe5UFwyQg"
+    ]
+   },
+   {
+    "key": "6.12",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "Vg06ly8hzjI"
+    ]
+   },
+   {
+    "key": "6.13",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "3H2FMEPfExc"
+    ]
+   },
+   {
+    "key": "6.14",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "Z4zByger9n8"
+    ]
+   },
+   {
+    "key": "7.3",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "3wILlHGBOsQ"
+    ]
+   },
+   {
+    "key": "7.4",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "wstwADQ0G3k"
+    ]
+   },
+   {
+    "key": "7.5",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "KU9WEfRBu5k"
+    ]
+   },
+   {
+    "key": "7.6",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "KU9WEfRBu5k"
+    ]
+   },
+   {
+    "key": "8.2",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "n2iySaaElYs"
+    ]
+   },
+   {
+    "key": "8.3",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "xF-6lcrrJks"
+    ]
+   },
+   {
+    "key": "8.4",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "xF-6lcrrJks"
+    ]
+   },
+   {
+    "key": "8.5",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "xF-6lcrrJks"
+    ]
+   },
+   {
+    "key": "8.6",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "dahrmqT5GD4"
+    ]
+   },
+   {
+    "key": "8.7",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "dahrmqT5GD4"
+    ]
+   },
+   {
+    "key": "8.8",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "yC99QQo_vhg"
+    ]
+   },
+   {
+    "key": "8.9",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "EA2FrFJ_4YE"
+    ]
+   },
+   {
+    "key": "8.10",
+    "hubChapter": "3qgghfui",
+    "videos": [
+     "4W8LniddddE"
+    ]
+   },
+   {
+    "key": "9.3.1",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "ynjHKBCiGXY"
+    ]
+   },
+   {
+    "key": "9.3.2",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "ynjHKBCiGXY"
+    ]
+   },
+   {
+    "key": "9.4.1",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "xX3qxaNejU0"
+    ]
+   },
+   {
+    "key": "9.4.2",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "xX3qxaNejU0"
+    ]
+   },
+   {
+    "key": "9.4.3",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "xX3qxaNejU0"
+    ]
+   },
+   {
+    "key": "9.5.1",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "s_LfN4ItCs4"
+    ]
+   },
+   {
+    "key": "9.5.2",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "s_LfN4ItCs4"
+    ]
+   },
+   {
+    "key": "9.5.3",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "s_LfN4ItCs4"
+    ]
+   },
+   {
+    "key": "9.6.1",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "pA83XtLeVig"
+    ]
+   },
+   {
+    "key": "9.6.2",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "ynjHKBCiGXY"
+    ]
+   },
+   {
+    "key": "9.6.3",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "94AmzeR9n2w"
+    ]
+   },
+   {
+    "key": "9.7",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "94AmzeR9n2w"
+    ]
+   },
+   {
+    "key": "9.8",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "OByl4RJxnKA",
+     "94AmzeR9n2w"
+    ]
+   },
+   {
+    "key": "9.9.1",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "OByl4RJxnKA"
+    ]
+   },
+   {
+    "key": "9.9.2",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "OByl4RJxnKA"
+    ]
+   },
+   {
+    "key": "10.3",
+    "hubChapter": "3eqhr6df",
+    "videos": [
+     "-7QG2itL1u4"
+    ]
+   },
+   {
+    "key": "10.4.1",
+    "hubChapter": "kdn8e8rj",
+    "videos": [
+     "3PWKQiLK41M"
+    ]
+   },
+   {
+    "key": "10.4.2",
+    "hubChapter": "kdn8e8rj",
+    "videos": [
+     "3PWKQiLK41M"
+    ]
+   },
+   {
+    "key": "10.5.1",
+    "hubChapter": "kdn8e8rj",
+    "videos": [
+     "m0o-585xwW0"
+    ]
+   },
+   {
+    "key": "10.5.2",
+    "hubChapter": "kdn8e8rj",
+    "videos": [
+     "m0o-585xwW0"
+    ]
+   },
+   {
+    "key": "10.6.1",
+    "hubChapter": "kdn8e8rj",
+    "videos": [
+     "CjF_yQ2N638"
+    ]
+   },
+   {
+    "key": "10.6.2",
+    "hubChapter": "kdn8e8rj",
+    "videos": [
+     "CjF_yQ2N638"
+    ]
+   },
+   {
+    "key": "10.6.3",
+    "hubChapter": "kdn8e8rj",
+    "videos": [
+     "CjF_yQ2N638"
+    ]
+   },
+   {
+    "key": "10.7",
+    "hubChapter": "kdn8e8rj",
+    "videos": [
+     "V3Qxj2C7rP0"
+    ]
+   },
+   {
+    "key": "10.8",
+    "hubChapter": "kdn8e8rj",
+    "videos": [
+     "0fjAI6LMQDU"
+    ]
+   },
+   {
+    "key": "11.3.1",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "ydvnVw80I_8"
+    ]
+   },
+   {
+    "key": "11.3.2",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "tbv9E9D2BRQ",
+     "ydvnVw80I_8"
+    ]
+   },
+   {
+    "key": "11.3.3",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "ydvnVw80I_8",
+     "FUY07dvaUuE"
+    ]
+   },
+   {
+    "key": "11.4",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "cSZvSy4Vopc"
+    ]
+   },
+   {
+    "key": "11.5.1",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "tbv9E9D2BRQ"
+    ]
+   },
+   {
+    "key": "11.5.2",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "FUY07dvaUuE"
+    ]
+   },
+   {
+    "key": "11.6.1",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "tDQ4_W3eUiw"
+    ]
+   },
+   {
+    "key": "11.6.2",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "tDQ4_W3eUiw"
+    ]
+   },
+   {
+    "key": "11.7",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "An_2r6Ae_28"
+    ]
+   },
+   {
+    "key": "11.8",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "8NwCU1COXCs"
+    ]
+   },
+   {
+    "key": "11.9",
+    "hubChapter": "n8qhje9z",
+    "videos": [
+     "LMCODkeeDtE"
+    ]
+   },
+   {
+    "key": "12.3.1",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "EZrP_av3cmA"
+    ]
+   },
+   {
+    "key": "12.3.2",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "A82brFpdr9g"
+    ]
+   },
+   {
+    "key": "12.4.1",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "fSmedyVv-Us"
+    ]
+   },
+   {
+    "key": "12.4.2",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "fSmedyVv-Us"
+    ]
+   },
+   {
+    "key": "12.4.3",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "fSmedyVv-Us"
+    ]
+   },
+   {
+    "key": "12.4.4",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "fSmedyVv-Us"
+    ]
+   },
+   {
+    "key": "12.4.5",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "fSmedyVv-Us"
+    ]
+   },
+   {
+    "key": "12.5.1",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "pTuj57uXWlk"
+    ]
+   },
+   {
+    "key": "12.5.2",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "pTuj57uXWlk"
+    ]
+   },
+   {
+    "key": "12.5.3",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "pTuj57uXWlk"
+    ]
+   },
+   {
+    "key": "12.5.4",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "pTuj57uXWlk"
+    ]
+   },
+   {
+    "key": "12.5.5",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "pTuj57uXWlk"
+    ]
+   },
+   {
+    "key": "12.6",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "7S7j75d3GM4"
+    ]
+   },
+   {
+    "key": "12.7",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "YAlJCEDH2uY",
+     "7S7j75d3GM4"
+    ]
+   },
+   {
+    "key": "12.8",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "q2e4mK0FTbw"
+    ]
+   },
+   {
+    "key": "12.9",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "VyFs7fsWE6w"
+    ]
+   },
+   {
+    "key": "12.10",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "Rf-fIpB4D50"
+    ]
+   },
+   {
+    "key": "12.11",
+    "hubChapter": "f8sx4mp7",
+    "videos": [
+     "lnQzVP1vcJQ"
+    ]
+   },
+   {
+    "key": "13.3",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "ENnlSlvQHO0"
+    ]
+   },
+   {
+    "key": "13.4",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "hlM7zdf7zwU"
+    ]
+   },
+   {
+    "key": "13.5",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "6r5IZCjvIHI"
+    ]
+   },
+   {
+    "key": "13.6",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "dLEtlteLVJU"
+    ]
+   },
+   {
+    "key": "13.7.1",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "hcUxFwUjCxM"
+    ]
+   },
+   {
+    "key": "13.7.2",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "NaZBdj0nCzQ"
+    ]
+   },
+   {
+    "key": "13.8",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "gWaA8mVBZQk"
+    ]
+   },
+   {
+    "key": "13.9",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "7zcbVaVz_P8"
+    ]
+   },
+   {
+    "key": "13.10",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "upc4zN_-YFM"
+    ]
+   },
+   {
+    "key": "13.11.1",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "-mweY-UM6kc"
+    ]
+   },
+   {
+    "key": "13.11.2",
+    "hubChapter": "5z2y7atg",
+    "videos": [
+     "_k1MQTUCXmU"
+    ]
+   },
+   {
+    "key": "14.3",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "VK-rnA3-41c",
+     "0oc49DyA3hU"
+    ]
+   },
+   {
+    "key": "14.4",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "Hdbbx7DIweQ"
+    ]
+   },
+   {
+    "key": "14.5",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "vemZtEM63GY"
+    ]
+   },
+   {
+    "key": "14.6",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "VK-rnA3-41c"
+    ]
+   },
+   {
+    "key": "14.7",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "CyFh2oYHmH0"
+    ]
+   },
+   {
+    "key": "14.8.1",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "pCbNUnZ98oE"
+    ]
+   },
+   {
+    "key": "14.8.2",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "UcZwyzwWU7o"
+    ]
+   },
+   {
+    "key": "14.9",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "JiQR0lHLe74"
+    ]
+   },
+   {
+    "key": "14.10",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "mvye6X_0upA"
+    ]
+   },
+   {
+    "key": "14.11.1",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "oGgsKmi_lyA"
+    ]
+   },
+   {
+    "key": "14.11.2",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "Rsc5znwR5FA"
+    ]
+   },
+   {
+    "key": "14.12",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "PyNzbDbjs1Y"
+    ]
+   },
+   {
+    "key": "14.13.1",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "0oc49DyA3hU"
+    ]
+   },
+   {
+    "key": "14.13.2",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "KS6KEWaoOOE"
+    ]
+   },
+   {
+    "key": "14.13.3",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "k1at8VukIbw"
+    ]
+   },
+   {
+    "key": "14.14",
+    "hubChapter": "ipdnhbeh",
+    "videos": [
+     "4f9G_8TK6Mo"
+    ]
+   },
+   {
+    "key": "15.3",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "D7NKvMG8peo"
+    ]
+   },
+   {
+    "key": "15.4",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "D7NKvMG8peo"
+    ]
+   },
+   {
+    "key": "15.5",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "IujCYxtpszU"
+    ]
+   },
+   {
+    "key": "15.6",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "nMCdoIXeUuo"
+    ]
+   },
+   {
+    "key": "15.7",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "XV_W1w4Nwoc"
+    ]
+   },
+   {
+    "key": "15.8",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "Rwc4-MXl8VI",
+     "D7NKvMG8peo"
+    ]
+   },
+   {
+    "key": "15.9",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "AuYRQVmpSaE"
+    ]
+   },
+   {
+    "key": "15.10",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "HpjlcEH4zuY"
+    ]
+   },
+   {
+    "key": "15.11",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "ofweqU0Lz4I"
+    ]
+   },
+   {
+    "key": "15.12.1",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "cKtoizsRt2M"
+    ]
+   },
+   {
+    "key": "15.12.2",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "bd6hQ2UcIJc"
+    ]
+   },
+   {
+    "key": "15.13",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "TkNt8KFm0LQ"
+    ]
+   },
+   {
+    "key": "15.14",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "RbHCeANCbW0"
+    ]
+   },
+   {
+    "key": "15.15",
+    "hubChapter": "xs3z8vxd",
+    "videos": [
+     "zFMgpxG-chM"
+    ]
+   },
+   {
+    "key": "16.3.1",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "iMdtTCX2Q70"
+    ]
+   },
+   {
+    "key": "16.3.2",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "iMdtTCX2Q70"
+    ]
+   },
+   {
+    "key": "16.3.3",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "iMdtTCX2Q70"
+    ]
+   },
+   {
+    "key": "16.4.1",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "AVketBmpUTE"
+    ]
+   },
+   {
+    "key": "16.4.2",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "xc_X9GFVuVU"
+    ]
+   },
+   {
+    "key": "16.5",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "cJpWQkoe4BA"
+    ]
+   },
+   {
+    "key": "16.6",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "WBx9ENRqz1o"
+    ]
+   },
+   {
+    "key": "16.7",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "dSCFk168vmo"
+    ]
+   },
+   {
+    "key": "16.8",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "95MyDVxWrO8"
+    ]
+   },
+   {
+    "key": "16.9",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "c5blVUkkjTM"
+    ]
+   },
+   {
+    "key": "16.10.1",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "gcMyqK4YlNI"
+    ]
+   },
+   {
+    "key": "16.10.2",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "sfH43temzQY"
+    ]
+   },
+   {
+    "key": "16.10.3",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "dlDpHy0ZbGA"
+    ]
+   },
+   {
+    "key": "16.11",
+    "hubChapter": "a4cwudiv",
+    "videos": [
+     "3bvM3NyMiE0"
+    ]
+   },
+   {
+    "key": "17.3",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "EkAQAi3a4js"
+    ]
+   },
+   {
+    "key": "17.4",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "EkAQAi3a4js"
+    ]
+   },
+   {
+    "key": "17.5",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "EkAQAi3a4js"
+    ]
+   },
+   {
+    "key": "17.6",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "8W2fGkU5LYU"
+    ]
+   },
+   {
+    "key": "17.7",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "S66FZa16RZc"
+    ]
+   },
+   {
+    "key": "17.8",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "J8IHdu-oM64"
+    ]
+   },
+   {
+    "key": "17.9",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "G1WX5GiFSWQ",
+     "Cba9LJ9lS8s"
+    ]
+   },
+   {
+    "key": "17.10",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "b4jhrK03zhs"
+    ]
+   },
+   {
+    "key": "17.11",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "tPykSMHpgHw"
+    ]
+   },
+   {
+    "key": "17.12",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "QptI-vDle8Y"
+    ]
+   },
+   {
+    "key": "17.13",
+    "hubChapter": "sra4myeb",
+    "videos": [
+     "Fzi4T94QCjw"
+    ]
+   },
+   {
+    "key": "18.3",
+    "hubChapter": "3kfhijnb",
+    "videos": [
+     "1zMyfQ8VGmw"
+    ]
+   },
+   {
+    "key": "18.4",
+    "hubChapter": "3kfhijnb",
+    "videos": [
+     "GE3JOFwTWVM"
+    ]
+   },
+   {
+    "key": "18.5",
+    "hubChapter": "3kfhijnb",
+    "videos": [
+     "Wo5YWXDRXv8"
+    ]
+   },
+   {
+    "key": "18.6",
+    "hubChapter": "3kfhijnb",
+    "videos": [
+     "k_HN0wOKDd0"
+    ]
+   },
+   {
+    "key": "18.7",
+    "hubChapter": "3kfhijnb",
+    "videos": [
+     "lCGw53-tlRw"
+    ]
+   },
+   {
+    "key": "18.8",
+    "hubChapter": "3kfhijnb",
+    "videos": [
+     "Wo5YWXDRXv8"
+    ]
+   },
+   {
+    "key": "18.9",
+    "hubChapter": "3kfhijnb",
+    "videos": [
+     "C5J_QSR7ST0"
+    ]
+   },
+   {
+    "key": "18.10",
+    "hubChapter": "3kfhijnb",
+    "videos": [
+     "f3CLo2w7I0I"
+    ]
+   },
+   {
+    "key": "18.11",
+    "hubChapter": "3kfhijnb",
+    "videos": [
+     "VQS1X0sEuU4"
+    ]
+   },
+   {
+    "key": "18.12",
+    "hubChapter": "3kfhijnb",
+    "videos": [
+     "xKnBPAcwx4I"
+    ]
+   },
+   {
+    "key": "19.3",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "soTnusib1l8"
+    ]
+   },
+   {
+    "key": "19.4",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "uaxOfTIC_pI"
+    ]
+   },
+   {
+    "key": "19.5",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "soTnusib1l8"
+    ]
+   },
+   {
+    "key": "19.6",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "soTnusib1l8",
+     "FzY333RdrBM",
+     "J52iRkbrG1k",
+     "uaxOfTIC_pI"
+    ]
+   },
+   {
+    "key": "19.7",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "q3gy3bKc1aA"
+    ]
+   },
+   {
+    "key": "19.8",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "dcCBhLWefr4"
+    ]
+   },
+   {
+    "key": "19.9",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "1nRKsuUcNd4"
+    ]
+   },
+   {
+    "key": "19.10",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "yiRNcHU2ZGU"
+    ]
+   },
+   {
+    "key": "19.11",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "oXRItMvwUYM"
+    ]
+   },
+   {
+    "key": "19.12",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "_eMA0LWsRQQ"
+    ]
+   },
+   {
+    "key": "19.13",
+    "hubChapter": "zaai4t2u",
+    "videos": [
+     "jizZKNnx9wA"
+    ]
+   },
+   {
+    "key": "20.3",
+    "hubChapter": "3di898yc",
+    "videos": [
+     "7TqhmX92P6U"
+    ]
+   },
+   {
+    "key": "20.4",
+    "hubChapter": "3di898yc",
+    "videos": [
+     "Eb4jPVdaITg"
+    ]
+   },
+   {
+    "key": "20.5",
+    "hubChapter": "3di898yc",
+    "videos": [
+     "7ESK5SaP-bc"
+    ]
+   },
+   {
+    "key": "20.6",
+    "hubChapter": "3di898yc",
+    "videos": [
+     "6UkXYF0tKDA"
+    ]
+   },
+   {
+    "key": "20.7",
+    "hubChapter": "3di898yc",
+    "videos": [
+     "bART-OKe100"
+    ]
+   },
+   {
+    "key": "20.8",
+    "hubChapter": "3di898yc",
+    "videos": [
+     "0ikk_VEBkJw"
+    ]
+   },
+   {
+    "key": "20.9",
+    "hubChapter": "3di898yc",
+    "videos": [
+     "Mcj98rzOdys"
+    ]
+   },
+   {
+    "key": "20.10",
+    "hubChapter": "3di898yc",
+    "videos": [
+     "4in4NAeHZOU"
+    ]
+   },
+   {
+    "key": "20.11",
+    "hubChapter": "3di898yc",
+    "videos": [
+     "MrVJSizFJhs"
+    ]
+   },
+   {
+    "key": "20.12",
+    "hubChapter": "3di898yc",
+    "videos": [
+     "m_D9egJHfCw"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "EC2020",
+  "module": "econometrics",
+  "sections": [
+   {
+    "key": "1.2.1",
+    "hubChapter": "6jmn24c5",
+    "videos": [
+     "NcJdOXuUdgU"
+    ]
+   },
+   {
+    "key": "1.2.2",
+    "hubChapter": "6jmn24c5",
+    "videos": [
+     "UxbY85Cm9SQ"
+    ]
+   },
+   {
+    "key": "2.2.1",
+    "hubChapter": "6jmn24c5",
+    "videos": [
+     "5lcQN-zbeGE"
+    ]
+   },
+   {
+    "key": "2.2.2",
+    "hubChapter": "6jmn24c5",
+    "videos": [
+     "5lcQN-zbeGE"
+    ]
+   },
+   {
+    "key": "2.2.3",
+    "hubChapter": "6jmn24c5",
+    "videos": [
+     "5lcQN-zbeGE"
+    ]
+   },
+   {
+    "key": "2.2.4",
+    "hubChapter": "6jmn24c5",
+    "videos": [
+     "5lcQN-zbeGE"
+    ]
+   },
+   {
+    "key": "3.2.1",
+    "hubChapter": "mtitgdpr",
+    "videos": [
+     "WHas2yaIlcs"
+    ]
+   },
+   {
+    "key": "3.2.2",
+    "hubChapter": "mtitgdpr",
+    "videos": [
+     "WHas2yaIlcs"
+    ]
+   },
+   {
+    "key": "3.2.3",
+    "hubChapter": "mtitgdpr",
+    "videos": [
+     "WHas2yaIlcs"
+    ]
+   },
+   {
+    "key": "3.2.4",
+    "hubChapter": "mtitgdpr",
+    "videos": [
+     "WHas2yaIlcs"
+    ]
+   },
+   {
+    "key": "3.2.5",
+    "hubChapter": "mtitgdpr",
+    "videos": [
+     "WHas2yaIlcs"
+    ]
+   },
+   {
+    "key": "3.2.6",
+    "hubChapter": "mtitgdpr",
+    "videos": [
+     "dFSPmjSynCs"
+    ]
+   },
+   {
+    "key": "4.2.1",
+    "hubChapter": "48isg7ra",
+    "videos": [
+     "17nWWWUrUcg"
+    ]
+   },
+   {
+    "key": "4.2.2",
+    "hubChapter": "48isg7ra",
+    "videos": [
+     "17nWWWUrUcg"
+    ]
+   },
+   {
+    "key": "4.2.3",
+    "hubChapter": "48isg7ra",
+    "videos": [
+     "17nWWWUrUcg"
+    ]
+   },
+   {
+    "key": "4.2.4",
+    "hubChapter": "48isg7ra",
+    "videos": [
+     "17nWWWUrUcg"
+    ]
+   },
+   {
+    "key": "4.2.5",
+    "hubChapter": "48isg7ra",
+    "videos": [
+     "17nWWWUrUcg"
+    ]
+   },
+   {
+    "key": "4.2.6",
+    "hubChapter": "48isg7ra",
+    "videos": [
+     "M7QNuq53oOQ"
+    ]
+   },
+   {
+    "key": "5.2.1",
+    "hubChapter": "9xtetwaf",
+    "videos": [
+     "S72V6trrwKY"
+    ]
+   },
+   {
+    "key": "5.2.2",
+    "hubChapter": "9xtetwaf",
+    "videos": [
+     "S72V6trrwKY"
+    ]
+   },
+   {
+    "key": "5.2.3",
+    "hubChapter": "9xtetwaf",
+    "videos": [
+     "S72V6trrwKY"
+    ]
+   },
+   {
+    "key": "5.2.4",
+    "hubChapter": "9xtetwaf",
+    "videos": [
+     "S72V6trrwKY"
+    ]
+   },
+   {
+    "key": "5.2.5",
+    "hubChapter": "9xtetwaf",
+    "videos": [
+     "S72V6trrwKY"
+    ]
+   },
+   {
+    "key": "5.2.6",
+    "hubChapter": "9xtetwaf",
+    "videos": [
+     "pwZFqdTPcB4"
+    ]
+   },
+   {
+    "key": "6.2.1",
+    "hubChapter": "i3xv6ibs",
+    "videos": [
+     "-kOyvpSRq6E",
+     "kE_I-5rxtEA",
+     "r-DzqemVeto"
+    ]
+   },
+   {
+    "key": "6.2.2",
+    "hubChapter": "i3xv6ibs",
+    "videos": [
+     "zT2FJV9HYrU"
+    ]
+   },
+   {
+    "key": "6.2.3",
+    "hubChapter": "i3xv6ibs",
+    "videos": [
+     "CG2sKEjEqOg"
+    ]
+   },
+   {
+    "key": "6.2.4",
+    "hubChapter": "i3xv6ibs",
+    "videos": [
+     "mQug4A6BrSY",
+     "akH7xapNmkk"
+    ]
+   },
+   {
+    "key": "6.2.5",
+    "hubChapter": "i3xv6ibs",
+    "videos": [
+     "sBXOX-GRshU",
+     "5teRbycIErE"
+    ]
+   },
+   {
+    "key": "7.2.1",
+    "hubChapter": "gazw7qiy",
+    "videos": [
+     "nORu6KPc7o4"
+    ]
+   },
+   {
+    "key": "7.2.2",
+    "hubChapter": "gazw7qiy",
+    "videos": [
+     "nORu6KPc7o4"
+    ]
+   },
+   {
+    "key": "7.2.3",
+    "hubChapter": "gazw7qiy",
+    "videos": [
+     "nORu6KPc7o4"
+    ]
+   },
+   {
+    "key": "8.2.1",
+    "hubChapter": "w8jhm9u7",
+    "videos": [
+     "DMzBRYqAHrE"
+    ]
+   },
+   {
+    "key": "8.2.2",
+    "hubChapter": "w8jhm9u7",
+    "videos": [
+     "DMzBRYqAHrE"
+    ]
+   },
+   {
+    "key": "8.2.3",
+    "hubChapter": "w8jhm9u7",
+    "videos": [
+     "DMzBRYqAHrE"
+    ]
+   },
+   {
+    "key": "8.2.4",
+    "hubChapter": "w8jhm9u7",
+    "videos": [
+     "DMzBRYqAHrE"
+    ]
+   },
+   {
+    "key": "8.2.5",
+    "hubChapter": "w8jhm9u7",
+    "videos": [
+     "hFoDDwTF4KY"
+    ]
+   },
+   {
+    "key": "9.2.1",
+    "hubChapter": "kfec5xg7",
+    "videos": [
+     "GsL3OZTIcfo"
+    ]
+   },
+   {
+    "key": "9.2.2",
+    "hubChapter": "kfec5xg7",
+    "videos": [
+     "GsL3OZTIcfo"
+    ]
+   },
+   {
+    "key": "9.2.3",
+    "hubChapter": "kfec5xg7",
+    "videos": [
+     "GsL3OZTIcfo"
+    ]
+   },
+   {
+    "key": "9.2.4",
+    "hubChapter": "kfec5xg7",
+    "videos": [
+     "GsL3OZTIcfo"
+    ]
+   },
+   {
+    "key": "9.2.5",
+    "hubChapter": "kfec5xg7",
+    "videos": [
+     "GsL3OZTIcfo"
+    ]
+   },
+   {
+    "key": "9.2.6",
+    "hubChapter": "kfec5xg7",
+    "videos": [
+     "GsL3OZTIcfo"
+    ]
+   },
+   {
+    "key": "9.2.7",
+    "hubChapter": "kfec5xg7",
+    "videos": [
+     "YtVNvucdPqY"
+    ]
+   },
+   {
+    "key": "10.2.1",
+    "hubChapter": "zrnn3q4e",
+    "videos": [
+     "S-a3vPMi7XE",
+     "HnEfrbG0O0g",
+     "TffuvyscWnE"
+    ]
+   },
+   {
+    "key": "10.2.2",
+    "hubChapter": "zrnn3q4e",
+    "videos": [
+     "yWRDncEtPyA"
+    ]
+   },
+   {
+    "key": "11.2.1",
+    "hubChapter": "wvms9ehf",
+    "videos": [
+     "HfnFeJlkfZE",
+     "3j5IeuvSebQ"
+    ]
+   },
+   {
+    "key": "11.2.2",
+    "hubChapter": "wvms9ehf",
+    "videos": [
+     "3j5IeuvSebQ",
+     "0ghriBFFqOg"
+    ]
+   },
+   {
+    "key": "11.2.3",
+    "hubChapter": "wvms9ehf",
+    "videos": [
+     "WcXQzp4IRyI",
+     "KcrBLFnh87o",
+     "0ghriBFFqOg"
+    ]
+   },
+   {
+    "key": "12.2.1",
+    "hubChapter": "hifykydg",
+    "videos": [
+     "WWpYD6Y7OEc",
+     "Q0BH-5OGwBc"
+    ]
+   },
+   {
+    "key": "12.2.2",
+    "hubChapter": "hifykydg",
+    "videos": [
+     "XschJ-KO6BU"
+    ]
+   },
+   {
+    "key": "12.2.3",
+    "hubChapter": "hifykydg",
+    "videos": [
+     "yPCQZeGWJjw"
+    ]
+   },
+   {
+    "key": "12.2.4",
+    "hubChapter": "hifykydg",
+    "videos": [
+     "I_dhPETvll8",
+     "Z582V53dfr8"
+    ]
+   },
+   {
+    "key": "12.2.5",
+    "hubChapter": "hifykydg",
+    "videos": [
+     "WflqTUOvdik",
+     "lJMO5kqWwIo",
+     "BF037e0I9pA"
+    ]
+   },
+   {
+    "key": "12.2.6",
+    "hubChapter": "hifykydg",
+    "videos": [
+     "A9P888Lxde8"
+    ]
+   },
+   {
+    "key": "13.2.1",
+    "hubChapter": "s7m9nt7j",
+    "videos": [
+     "-sCG56xczmc"
+    ]
+   },
+   {
+    "key": "13.2.2",
+    "hubChapter": "s7m9nt7j",
+    "videos": [
+     "-sCG56xczmc",
+     "weghag5PqSc"
+    ]
+   },
+   {
+    "key": "13.2.3",
+    "hubChapter": "s7m9nt7j",
+    "videos": [
+     "-sCG56xczmc",
+     "LgIOgb-6mYA"
+    ]
+   },
+   {
+    "key": "13.2.4",
+    "hubChapter": "s7m9nt7j",
+    "videos": [
+     "ZIWyGjrAlks",
+     "7xJ8mT6gZb4"
+    ]
+   },
+   {
+    "key": "13.2.5",
+    "hubChapter": "s7m9nt7j",
+    "videos": [
+     "BGNjzEIqi6M"
+    ]
+   },
+   {
+    "key": "14.2.1",
+    "hubChapter": "z3jpk5vt",
+    "videos": [
+     "EhvPfZYJCkE",
+     "fGsu0OzLUDk",
+     "qNnHnoSdLFE",
+     "ZjsDE3SyDlk"
+    ]
+   },
+   {
+    "key": "14.2.2",
+    "hubChapter": "z3jpk5vt",
+    "videos": [
+     "EhvPfZYJCkE",
+     "g1HNNo31bCA",
+     "JN6Sblxz7v0"
+    ]
+   },
+   {
+    "key": "14.2.3",
+    "hubChapter": "z3jpk5vt",
+    "videos": [
+     "esjUgiZwJGE"
+    ]
+   },
+   {
+    "key": "15.2.1",
+    "hubChapter": "wvyeiupu",
+    "videos": [
+     "DZklab6VM1M",
+     "seWmj8CYwmQ",
+     "SBk2W1Sf64Y"
+    ]
+   },
+   {
+    "key": "15.2.2",
+    "hubChapter": "wvyeiupu",
+    "videos": [
+     "-3r3yCsDOQM"
+    ]
+   },
+   {
+    "key": "15.2.3",
+    "hubChapter": "wvyeiupu",
+    "videos": [
+     "2GxWgIumPTA",
+     "X8nGZ2UCJsk"
+    ]
+   },
+   {
+    "key": "15.2.4",
+    "hubChapter": "wvyeiupu",
+    "videos": [
+     "vvTKjm94Ars",
+     "q5wbOSjbVW4",
+     "wYQ_v_0tk_c"
+    ]
+   },
+   {
+    "key": "15.2.5",
+    "hubChapter": "wvyeiupu",
+    "videos": [
+     "5TJH4xoDNe4"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "IS2184",
+  "module": "information-systems",
+  "sections": [
+   {
+    "key": "2.2.1",
+    "hubChapter": "czacvht6",
+    "videos": [
+     "qMZSYVVIyxo"
+    ]
+   },
+   {
+    "key": "2.2.2",
+    "hubChapter": "czacvht6",
+    "videos": [
+     "f1sto1O7ZMY"
+    ]
+   },
+   {
+    "key": "2.2.3",
+    "hubChapter": "czacvht6",
+    "videos": [
+     "yX4kO8rVpHo"
+    ]
+   },
+   {
+    "key": "2.2.4",
+    "hubChapter": "czacvht6",
+    "videos": [
+     "yX4kO8rVpHo"
+    ]
+   },
+   {
+    "key": "2.2.5",
+    "hubChapter": "czacvht6",
+    "videos": [
+     "kerDFvln7hU",
+     "SGYmPMcgDPg",
+     "VbyR4t2lTP8"
+    ]
+   },
+   {
+    "key": "3.2.1",
+    "hubChapter": "9mydiipv",
+    "videos": [
+     "NxT8Dc4yeW8"
+    ]
+   },
+   {
+    "key": "3.2.2",
+    "hubChapter": "9mydiipv",
+    "videos": [
+     "NxT8Dc4yeW8"
+    ]
+   },
+   {
+    "key": "3.2.3",
+    "hubChapter": "9mydiipv",
+    "videos": [
+     "SI5lYaZaUlg",
+     "NxT8Dc4yeW8"
+    ]
+   },
+   {
+    "key": "3.2.4",
+    "hubChapter": "9mydiipv",
+    "videos": [
+     "NxT8Dc4yeW8"
+    ]
+   },
+   {
+    "key": "3.2.5",
+    "hubChapter": "9mydiipv",
+    "videos": [
+     "o7Ik1OB4TaE",
+     "mYF2_FBCvXw",
+     "I_6AVRGLXGA",
+     "hj7Kw3fDNaw",
+     "NxT8Dc4yeW8"
+    ]
+   },
+   {
+    "key": "4.2.1",
+    "hubChapter": "kxzwbsfh",
+    "videos": [
+     "H_FX0uYUtdo",
+     "YCVQHwas1-4"
+    ]
+   },
+   {
+    "key": "4.2.2",
+    "hubChapter": "kxzwbsfh",
+    "videos": [
+     "H_FX0uYUtdo"
+    ]
+   },
+   {
+    "key": "4.2.3",
+    "hubChapter": "kxzwbsfh",
+    "videos": [
+     "cHUP61KU3xE"
+    ]
+   },
+   {
+    "key": "4.2.4",
+    "hubChapter": "kxzwbsfh",
+    "videos": [
+     "zpT0tBGW4-E"
+    ]
+   },
+   {
+    "key": "4.2.5",
+    "hubChapter": "kxzwbsfh",
+    "videos": [
+     "-TDh-5n90vk",
+     "2124ZV4wbQ8",
+     "zpT0tBGW4-E"
+    ]
+   },
+   {
+    "key": "4.2.6",
+    "hubChapter": "kxzwbsfh",
+    "videos": [
+     "-TDh-5n90vk",
+     "zpT0tBGW4-E"
+    ]
+   },
+   {
+    "key": "5.2.1",
+    "hubChapter": "q4qnvjzi",
+    "videos": [
+     "VHD3-gRFiQo",
+     "GOAIbuqni8E",
+     "9Fmjs4OTqRA"
+    ]
+   },
+   {
+    "key": "5.2.2",
+    "hubChapter": "q4qnvjzi",
+    "videos": [
+     "Du0jGBX6IfU",
+     "VHD3-gRFiQo"
+    ]
+   },
+   {
+    "key": "5.2.3",
+    "hubChapter": "q4qnvjzi",
+    "videos": [
+     "VHD3-gRFiQo",
+     "luJ4-QAzbEM"
+    ]
+   },
+   {
+    "key": "5.2.4",
+    "hubChapter": "q4qnvjzi",
+    "videos": [
+     "36zducUX16w",
+     "-3Z3fjo7nmk"
+    ]
+   },
+   {
+    "key": "5.2.5",
+    "hubChapter": "q4qnvjzi",
+    "videos": [
+     "MpDMaEql4JM"
+    ]
+   },
+   {
+    "key": "6.2.1",
+    "hubChapter": "ujj8xtah",
+    "videos": [
+     "7CMUfDZ0Kzk"
+    ]
+   },
+   {
+    "key": "6.2.2",
+    "hubChapter": "ujj8xtah",
+    "videos": [
+     "5U5f17vO1Y0",
+     "cU8iGQ5hUQQ",
+     "YtDKSxEKCEU"
+    ]
+   },
+   {
+    "key": "6.2.3",
+    "hubChapter": "ujj8xtah",
+    "videos": [
+     "Ei3-1KgjARA",
+     "c3QfSmKo4QA",
+     "bO3GpAjVvD8"
+    ]
+   },
+   {
+    "key": "7.2.1",
+    "hubChapter": "htuw2xad",
+    "videos": [
+     "FhpWKUWjOuc",
+     "mEH7Zb4pt3w"
+    ]
+   },
+   {
+    "key": "7.2.2",
+    "hubChapter": "htuw2xad",
+    "videos": [
+     "FhpWKUWjOuc",
+     "mEH7Zb4pt3w",
+     "N6kmGlk_L7A",
+     "g33O3gD0sU4"
+    ]
+   },
+   {
+    "key": "7.2.3",
+    "hubChapter": "htuw2xad",
+    "videos": [
+     "XWpgYdTceA0"
+    ]
+   },
+   {
+    "key": "8.2.1",
+    "hubChapter": "frkjcp99",
+    "videos": [
+     "Da1hUqzoiAo",
+     "FZbG0EF0rW8",
+     "_wGH97O_VCs"
+    ]
+   },
+   {
+    "key": "8.2.2",
+    "hubChapter": "frkjcp99",
+    "videos": [
+     "FZbG0EF0rW8",
+     "KfW2WKKzULw",
+     "ujCvxGTGfag",
+     "_wGH97O_VCs"
+    ]
+   },
+   {
+    "key": "9.2.1",
+    "hubChapter": "48qu7x6x",
+    "videos": [
+     "-I23qGB6JdY",
+     "8pHzROP1D-w",
+     "edouxOBrIGk",
+     "L1n9LheMEq0"
+    ]
+   },
+   {
+    "key": "9.2.2",
+    "hubChapter": "48qu7x6x",
+    "videos": [
+     "8pHzROP1D-w",
+     "edouxOBrIGk"
+    ]
+   },
+   {
+    "key": "9.2.3",
+    "hubChapter": "48qu7x6x",
+    "videos": [
+     "-I23qGB6JdY",
+     "oF_2uDb7DvQ",
+     "7rs0i-9nOjo",
+     "L1n9LheMEq0"
+    ]
+   },
+   {
+    "key": "9.2.4",
+    "hubChapter": "48qu7x6x",
+    "videos": [
+     "kPPFNrlN3zo"
+    ]
+   },
+   {
+    "key": "10.2.1",
+    "hubChapter": "ra9dbmxr",
+    "videos": [
+     "3_eI5r55XhU",
+     "wj8vHRaLjjo",
+     "Rr02SdqmY2A",
+     "sVtMC3GkMr0",
+     "K4hHKKDKQmg"
+    ]
+   },
+   {
+    "key": "10.2.2",
+    "hubChapter": "ra9dbmxr",
+    "videos": [
+     "SmqLyOLIjos",
+     "xT3EpF2EsbQ",
+     "K4hHKKDKQmg"
+    ]
+   },
+   {
+    "key": "11.2.1",
+    "hubChapter": "dtjtecub",
+    "videos": [
+     "Xki2fRA0bY8",
+     "iI2WXaWTmO8"
+    ]
+   },
+   {
+    "key": "11.2.2",
+    "hubChapter": "dtjtecub",
+    "videos": [
+     "iI2WXaWTmO8",
+     "2iPDpV8ojHA",
+     "hIXhnWUmMvw",
+     "s2QLL8WawoQ"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "ST3189",
+  "module": "machine-learning",
+  "sections": [
+   {
+    "key": "1/Machine learning in everyday life",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "CiSaY2xl9V4"
+    ]
+   },
+   {
+    "key": "1/Definition of machine learning",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "znF2U_3Z210"
+    ]
+   },
+   {
+    "key": "1/Components of machine learning",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "v_ueBW_5dLg"
+    ]
+   },
+   {
+    "key": "1/Types of machine learning",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "W01tIRP_Rqs"
+    ]
+   },
+   {
+    "key": "1/Applications of machine learning",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "HKcO3-6TYr0"
+    ]
+   },
+   {
+    "key": "1/Related scientific fields",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "xucm6_BQPJU"
+    ]
+   },
+   {
+    "key": "2/Polynomial curve fitting",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "QptI-vDle8Y"
+    ]
+   },
+   {
+    "key": "2/Train and Test errors",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "pvcEQfcO3pk"
+    ]
+   },
+   {
+    "key": "3/Bias–variance trade-off",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "pvcEQfcO3pk",
+     "EuBBz3bI-aA",
+     "zUJbRO0Wavo"
+    ]
+   },
+   {
+    "key": "3/Cross-validation",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "fSytzGwwBVw",
+     "AMfvd_hLssE"
+    ]
+   },
+   {
+    "key": "3/Estimating test error itself",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "NPWlj9G1Si8"
+    ]
+   },
+   {
+    "key": "3/Limitations",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "QJTRNxUxmuc"
+    ]
+   },
+   {
+    "key": "4/Simulate Data",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "CbhBoAyxa_w"
+    ]
+   },
+   {
+    "key": "4/Machine learning models in mlr3",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "OVD0HDZ39IU"
+    ]
+   },
+   {
+    "key": "4/Cross-validation",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "fSytzGwwBVw",
+     "AMfvd_hLssE"
+    ]
+   },
+   {
+    "key": "4/Underfitting and overfitting",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "EuBBz3bI-aA",
+     "pvcEQfcO3pk"
+    ]
+   },
+   {
+    "key": "4/Benchmarking",
+    "hubChapter": "ss398uan",
+    "videos": [
+     "uqUeEkchYcE"
+    ]
+   },
+   {
+    "key": "5/The linear regression model",
+    "hubChapter": "jqew8tms",
+    "videos": [
+     "vCHtY6Me5FI",
+     "o9hoLdylWKo"
+    ]
+   },
+   {
+    "key": "5/Extensions of the model",
+    "hubChapter": "jqew8tms",
+    "videos": [
+     "dEBQmiXv9fk",
+     "TSFMepJbHa0"
+    ]
+   },
+   {
+    "key": "5/Statistical inference",
+    "hubChapter": "age96xeg",
+    "videos": [
+     "YevSE6bRhTo",
+     "Dn6b9fCIUpM",
+     "QVF0oOh7s8c",
+     "lET4uQLpmM0",
+     "27iSnzss2wM",
+     "tTeMYuS87oU",
+     "vemZtEM63GY"
+    ]
+   },
+   {
+    "key": "6/Estimator(s) for linear regression",
+    "hubChapter": "jqew8tms",
+    "videos": [
+     "vCHtY6Me5FI",
+     "_-Gnu498s3o",
+     "3GiWpRfkSjc"
+    ]
+   },
+   {
+    "key": "6/General formula in matrix notation",
+    "hubChapter": "jqew8tms",
+    "videos": [
+     "fb1CNQT-3Pg"
+    ]
+   },
+   {
+    "key": "6/Case study on Term Life Insurance data",
+    "hubChapter": "jqew8tms",
+    "videos": [
+     "50sv4UTjE90",
+     "iMdtTCX2Q70"
+    ]
+   },
+   {
+    "key": "7/Additional considerations in linear regression",
+    "hubChapter": "jqew8tms",
+    "videos": [
+     "GtV-VYdNt_g"
+    ]
+   },
+   {
+    "key": "8/Bayes theorem for statistical models",
+    "hubChapter": "3vfc7tmy",
+    "videos": [
+     "3jP4H0kjtng",
+     "GqSX-8AQL90"
+    ]
+   },
+   {
+    "key": "8/Bayes estimators",
+    "hubChapter": "3vfc7tmy",
+    "videos": [
+     "mqq_pjwUp40"
+    ]
+   },
+   {
+    "key": "8/(Bayesian) credible intervals",
+    "hubChapter": "3vfc7tmy",
+    "videos": [
+     "wMfODgwqEr0"
+    ]
+   },
+   {
+    "key": "8/Prediction",
+    "hubChapter": "3vfc7tmy",
+    "videos": [
+     "R9NQY2Hyl14"
+    ]
+   },
+   {
+    "key": "8/Examples: conjugate models",
+    "hubChapter": "3vfc7tmy",
+    "videos": [
+     "GqSX-8AQL90"
+    ]
+   },
+   {
+    "key": "8/Bayesian hypothesis testing and model choice",
+    "hubChapter": "3vfc7tmy",
+    "videos": [
+     "T-kMpA4z-7k"
+    ]
+   },
+   {
+    "key": "8/Prior specification",
+    "hubChapter": "3vfc7tmy",
+    "videos": [
+     "25-PpMSrAGM"
+    ]
+   },
+   {
+    "key": "9/Bayesian Central Limit Theorem",
+    "hubChapter": "3vfc7tmy",
+    "videos": [
+     "MgJnjo5Aayc"
+    ]
+   },
+   {
+    "key": "9/Monte Carlo Integration",
+    "hubChapter": "3vfc7tmy",
+    "videos": [
+     "MKnjsqYVG4Y"
+    ]
+   },
+   {
+    "key": "9/Bayesian Inference using Monte Carlo",
+    "hubChapter": "3vfc7tmy",
+    "videos": [
+     "f1Vcc-bPfnU"
+    ]
+   },
+   {
+    "key": "9/Model choice",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "nsv5rEV3mVI"
+    ]
+   },
+   {
+    "key": "10/Subset selection",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "nsv5rEV3mVI",
+     "ynXq-Gw1xfE"
+    ]
+   },
+   {
+    "key": "10/Best subset selection",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "nsv5rEV3mVI"
+    ]
+   },
+   {
+    "key": "10/Forward-Stepwise Selection",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "ynXq-Gw1xfE"
+    ]
+   },
+   {
+    "key": "10/Backward-Stepwise Selection",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "ynXq-Gw1xfE"
+    ]
+   },
+   {
+    "key": "11/Shrinkage / regularisation methods",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "Q81RR3yKn30",
+     "NGf0voTMlcs",
+     "Xm2C_gTAl8c",
+     "1dKRdX9bfIo"
+    ]
+   },
+   {
+    "key": "11/Bias-variance trade-off",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "Q81RR3yKn30",
+     "KV1Kt6I8rYs"
+    ]
+   },
+   {
+    "key": "11/Notes on shrinkage methods",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "Xm2C_gTAl8c",
+     "NGf0voTMlcs"
+    ]
+   },
+   {
+    "key": "12/Machine learning pipelines in mlr3",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "wSBV7rfVpyc"
+    ]
+   },
+   {
+    "key": "12/Subset selection methods",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "nsv5rEV3mVI",
+     "ynXq-Gw1xfE"
+    ]
+   },
+   {
+    "key": "13/Shrinkage and Bayes estimators",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "Z6HGJMUakmc"
+    ]
+   },
+   {
+    "key": "13/Bayesian linear regression",
+    "hubChapter": "urj44aju",
+    "videos": [
+     "Z6HGJMUakmc"
+    ]
+   },
+   {
+    "key": "14/The classification task",
+    "hubChapter": "hemswc2t",
+    "videos": [
+     "ju3J7iRy6xI"
+    ]
+   },
+   {
+    "key": "14/Classification vs linear regression",
+    "hubChapter": "hemswc2t",
+    "videos": [
+     "ju3J7iRy6xI"
+    ]
+   },
+   {
+    "key": "14/The logistic regression model",
+    "hubChapter": "hemswc2t",
+    "videos": [
+     "yIYKR4sgzI8",
+     "kr_Be9NVXOM",
+     "1uJVE8bkabc"
+    ]
+   },
+   {
+    "key": "15/Maximum likelihood estimation",
+    "hubChapter": "hemswc2t",
+    "videos": [
+     "BfKanl1aSG0",
+     "sDv4f4s2SB8",
+     "W7S94pq5Xuo",
+     "45lb8Xwm1E4"
+    ]
+   },
+   {
+    "key": "15/Bayesian / Shrinkage methods",
+    "hubChapter": "hemswc2t",
+    "videos": [
+     "Ovuszur2uzk"
+    ]
+   },
+   {
+    "key": "15/Assessing categorical Predictions",
+    "hubChapter": "8r63yyfd",
+    "videos": [
+     "Kdsp6soqA7o",
+     "4jRBRDbJemM"
+    ]
+   },
+   {
+    "key": "16/Illustration in R",
+    "hubChapter": "8r63yyfd",
+    "videos": [
+     "4jRBRDbJemM"
+    ]
+   },
+   {
+    "key": "16/Generative models",
+    "hubChapter": "8r63yyfd",
+    "videos": [
+     "oJc2r246VoQ",
+     "14JVlzWHKgk",
+     "aUlTqhDtpnw",
+     "giCZkipHEmA"
+    ]
+   },
+   {
+    "key": "17/Bag-of-words and naive Bayes classifier",
+    "hubChapter": "8r63yyfd",
+    "videos": [
+     "O2L2Uv9pdDA",
+     "Zw3L-0ZP_DA"
+    ]
+   },
+   {
+    "key": "18/Data processing in text classification",
+    "hubChapter": "8r63yyfd",
+    "videos": [
+     "Fk-s3d1AHa8"
+    ]
+   },
+   {
+    "key": "18/A real data example in R",
+    "hubChapter": "8r63yyfd",
+    "videos": [
+     "O2L2Uv9pdDA",
+     "Zw3L-0ZP_DA"
+    ]
+   },
+   {
+    "key": "18/Introduction to unsupervised learning",
+    "hubChapter": "rnck3tx9",
+    "videos": [
+     "lEfrr0Yr684"
+    ]
+   },
+   {
+    "key": "18/Applications of clustering",
+    "hubChapter": "rnck3tx9",
+    "videos": [
+     "wk2ylI1qgU0"
+    ]
+   },
+   {
+    "key": "19/Hierarchical clustering",
+    "hubChapter": "rnck3tx9",
+    "videos": [
+     "7xHsRkOdVwo",
+     "yktzn-Mr2Nw"
+    ]
+   },
+   {
+    "key": "19/Partitional methods",
+    "hubChapter": "rnck3tx9",
+    "videos": [
+     "4b5d3muPQmA"
+    ]
+   },
+   {
+    "key": "19/Discussion - mixtures approach",
+    "hubChapter": "rnck3tx9",
+    "videos": [
+     "qMTuMa86NzU"
+    ]
+   },
+   {
+    "key": "19/Dimension reduction",
+    "hubChapter": "rnck3tx9",
+    "videos": [
+     "kpuQqOzQXfM"
+    ]
+   },
+   {
+    "key": "19/Principal component analysis",
+    "hubChapter": "rnck3tx9",
+    "videos": [
+     "kpuQqOzQXfM",
+     "FgakZw6K1QQ"
+    ]
+   },
+   {
+    "key": "20/Factor Analysis",
+    "hubChapter": "rnck3tx9",
+    "videos": [
+     "WV_jcaDBZ2I",
+     "lJ0cXPoEozg"
+    ]
+   },
+   {
+    "key": "20/Introduction to trees",
+    "hubChapter": "we3jyezr",
+    "videos": [
+     "QNnayf--_yk",
+     "_L39rN6gz7Y"
+    ]
+   },
+   {
+    "key": "20/The component of a tree",
+    "hubChapter": "we3jyezr",
+    "videos": [
+     "QNnayf--_yk",
+     "_L39rN6gz7Y"
+    ]
+   },
+   {
+    "key": "21/Interpreting trees",
+    "hubChapter": "we3jyezr",
+    "videos": [
+     "QNnayf--_yk",
+     "g9c66TUylZ4"
+    ]
+   },
+   {
+    "key": "21/Trees in R",
+    "hubChapter": "we3jyezr",
+    "videos": [
+     "IZ0qGEZkTIw"
+    ]
+   },
+   {
+    "key": "21/Fitting trees",
+    "hubChapter": "we3jyezr",
+    "videos": [
+     "JaoTOfTNOVk",
+     "gLcfKSMKOb0",
+     "g9c66TUylZ4"
+    ]
+   },
+   {
+    "key": "22/Tree pruning",
+    "hubChapter": "we3jyezr",
+    "videos": [
+     "JaoTOfTNOVk",
+     "D0efHEJsfHo"
+    ]
+   },
+   {
+    "key": "23/Introduction to ensemble learning",
+    "hubChapter": "ga5qn492",
+    "videos": [
+     "sN5ZcJLDMaE"
+    ]
+   },
+   {
+    "key": "23/Bagging",
+    "hubChapter": "ga5qn492",
+    "videos": [
+     "_cKAxjnInfA",
+     "0LB1cy2sCXc"
+    ]
+   },
+   {
+    "key": "23/Boosting",
+    "hubChapter": "ga5qn492",
+    "videos": [
+     "cdl4C2eCOHk",
+     "LsK-xG1cLYA"
+    ]
+   },
+   {
+    "key": "23/Weighted Averaging",
+    "hubChapter": "ga5qn492",
+    "videos": [
+     "xtTyEoJ31Vg"
+    ]
+   },
+   {
+    "key": "23/Bagging trees and random forests",
+    "hubChapter": "ga5qn492",
+    "videos": [
+     "_cKAxjnInfA",
+     "J4Wdy0Wc_xQ"
+    ]
+   },
+   {
+    "key": "24/Boosting",
+    "hubChapter": "ga5qn492",
+    "videos": [
+     "cdl4C2eCOHk",
+     "3CC4N4z3GJc"
+    ]
+   },
+   {
+    "key": "24/Implementation in R",
+    "hubChapter": "ga5qn492",
+    "videos": [
+     "gKyUucJwD8U"
+    ]
+   },
+   {
+    "key": "25/Introduction to neural networks",
+    "hubChapter": "9arhsr7r",
+    "videos": [
+     "aircAruvnKk",
+     "jJb2qytbcNg",
+     "4Gac5I64LM4"
+    ]
+   },
+   {
+    "key": "25/Neural network model",
+    "hubChapter": "9arhsr7r",
+    "videos": [
+     "aircAruvnKk",
+     "jJb2qytbcNg"
+    ]
+   },
+   {
+    "key": "25/Stochastic gradient descent",
+    "hubChapter": "9arhsr7r",
+    "videos": [
+     "vMh0zPT0tLI"
+    ]
+   },
+   {
+    "key": "26/Loss function",
+    "hubChapter": "9arhsr7r",
+    "videos": [
+     "IHZwWFHWa-w",
+     "07zslA8BXZY",
+     "Ilg3gGewQ5U",
+     "tIeHLnjs5U8"
+    ]
+   },
+   {
+    "key": "26/Data and setup",
+    "hubChapter": "9arhsr7r",
+    "videos": [
+     "eDcPolK_j8E"
+    ]
+   },
+   {
+    "key": "28/Linear Basis Functions",
+    "hubChapter": "wzvtw32n",
+    "videos": [
+     "F-D3lZzYn50"
+    ]
+   },
+   {
+    "key": "28/Cubic Splines",
+    "hubChapter": "wzvtw32n",
+    "videos": [
+     "FrVaxvwCLYM"
+    ]
+   },
+   {
+    "key": "28/Natural Cubic Splines",
+    "hubChapter": "wzvtw32n",
+    "videos": [
+     "FrVaxvwCLYM"
+    ]
+   },
+   {
+    "key": "28/Smoothing Splines",
+    "hubChapter": "wzvtw32n",
+    "videos": [
+     "b_HSFOnrGLI"
+    ]
+   },
+   {
+    "key": "29/Gaussian Processes",
+    "hubChapter": "wzvtw32n",
+    "videos": [
+     "UBDgSHPxVME",
+     "R-NUdqxKjos",
+     "4vGiHC35j9s"
+    ]
+   },
+   {
+    "key": "29/Gaussian process regression",
+    "hubChapter": "wzvtw32n",
+    "videos": [
+     "UBDgSHPxVME",
+     "R-NUdqxKjos",
+     "4vGiHC35j9s"
+    ]
+   },
+   {
+    "key": "29/Gaussian process classification",
+    "hubChapter": "wzvtw32n",
+    "videos": [
+     "qKSK3P-UZ_g"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "ST3188",
+  "module": "market-research",
+  "sections": [
+   {
+    "key": "1.3.1",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "U8tQnSx5fHo",
+     "b4us4bNwAsc",
+     "ABLHV5Ce6TI",
+     "CtZmWrkIsvI"
+    ]
+   },
+   {
+    "key": "1.3.2",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "ABLHV5Ce6TI"
+    ]
+   },
+   {
+    "key": "1.4",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "U8tQnSx5fHo",
+     "b4us4bNwAsc",
+     "ABLHV5Ce6TI",
+     "CtZmWrkIsvI"
+    ]
+   },
+   {
+    "key": "1.5",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "CtZmWrkIsvI",
+     "93Rio-HOeWQ"
+    ]
+   },
+   {
+    "key": "1.6",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "CtZmWrkIsvI",
+     "93Rio-HOeWQ"
+    ]
+   },
+   {
+    "key": "1.7",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "93Rio-HOeWQ"
+    ]
+   },
+   {
+    "key": "1.8.1",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "hilKsiLYRJs"
+    ]
+   },
+   {
+    "key": "1.8.2",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "MnfRdTCUIsc"
+    ]
+   },
+   {
+    "key": "1.9",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "PCgLjDDD4ek"
+    ]
+   },
+   {
+    "key": "1.10",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "tbv9E9D2BRQ"
+    ]
+   },
+   {
+    "key": "1.11",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "LZC-c3eyAsM"
+    ]
+   },
+   {
+    "key": "1.12",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "93Rio-HOeWQ"
+    ]
+   },
+   {
+    "key": "1.13",
+    "hubChapter": "vy3wt9gr",
+    "videos": [
+     "U8tQnSx5fHo",
+     "b4us4bNwAsc",
+     "ABLHV5Ce6TI"
+    ]
+   },
+   {
+    "key": "2.3",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "MYJWFBHdx2s",
+     "Ink4ehYLmqw",
+     "1Vi49F2q99o",
+     "hc6fv0uNgFI"
+    ]
+   },
+   {
+    "key": "2.4",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "MYJWFBHdx2s",
+     "Ink4ehYLmqw",
+     "1Vi49F2q99o",
+     "hc6fv0uNgFI"
+    ]
+   },
+   {
+    "key": "2.5",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "FlBFdEgrTBM"
+    ]
+   },
+   {
+    "key": "2.6.1",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "5vIeDCcApc8",
+     "1Vi49F2q99o"
+    ]
+   },
+   {
+    "key": "2.6.2",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "5vIeDCcApc8",
+     "1Vi49F2q99o"
+    ]
+   },
+   {
+    "key": "2.6.3",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "1Vi49F2q99o"
+    ]
+   },
+   {
+    "key": "2.7",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "1Vi49F2q99o"
+    ]
+   },
+   {
+    "key": "2.8",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "1Vi49F2q99o"
+    ]
+   },
+   {
+    "key": "2.9",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "-TDh-5n90vk"
+    ]
+   },
+   {
+    "key": "2.10",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "MYJWFBHdx2s",
+     "hc6fv0uNgFI"
+    ]
+   },
+   {
+    "key": "2.11",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "MYJWFBHdx2s",
+     "Ink4ehYLmqw",
+     "1Vi49F2q99o",
+     "hc6fv0uNgFI"
+    ]
+   },
+   {
+    "key": "2.12",
+    "hubChapter": "pw5meqbp",
+    "videos": [
+     "MYJWFBHdx2s",
+     "Ink4ehYLmqw",
+     "1Vi49F2q99o",
+     "hc6fv0uNgFI"
+    ]
+   },
+   {
+    "key": "3.3",
+    "hubChapter": "i3ktck65",
+    "videos": [
+     "rT0WLkOVHzA",
+     "uRPkZXAphxw"
+    ]
+   },
+   {
+    "key": "3.4",
+    "hubChapter": "i3ktck65",
+    "videos": [
+     "rT0WLkOVHzA",
+     "uRPkZXAphxw"
+    ]
+   },
+   {
+    "key": "3.5",
+    "hubChapter": "i3ktck65",
+    "videos": [
+     "rT0WLkOVHzA",
+     "uRPkZXAphxw"
+    ]
+   },
+   {
+    "key": "3.6",
+    "hubChapter": "i3ktck65",
+    "videos": [
+     "5b1B2gcEJKg"
+    ]
+   },
+   {
+    "key": "3.7",
+    "hubChapter": "i3ktck65",
+    "videos": [
+     "K3UaIQN_YXI",
+     "ZCTdpgnNCzM"
+    ]
+   },
+   {
+    "key": "3.8.1",
+    "hubChapter": "i3ktck65",
+    "videos": [
+     "p10Bz81490Q"
+    ]
+   },
+   {
+    "key": "3.8.2",
+    "hubChapter": "i3ktck65",
+    "videos": [
+     "K3UaIQN_YXI"
+    ]
+   },
+   {
+    "key": "3.9",
+    "hubChapter": "i3ktck65",
+    "videos": [
+     "066dr9Iljb8"
+    ]
+   },
+   {
+    "key": "3.10",
+    "hubChapter": "i3ktck65",
+    "videos": [
+     "rT0WLkOVHzA",
+     "K3UaIQN_YXI",
+     "uRPkZXAphxw"
+    ]
+   },
+   {
+    "key": "3.11",
+    "hubChapter": "i3ktck65",
+    "videos": [
+     "uRPkZXAphxw"
+    ]
+   },
+   {
+    "key": "4.3",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "XicAkp6TnNU",
+     "k2MEaNMmnLQ",
+     "Pb3UlqAMwKA"
+    ]
+   },
+   {
+    "key": "4.4",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "XicAkp6TnNU"
+    ]
+   },
+   {
+    "key": "4.5.1",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "04ZuLhanhis",
+     "3TwgVQIZPsw",
+     "k2MEaNMmnLQ"
+    ]
+   },
+   {
+    "key": "4.5.2",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "3TwgVQIZPsw",
+     "k2MEaNMmnLQ"
+    ]
+   },
+   {
+    "key": "4.5.3",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "W81a-0Cqql0"
+    ]
+   },
+   {
+    "key": "4.6",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "k2MEaNMmnLQ",
+     "Pb3UlqAMwKA"
+    ]
+   },
+   {
+    "key": "4.7",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "4pfJGtC-Ix4"
+    ]
+   },
+   {
+    "key": "4.8",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "NLelCELbwCY"
+    ]
+   },
+   {
+    "key": "4.9",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "XicAkp6TnNU",
+     "k2MEaNMmnLQ",
+     "Pb3UlqAMwKA"
+    ]
+   },
+   {
+    "key": "4.10",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "XicAkp6TnNU",
+     "k2MEaNMmnLQ",
+     "Pb3UlqAMwKA"
+    ]
+   },
+   {
+    "key": "4.11",
+    "hubChapter": "7aiq4jk9",
+    "videos": [
+     "XicAkp6TnNU",
+     "k2MEaNMmnLQ",
+     "Pb3UlqAMwKA"
+    ]
+   },
+   {
+    "key": "5.3",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "C8w855EfKL4"
+    ]
+   },
+   {
+    "key": "5.4.1",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "9cuOyAR-Y9I",
+     "eRK_dXay5HY"
+    ]
+   },
+   {
+    "key": "5.4.2",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "9cuOyAR-Y9I",
+     "eRK_dXay5HY"
+    ]
+   },
+   {
+    "key": "5.5",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "sI5k7p1pSPI"
+    ]
+   },
+   {
+    "key": "5.6.1",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "J8v2q1EqcA0"
+    ]
+   },
+   {
+    "key": "5.6.2",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "1n7Sf-4OgEg"
+    ]
+   },
+   {
+    "key": "5.7.1",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "zrv-PsjzPKw"
+    ]
+   },
+   {
+    "key": "5.7.2",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "zrv-PsjzPKw",
+     "QcK-XWS-f3M",
+     "ErfUVt0fyK0"
+    ]
+   },
+   {
+    "key": "5.7.3",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "Hatmm84sqm0"
+    ]
+   },
+   {
+    "key": "5.8",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "9cuOyAR-Y9I"
+    ]
+   },
+   {
+    "key": "5.9",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "HPSaqsjqvgk"
+    ]
+   },
+   {
+    "key": "5.10",
+    "hubChapter": "wz3pq6xp",
+    "videos": [
+     "BOj4gWItSsM"
+    ]
+   },
+   {
+    "key": "6.3",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "W-Zb5xO28UE",
+     "wxWTimkOMrM"
+    ]
+   },
+   {
+    "key": "6.4.1",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "J2584pDVBm0",
+     "eNPz6lIV7fA"
+    ]
+   },
+   {
+    "key": "6.4.2",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "eNPz6lIV7fA"
+    ]
+   },
+   {
+    "key": "6.5",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "E7zkaMeFQRE",
+     "DavsDxgYQo4",
+     "3N-DKY09GM4"
+    ]
+   },
+   {
+    "key": "6.6.1",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "Rsc5znwR5FA"
+    ]
+   },
+   {
+    "key": "6.6.2",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "VX_M3tIyiYk"
+    ]
+   },
+   {
+    "key": "6.7",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "iI4IeaaE-7A"
+    ]
+   },
+   {
+    "key": "6.8",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "zFMgpxG-chM"
+    ]
+   },
+   {
+    "key": "6.9",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "95MyDVxWrO8"
+    ]
+   },
+   {
+    "key": "6.10",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "E7zkaMeFQRE",
+     "DavsDxgYQo4",
+     "3N-DKY09GM4"
+    ]
+   },
+   {
+    "key": "6.11",
+    "hubChapter": "3r99gupb",
+    "videos": [
+     "E7zkaMeFQRE",
+     "DavsDxgYQo4",
+     "3N-DKY09GM4"
+    ]
+   },
+   {
+    "key": "7.3",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.4",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "5Yh-9xdJzAs"
+    ]
+   },
+   {
+    "key": "7.5.1",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "5Yh-9xdJzAs",
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.5.2",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "5Yh-9xdJzAs",
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.5.3",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "5Yh-9xdJzAs",
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.5.4",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "5Yh-9xdJzAs",
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.6.1",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.6.2",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.6.3",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.7.1",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "Tf_71r1Ve5w"
+    ]
+   },
+   {
+    "key": "7.7.2",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "kIg3YRqoh5s"
+    ]
+   },
+   {
+    "key": "7.7.3",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.8",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "RmZwXXsv3M8",
+     "oE71Onl5K-s",
+     "PCztXEfNJLM"
+    ]
+   },
+   {
+    "key": "7.9",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.10",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "7.11",
+    "hubChapter": "hhxy6vie",
+    "videos": [
+     "GVmQpGn-Zuo"
+    ]
+   },
+   {
+    "key": "8.3",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE",
+     "hDD-VcjTgDU"
+    ]
+   },
+   {
+    "key": "8.4",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE"
+    ]
+   },
+   {
+    "key": "8.5",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE"
+    ]
+   },
+   {
+    "key": "8.6.1",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE",
+     "Iq_fhTuY1hw",
+     "eFzGdQrr2K8"
+    ]
+   },
+   {
+    "key": "8.6.2",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE"
+    ]
+   },
+   {
+    "key": "8.6.3",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE"
+    ]
+   },
+   {
+    "key": "8.7",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE",
+     "Zx40lHPHopk",
+     "FkX-t0Pgzzs"
+    ]
+   },
+   {
+    "key": "8.8",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "eFzGdQrr2K8"
+    ]
+   },
+   {
+    "key": "8.9",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE"
+    ]
+   },
+   {
+    "key": "8.10",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE"
+    ]
+   },
+   {
+    "key": "8.11",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE",
+     "FkX-t0Pgzzs"
+    ]
+   },
+   {
+    "key": "8.12",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE"
+    ]
+   },
+   {
+    "key": "8.13",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE"
+    ]
+   },
+   {
+    "key": "8.14",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "hDD-VcjTgDU",
+     "FkX-t0Pgzzs",
+     "zYX8Ycm9vQE"
+    ]
+   },
+   {
+    "key": "8.15",
+    "hubChapter": "9yuznf54",
+    "videos": [
+     "zYX8Ycm9vQE"
+    ]
+   },
+   {
+    "key": "9.3",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "15UxDwpIIig",
+     "RKSld_j2m5U"
+    ]
+   },
+   {
+    "key": "9.4.1",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "15UxDwpIIig",
+     "RKSld_j2m5U"
+    ]
+   },
+   {
+    "key": "9.4.2",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "15UxDwpIIig",
+     "RKSld_j2m5U"
+    ]
+   },
+   {
+    "key": "9.5.1",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "TtcCvy-CKLc",
+     "fSmedyVv-Us",
+     "RKSld_j2m5U"
+    ]
+   },
+   {
+    "key": "9.5.2",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "TtcCvy-CKLc",
+     "fSmedyVv-Us",
+     "RKSld_j2m5U"
+    ]
+   },
+   {
+    "key": "9.5.3",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "TtcCvy-CKLc",
+     "fSmedyVv-Us",
+     "RKSld_j2m5U"
+    ]
+   },
+   {
+    "key": "9.5.4",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "TtcCvy-CKLc",
+     "fSmedyVv-Us",
+     "RKSld_j2m5U"
+    ]
+   },
+   {
+    "key": "9.6.1",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "hhkxRfxdX58"
+    ]
+   },
+   {
+    "key": "9.6.2",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "hhkxRfxdX58",
+     "fSmedyVv-Us"
+    ]
+   },
+   {
+    "key": "9.6.3",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "WakK8Wzmw6o",
+     "fSmedyVv-Us"
+    ]
+   },
+   {
+    "key": "9.6.4",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "WakK8Wzmw6o",
+     "fSmedyVv-Us"
+    ]
+   },
+   {
+    "key": "9.7",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "fSmedyVv-Us",
+     "TtcCvy-CKLc"
+    ]
+   },
+   {
+    "key": "9.8",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "RKSld_j2m5U"
+    ]
+   },
+   {
+    "key": "9.9",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "RKSld_j2m5U"
+    ]
+   },
+   {
+    "key": "9.10",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "T9dmq6Lwh24"
+    ]
+   },
+   {
+    "key": "9.11",
+    "hubChapter": "end2fmuy",
+    "videos": [
+     "RKSld_j2m5U"
+    ]
+   },
+   {
+    "key": "10.3",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "yKr9w4e8eSw",
+     "rk6jtkpad_E"
+    ]
+   },
+   {
+    "key": "10.4",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "KG921rfbTDw",
+     "7zcbVaVz_P8",
+     "mmgZI2G6ibI"
+    ]
+   },
+   {
+    "key": "10.5",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "7zcbVaVz_P8",
+     "mmgZI2G6ibI",
+     "QHzMPzHQgEg",
+     "rk6jtkpad_E"
+    ]
+   },
+   {
+    "key": "10.6",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "7zcbVaVz_P8",
+     "mmgZI2G6ibI",
+     "QHzMPzHQgEg",
+     "rk6jtkpad_E"
+    ]
+   },
+   {
+    "key": "10.7",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "rk6jtkpad_E"
+    ]
+   },
+   {
+    "key": "10.8",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "rk6jtkpad_E"
+    ]
+   },
+   {
+    "key": "10.9",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "rk6jtkpad_E"
+    ]
+   },
+   {
+    "key": "10.10",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "5a_cf21f6N4",
+     "rk6jtkpad_E"
+    ]
+   },
+   {
+    "key": "10.11",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "rk6jtkpad_E",
+     "QHzMPzHQgEg"
+    ]
+   },
+   {
+    "key": "10.12",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "rk6jtkpad_E"
+    ]
+   },
+   {
+    "key": "10.13",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "rk6jtkpad_E"
+    ]
+   },
+   {
+    "key": "10.14",
+    "hubChapter": "dgyaekex",
+    "videos": [
+     "rk6jtkpad_E"
+    ]
+   },
+   {
+    "key": "11.2",
+    "hubChapter": "9igw5e6g",
+    "videos": [
+     "bapuGcjwiLQ"
+    ]
+   },
+   {
+    "key": "11.3",
+    "hubChapter": "9igw5e6g",
+    "videos": [
+     "9hn-1fky7I8",
+     "77XQQrtgUZ8"
+    ]
+   },
+   {
+    "key": "11.4",
+    "hubChapter": "9igw5e6g",
+    "videos": [],
+    "skip": "only points to SPSS screencast demonstrations on the VLE; no content in the guide (p. 270)"
+   },
+   {
+    "key": "12.3.1",
+    "hubChapter": "x7q4pva3",
+    "videos": [
+     "ohquDY3fZqk",
+     "lvB0HHoihVA"
+    ]
+   },
+   {
+    "key": "12.3.2",
+    "hubChapter": "x7q4pva3",
+    "videos": [
+     "L1QPBGoDmT0",
+     "ohquDY3fZqk",
+     "lvB0HHoihVA"
+    ]
+   },
+   {
+    "key": "12.3.3",
+    "hubChapter": "x7q4pva3",
+    "videos": [
+     "J46LRDkXRng",
+     "ohquDY3fZqk"
+    ]
+   },
+   {
+    "key": "12.4",
+    "hubChapter": "x7q4pva3",
+    "videos": [
+     "LUuLGLGI650",
+     "ohquDY3fZqk"
+    ]
+   },
+   {
+    "key": "12.5",
+    "hubChapter": "x7q4pva3",
+    "videos": [
+     "tTeMYuS87oU"
+    ]
+   },
+   {
+    "key": "12.6.1",
+    "hubChapter": "ckiuk4bj",
+    "videos": [
+     "C2Qa5d9ij0Y"
+    ]
+   },
+   {
+    "key": "12.6.2",
+    "hubChapter": "ckiuk4bj",
+    "videos": [
+     "NaZBdj0nCzQ",
+     "E7F5-rmQ4kM"
+    ]
+   },
+   {
+    "key": "12.6.3",
+    "hubChapter": "ckiuk4bj",
+    "videos": [
+     "upc4zN_-YFM"
+    ]
+   },
+   {
+    "key": "12.7",
+    "hubChapter": "ckiuk4bj",
+    "videos": [
+     "vemZtEM63GY"
+    ]
+   },
+   {
+    "key": "12.8",
+    "hubChapter": "ckiuk4bj",
+    "videos": [
+     "9yQm9F2_yIk"
+    ]
+   },
+   {
+    "key": "12.9",
+    "hubChapter": "ckiuk4bj",
+    "videos": [
+     "IcLSKko2tsg",
+     "LcxB56PzylA",
+     "NZsL2eDQiDQ",
+     "ZO2RmSkXK3c"
+    ]
+   },
+   {
+    "key": "12.10",
+    "hubChapter": "x7q4pva3",
+    "videos": [
+     "ohquDY3fZqk",
+     "J46LRDkXRng"
+    ]
+   },
+   {
+    "key": "13.3",
+    "hubChapter": "kt85ep2u",
+    "videos": [
+     "QUQ6YppWCeg"
+    ]
+   },
+   {
+    "key": "13.4.1",
+    "hubChapter": "kt85ep2u",
+    "videos": [
+     "QUQ6YppWCeg",
+     "fFnOD7KBSbw"
+    ]
+   },
+   {
+    "key": "13.4.2",
+    "hubChapter": "kt85ep2u",
+    "videos": [
+     "QUQ6YppWCeg",
+     "fFnOD7KBSbw"
+    ]
+   },
+   {
+    "key": "13.4.3",
+    "hubChapter": "kt85ep2u",
+    "videos": [
+     "RkbmA6WszTo"
+    ]
+   },
+   {
+    "key": "13.5",
+    "hubChapter": "kt85ep2u",
+    "videos": [
+     "QUQ6YppWCeg",
+     "fFnOD7KBSbw",
+     "zV7OCPdIVus",
+     "lZFmFuZGQTk",
+     "8tV_OoG3LDo"
+    ]
+   },
+   {
+    "key": "13.6",
+    "hubChapter": "kt85ep2u",
+    "videos": [
+     "QUQ6YppWCeg"
+    ]
+   },
+   {
+    "key": "13.7.1",
+    "hubChapter": "kt85ep2u",
+    "videos": [
+     "lZFmFuZGQTk"
+    ]
+   },
+   {
+    "key": "13.7.2",
+    "hubChapter": "kt85ep2u",
+    "videos": [
+     "JTm739f5hQs"
+    ]
+   },
+   {
+    "key": "13.8",
+    "hubChapter": "kt85ep2u",
+    "videos": [
+     "PngndHgZOgY",
+     "8tV_OoG3LDo"
+    ]
+   },
+   {
+    "key": "13.9",
+    "hubChapter": "kt85ep2u",
+    "videos": [
+     "QUQ6YppWCeg",
+     "lZFmFuZGQTk"
+    ]
+   },
+   {
+    "key": "14.3",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "Mf0NxCs5HRw"
+    ]
+   },
+   {
+    "key": "14.4",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "OpAf4N582bA"
+    ]
+   },
+   {
+    "key": "14.5.1",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "KsVBBJRb9TE",
+     "AdFT17sq53s"
+    ]
+   },
+   {
+    "key": "14.5.2",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "KsVBBJRb9TE",
+     "AdFT17sq53s"
+    ]
+   },
+   {
+    "key": "14.5.3",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "KsVBBJRb9TE",
+     "AdFT17sq53s"
+    ]
+   },
+   {
+    "key": "14.6.1",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "WQeAsZxsXdQ",
+     "AdFT17sq53s"
+    ]
+   },
+   {
+    "key": "14.6.2",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "AdFT17sq53s"
+    ]
+   },
+   {
+    "key": "14.7",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "zITIFTsivN8",
+     "WQeAsZxsXdQ",
+     "AdFT17sq53s"
+    ]
+   },
+   {
+    "key": "14.8",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "KsVBBJRb9TE",
+     "zITIFTsivN8",
+     "WQeAsZxsXdQ",
+     "AdFT17sq53s"
+    ]
+   },
+   {
+    "key": "14.9",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "O4jDva9B3fw"
+    ]
+   },
+   {
+    "key": "14.10",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "KsVBBJRb9TE",
+     "zITIFTsivN8",
+     "WQeAsZxsXdQ",
+     "AdFT17sq53s"
+    ]
+   },
+   {
+    "key": "14.11",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "s7EyQwJahgw"
+    ]
+   },
+   {
+    "key": "14.12",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "fSytzGwwBVw"
+    ]
+   },
+   {
+    "key": "14.13",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "AdFT17sq53s"
+    ]
+   },
+   {
+    "key": "14.14",
+    "hubChapter": "9vabbw8f",
+    "videos": [
+     "AdFT17sq53s"
+    ]
+   },
+   {
+    "key": "15.3",
+    "hubChapter": "5qdhaxry",
+    "videos": [
+     "azXCzI57Yfc",
+     "vnHkTnRFdAU",
+     "pkCgLstMxJI",
+     "vm1OLoL_VuY",
+     "70vGOdEvYaM"
+    ]
+   },
+   {
+    "key": "15.4.1",
+    "hubChapter": "5qdhaxry",
+    "videos": [
+     "vnHkTnRFdAU",
+     "pkCgLstMxJI",
+     "vm1OLoL_VuY"
+    ]
+   },
+   {
+    "key": "15.4.2",
+    "hubChapter": "5qdhaxry",
+    "videos": [
+     "vnHkTnRFdAU",
+     "pkCgLstMxJI",
+     "vm1OLoL_VuY"
+    ]
+   },
+   {
+    "key": "15.5",
+    "hubChapter": "5qdhaxry",
+    "videos": [
+     "vnHkTnRFdAU",
+     "pkCgLstMxJI",
+     "vm1OLoL_VuY"
+    ]
+   },
+   {
+    "key": "15.6",
+    "hubChapter": "5qdhaxry",
+    "videos": [
+     "azXCzI57Yfc",
+     "vnHkTnRFdAU",
+     "pkCgLstMxJI",
+     "vm1OLoL_VuY",
+     "70vGOdEvYaM"
+    ]
+   },
+   {
+    "key": "15.7",
+    "hubChapter": "5qdhaxry",
+    "videos": [
+     "azXCzI57Yfc",
+     "vnHkTnRFdAU",
+     "pkCgLstMxJI",
+     "vm1OLoL_VuY",
+     "70vGOdEvYaM"
+    ]
+   },
+   {
+    "key": "15.8",
+    "hubChapter": "5qdhaxry",
+    "videos": [
+     "vnHkTnRFdAU",
+     "pkCgLstMxJI",
+     "vm1OLoL_VuY"
+    ]
+   },
+   {
+    "key": "16.3",
+    "hubChapter": "2y7zwb2t",
+    "videos": [
+     "yIYKR4sgzI8",
+     "vN5cNN2-HWE",
+     "fJ53tIDbvTM",
+     "xxFYro8QuXA",
+     "Ak_t86zm_sQ",
+     "4vwg98ELS_M"
+    ]
+   },
+   {
+    "key": "16.4",
+    "hubChapter": "2y7zwb2t",
+    "videos": [
+     "yIYKR4sgzI8",
+     "vN5cNN2-HWE",
+     "fJ53tIDbvTM",
+     "xxFYro8QuXA",
+     "Ak_t86zm_sQ",
+     "4vwg98ELS_M"
+    ]
+   },
+   {
+    "key": "16.5",
+    "hubChapter": "2y7zwb2t",
+    "videos": [
+     "xxFYro8QuXA"
+    ]
+   },
+   {
+    "key": "16.6.1",
+    "hubChapter": "2y7zwb2t",
+    "videos": [
+     "vN5cNN2-HWE",
+     "Ak_t86zm_sQ"
+    ]
+   },
+   {
+    "key": "16.6.2",
+    "hubChapter": "2y7zwb2t",
+    "videos": [
+     "xxFYro8QuXA"
+    ]
+   },
+   {
+    "key": "16.7.1",
+    "hubChapter": "2y7zwb2t",
+    "videos": [
+     "4jRBRDbJemM"
+    ]
+   },
+   {
+    "key": "16.7.2",
+    "hubChapter": "2y7zwb2t",
+    "videos": [
+     "4jRBRDbJemM"
+    ]
+   },
+   {
+    "key": "16.8",
+    "hubChapter": "2y7zwb2t",
+    "videos": [
+     "gV0_raKR2UQ"
+    ]
+   },
+   {
+    "key": "17.3",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "WV_jcaDBZ2I",
+     "uvRgMnyon2Y",
+     "NHrNVEIHPBY",
+     "HoVrruVotho",
+     "pRA3Wapx7fY",
+     "g_3kaSnq-DY",
+     "b14wRuKVvzk"
+    ]
+   },
+   {
+    "key": "17.4",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "WV_jcaDBZ2I",
+     "uvRgMnyon2Y",
+     "NHrNVEIHPBY",
+     "HoVrruVotho",
+     "pRA3Wapx7fY",
+     "g_3kaSnq-DY",
+     "b14wRuKVvzk"
+    ]
+   },
+   {
+    "key": "17.5",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "WV_jcaDBZ2I",
+     "uvRgMnyon2Y",
+     "NHrNVEIHPBY",
+     "HoVrruVotho",
+     "pRA3Wapx7fY",
+     "g_3kaSnq-DY",
+     "b14wRuKVvzk"
+    ]
+   },
+   {
+    "key": "17.6",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "WV_jcaDBZ2I",
+     "NHrNVEIHPBY",
+     "HoVrruVotho",
+     "pRA3Wapx7fY"
+    ]
+   },
+   {
+    "key": "17.7",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "NHrNVEIHPBY",
+     "pRA3Wapx7fY",
+     "g_3kaSnq-DY"
+    ]
+   },
+   {
+    "key": "17.8",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "g_3kaSnq-DY",
+     "b14wRuKVvzk"
+    ]
+   },
+   {
+    "key": "17.9",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "WV_jcaDBZ2I",
+     "uvRgMnyon2Y",
+     "NHrNVEIHPBY",
+     "HoVrruVotho",
+     "pRA3Wapx7fY",
+     "g_3kaSnq-DY",
+     "b14wRuKVvzk"
+    ]
+   },
+   {
+    "key": "17.10",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "NHrNVEIHPBY",
+     "g_3kaSnq-DY"
+    ]
+   },
+   {
+    "key": "17.11",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "NHrNVEIHPBY"
+    ]
+   },
+   {
+    "key": "17.12",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "NHrNVEIHPBY"
+    ]
+   },
+   {
+    "key": "17.13",
+    "hubChapter": "23rbi6pt",
+    "videos": [
+     "NHrNVEIHPBY",
+     "pRA3Wapx7fY",
+     "g_3kaSnq-DY"
+    ]
+   },
+   {
+    "key": "18.3",
+    "hubChapter": "4p83xuqq",
+    "videos": [
+     "UrqLTkDHwkY",
+     "esHdKLt4_Ks",
+     "3BzfOLnIY9w",
+     "wdVtiVx_mAk"
+    ]
+   },
+   {
+    "key": "18.4",
+    "hubChapter": "4p83xuqq",
+    "videos": [
+     "UrqLTkDHwkY",
+     "7xHsRkOdVwo"
+    ]
+   },
+   {
+    "key": "18.5",
+    "hubChapter": "4p83xuqq",
+    "videos": [
+     "7xHsRkOdVwo",
+     "vg1w5ZUF5lA",
+     "3BzfOLnIY9w",
+     "U6a2UaaWiH4"
+    ]
+   },
+   {
+    "key": "18.6",
+    "hubChapter": "4p83xuqq",
+    "videos": [
+     "esHdKLt4_Ks",
+     "3BzfOLnIY9w",
+     "U6a2UaaWiH4",
+     "4b5d3muPQmA"
+    ]
+   },
+   {
+    "key": "18.7",
+    "hubChapter": "4p83xuqq",
+    "videos": [
+     "4b5d3muPQmA"
+    ]
+   },
+   {
+    "key": "18.8",
+    "hubChapter": "4p83xuqq",
+    "videos": [
+     "UrqLTkDHwkY",
+     "esHdKLt4_Ks",
+     "7xHsRkOdVwo",
+     "4b5d3muPQmA",
+     "3BzfOLnIY9w",
+     "U6a2UaaWiH4",
+     "wdVtiVx_mAk"
+    ]
+   },
+   {
+    "key": "18.9",
+    "hubChapter": "4p83xuqq",
+    "videos": [
+     "esHdKLt4_Ks",
+     "wdVtiVx_mAk"
+    ]
+   },
+   {
+    "key": "18.10",
+    "hubChapter": "4p83xuqq",
+    "videos": [
+     "UrqLTkDHwkY",
+     "esHdKLt4_Ks"
+    ]
+   },
+   {
+    "key": "19.3",
+    "hubChapter": "txfmdzm4",
+    "videos": [
+     "dAucTNXEzhU",
+     "yiRNcHU2ZGU",
+     "Wum3_Y0AO4A",
+     "DOIhSW38P-Q",
+     "LZ1aMpidn0Y",
+     "_TSjdIIPeoo"
+    ]
+   },
+   {
+    "key": "19.4",
+    "hubChapter": "txfmdzm4",
+    "videos": [
+     "dAucTNXEzhU",
+     "yiRNcHU2ZGU",
+     "Wum3_Y0AO4A",
+     "DOIhSW38P-Q",
+     "LZ1aMpidn0Y",
+     "_TSjdIIPeoo"
+    ]
+   },
+   {
+    "key": "19.5",
+    "hubChapter": "txfmdzm4",
+    "videos": [
+     "Wum3_Y0AO4A",
+     "yiRNcHU2ZGU",
+     "_TSjdIIPeoo",
+     "LZ1aMpidn0Y"
+    ]
+   },
+   {
+    "key": "19.6",
+    "hubChapter": "txfmdzm4",
+    "videos": [
+     "Wum3_Y0AO4A"
+    ]
+   },
+   {
+    "key": "19.7",
+    "hubChapter": "txfmdzm4",
+    "videos": [
+     "dAucTNXEzhU",
+     "yiRNcHU2ZGU",
+     "Wum3_Y0AO4A",
+     "DOIhSW38P-Q",
+     "LZ1aMpidn0Y",
+     "_TSjdIIPeoo"
+    ]
+   },
+   {
+    "key": "20.3",
+    "hubChapter": "j25ejk6p",
+    "videos": [
+     "L9hgJ-4hLYg"
+    ]
+   },
+   {
+    "key": "20.4.1",
+    "hubChapter": "j25ejk6p",
+    "videos": [
+     "NPcwjc6Oh7k",
+     "o1Z_tQh043k"
+    ]
+   },
+   {
+    "key": "20.4.2",
+    "hubChapter": "j25ejk6p",
+    "videos": [
+     "NPcwjc6Oh7k",
+     "xJUrBylId7I"
+    ]
+   },
+   {
+    "key": "20.5.1",
+    "hubChapter": "j25ejk6p",
+    "videos": [
+     "NPcwjc6Oh7k"
+    ]
+   },
+   {
+    "key": "20.5.2",
+    "hubChapter": "j25ejk6p",
+    "videos": [
+     "NPcwjc6Oh7k",
+     "o1Z_tQh043k"
+    ]
+   },
+   {
+    "key": "20.6",
+    "hubChapter": "j25ejk6p",
+    "videos": [
+     "NPcwjc6Oh7k",
+     "xJUrBylId7I",
+     "L9hgJ-4hLYg"
+    ]
+   },
+   {
+    "key": "20.7",
+    "hubChapter": "j25ejk6p",
+    "videos": [
+     "NPcwjc6Oh7k"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "EC2066",
+  "module": "microeconomics",
+  "sections": [
+   {
+    "key": "2.2.1",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "tCKk22kaZi4"
+    ]
+   },
+   {
+    "key": "2.2.2",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "tCKk22kaZi4"
+    ]
+   },
+   {
+    "key": "2.2.3",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "sNRZE0kwNGI"
+    ]
+   },
+   {
+    "key": "2.2.4",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "5Af7M2xEa4A"
+    ]
+   },
+   {
+    "key": "2.3.1",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "x0scPosOsoI"
+    ]
+   },
+   {
+    "key": "2.3.2",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "x0scPosOsoI"
+    ]
+   },
+   {
+    "key": "2.3.3",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "lq9w2qyNk1A",
+     "x0scPosOsoI"
+    ]
+   },
+   {
+    "key": "2.3.4",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "ABXlkPmnjN4"
+    ]
+   },
+   {
+    "key": "2.4",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "aDeI5meKDjk"
+    ]
+   },
+   {
+    "key": "2.5",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "CrWqGe7h34E",
+     "BUnUOv_INyM"
+    ]
+   },
+   {
+    "key": "2.6",
+    "hubChapter": "3aavyrih",
+    "videos": [
+     "BUnUOv_INyM"
+    ]
+   },
+   {
+    "key": "3.2",
+    "hubChapter": "jjp55chz",
+    "videos": [
+     "a9Uz7tXETq4",
+     "zrXWSXmOVFA"
+    ]
+   },
+   {
+    "key": "3.3",
+    "hubChapter": "jjp55chz",
+    "videos": [
+     "zrXWSXmOVFA",
+     "a9Uz7tXETq4"
+    ]
+   },
+   {
+    "key": "3.4",
+    "hubChapter": "jjp55chz",
+    "videos": [
+     "aEII9Fkvk48",
+     "Bem5kR0zu0M",
+     "a9Uz7tXETq4"
+    ]
+   },
+   {
+    "key": "3.5.1",
+    "hubChapter": "jjp55chz",
+    "videos": [
+     "aqEz6kvXhc8"
+    ]
+   },
+   {
+    "key": "3.5.2",
+    "hubChapter": "jjp55chz",
+    "videos": [
+     "KUGJhiAU_7I"
+    ]
+   },
+   {
+    "key": "3.6",
+    "hubChapter": "jjp55chz",
+    "videos": [
+     "aEII9Fkvk48"
+    ]
+   },
+   {
+    "key": "3.7",
+    "hubChapter": "jjp55chz",
+    "videos": [
+     "kKyCf50CGGo"
+    ]
+   },
+   {
+    "key": "3.8",
+    "hubChapter": "jjp55chz",
+    "videos": [
+     "kKyCf50CGGo"
+    ]
+   },
+   {
+    "key": "3.9",
+    "hubChapter": "jjp55chz",
+    "videos": [
+     "_AsIuR-z_nw"
+    ]
+   },
+   {
+    "key": "4.2.1",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "O8T9spKHVWQ"
+    ]
+   },
+   {
+    "key": "4.2.2",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "O8T9spKHVWQ"
+    ]
+   },
+   {
+    "key": "4.2.3",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "stzPcqmyhI4",
+     "7oASpaBdDMs"
+    ]
+   },
+   {
+    "key": "4.2.4",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "aa8USttcDoE"
+    ]
+   },
+   {
+    "key": "4.2.5",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "yEfqhmtS4lA"
+    ]
+   },
+   {
+    "key": "4.2.6",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "7oASpaBdDMs"
+    ]
+   },
+   {
+    "key": "4.3.1",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "D7aDIZ-KPEU"
+    ]
+   },
+   {
+    "key": "4.3.2",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "D7aDIZ-KPEU"
+    ]
+   },
+   {
+    "key": "4.3.3",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "D7aDIZ-KPEU"
+    ]
+   },
+   {
+    "key": "4.4.1",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "hSYXkDnCpHM",
+     "D7aDIZ-KPEU"
+    ]
+   },
+   {
+    "key": "4.4.2",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "hSYXkDnCpHM"
+    ]
+   },
+   {
+    "key": "4.4.3",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "D7aDIZ-KPEU"
+    ]
+   },
+   {
+    "key": "4.5.1",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "8jBouAQt9EY"
+    ]
+   },
+   {
+    "key": "4.5.2",
+    "hubChapter": "fahecw3m",
+    "videos": [
+     "a8QAcwNcJPU"
+    ]
+   },
+   {
+    "key": "5.2",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "06j_zPdPWOY"
+    ]
+   },
+   {
+    "key": "5.3",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "ftmvsahQ6Wo"
+    ]
+   },
+   {
+    "key": "5.4",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "8SkqltGoWqw",
+     "ftmvsahQ6Wo"
+    ]
+   },
+   {
+    "key": "5.5.1",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "ftmvsahQ6Wo"
+    ]
+   },
+   {
+    "key": "5.5.2",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "QkXyvqq5Jns",
+     "ftmvsahQ6Wo"
+    ]
+   },
+   {
+    "key": "5.5.3",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "UHvMlTZJbZo"
+    ]
+   },
+   {
+    "key": "5.5.4",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "GbBQ3i1K2DE"
+    ]
+   },
+   {
+    "key": "5.6.1",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "TSYNHb6YBEE"
+    ]
+   },
+   {
+    "key": "5.6.2",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "-FzVxsUQ3_w"
+    ]
+   },
+   {
+    "key": "5.6.3",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "TSYNHb6YBEE",
+     "G7KnsA0ZF7w"
+    ]
+   },
+   {
+    "key": "5.6.4",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "TSYNHb6YBEE",
+     "G7KnsA0ZF7w"
+    ]
+   },
+   {
+    "key": "5.7",
+    "hubChapter": "mk335ei4",
+    "videos": [
+     "mwoDOrz-4IY"
+    ]
+   },
+   {
+    "key": "6.2",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "F0ulAkrfvzo"
+    ]
+   },
+   {
+    "key": "6.3.1",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "_POik0fJpsY",
+     "BNy84DCRxzo"
+    ]
+   },
+   {
+    "key": "6.3.2",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "_POik0fJpsY",
+     "BNy84DCRxzo"
+    ]
+   },
+   {
+    "key": "6.3.3",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "F0ulAkrfvzo"
+    ]
+   },
+   {
+    "key": "6.4.1",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "F0ulAkrfvzo"
+    ]
+   },
+   {
+    "key": "6.4.2",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "F0ulAkrfvzo"
+    ]
+   },
+   {
+    "key": "6.5",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "CtCfwMmzOBU"
+    ]
+   },
+   {
+    "key": "6.6.1",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "yrRysbDoyhw",
+     "dbuU8S1x0Ro"
+    ]
+   },
+   {
+    "key": "6.6.2",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "Q4FxNAacEB4"
+    ]
+   },
+   {
+    "key": "6.6.3",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "Q4FxNAacEB4"
+    ]
+   },
+   {
+    "key": "6.6.4",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "uH0__zmJh2M"
+    ]
+   },
+   {
+    "key": "6.6.5",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "yiSrxuZW1zI"
+    ]
+   },
+   {
+    "key": "6.6.6",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "iL6N9oaF1yE"
+    ]
+   },
+   {
+    "key": "6.6.7",
+    "hubChapter": "2f8izpve",
+    "videos": [
+     "xHIKWqBj7kU"
+    ]
+   },
+   {
+    "key": "7.2",
+    "hubChapter": "p7tsid7t",
+    "videos": [
+     "oMjhRcXl5NE",
+     "qnJRFtLt9hM",
+     "XRR-iouyOYg",
+     "Fuyshwxs1Ig",
+     "QdhUiU063jg"
+    ]
+   },
+   {
+    "key": "7.3",
+    "hubChapter": "p7tsid7t",
+    "videos": [
+     "IrSgLJBqCSo"
+    ]
+   },
+   {
+    "key": "7.4",
+    "hubChapter": "p7tsid7t",
+    "videos": [
+     "OLdFZbqLXvk"
+    ]
+   },
+   {
+    "key": "7.5.1",
+    "hubChapter": "p7tsid7t",
+    "videos": [
+     "IrSgLJBqCSo"
+    ]
+   },
+   {
+    "key": "7.5.2",
+    "hubChapter": "p7tsid7t",
+    "videos": [
+     "IrSgLJBqCSo"
+    ]
+   },
+   {
+    "key": "7.5.3",
+    "hubChapter": "p7tsid7t",
+    "videos": [
+     "IrSgLJBqCSo"
+    ]
+   },
+   {
+    "key": "7.5.4",
+    "hubChapter": "p7tsid7t",
+    "videos": [
+     "IrSgLJBqCSo"
+    ]
+   },
+   {
+    "key": "7.5.5",
+    "hubChapter": "p7tsid7t",
+    "videos": [
+     "IrSgLJBqCSo"
+    ]
+   },
+   {
+    "key": "7.6",
+    "hubChapter": "p7tsid7t",
+    "videos": [
+     "gyhMBqdnbDo",
+     "XazAuoyCbx0"
+    ]
+   },
+   {
+    "key": "8.2",
+    "hubChapter": "hxmkqbf5",
+    "videos": [
+     "FJVOh57UxL8"
+    ]
+   },
+   {
+    "key": "8.3",
+    "hubChapter": "hxmkqbf5",
+    "videos": [
+     "FJVOh57UxL8",
+     "mvPHvwgwHHE",
+     "wUgrFSrMWQU"
+    ]
+   },
+   {
+    "key": "8.4",
+    "hubChapter": "hxmkqbf5",
+    "videos": [
+     "mFlNxRV9OZo",
+     "VBwlyTN6vlw",
+     "MmGYldezp40"
+    ]
+   },
+   {
+    "key": "8.5",
+    "hubChapter": "hxmkqbf5",
+    "videos": [
+     "7CrlqeMwP4M",
+     "ufrYzoR_4xE"
+    ]
+   },
+   {
+    "key": "9.2.1",
+    "hubChapter": "rzdnpy2f",
+    "videos": [
+     "P0N1RteWiEQ"
+    ]
+   },
+   {
+    "key": "9.2.2",
+    "hubChapter": "rzdnpy2f",
+    "videos": [
+     "L-QjAluq_fo"
+    ]
+   },
+   {
+    "key": "9.2.3",
+    "hubChapter": "rzdnpy2f",
+    "videos": [
+     "LMCODkeeDtE"
+    ]
+   },
+   {
+    "key": "9.3",
+    "hubChapter": "rzdnpy2f",
+    "videos": [
+     "PQTN3MXTRPw"
+    ]
+   },
+   {
+    "key": "9.4",
+    "hubChapter": "rzdnpy2f",
+    "videos": [
+     "YrnqUPW96lY"
+    ]
+   },
+   {
+    "key": "9.5",
+    "hubChapter": "rzdnpy2f",
+    "videos": [
+     "CkVi3LIl74g"
+    ]
+   },
+   {
+    "key": "10.2",
+    "hubChapter": "u5fz4cxt",
+    "videos": [],
+    "skip": "General comment on the scope of asymmetric-information and game-theoretic analysis (guide p. 175-176): framing prose only, no model, result or examinable technique; the chapter's content starts at 10.3."
+   },
+   {
+    "key": "10.3",
+    "hubChapter": "u5fz4cxt",
+    "videos": [
+     "S08DrcQ5fx0",
+     "BcEIZm5vTQw"
+    ]
+   },
+   {
+    "key": "10.4.1",
+    "hubChapter": "u5fz4cxt",
+    "videos": [
+     "TgpV3F1gSRY"
+    ]
+   },
+   {
+    "key": "10.4.2",
+    "hubChapter": "u5fz4cxt",
+    "videos": [
+     "TgpV3F1gSRY"
+    ]
+   },
+   {
+    "key": "10.4.3",
+    "hubChapter": "u5fz4cxt",
+    "videos": [
+     "lEVbbGxe0r0"
+    ]
+   },
+   {
+    "key": "10.4.4",
+    "hubChapter": "u5fz4cxt",
+    "videos": [
+     "lEVbbGxe0r0"
+    ]
+   },
+   {
+    "key": "10.5",
+    "hubChapter": "u5fz4cxt",
+    "videos": [
+     "O7RgNPbFiH0",
+     "VddaoIIIHMs",
+     "f92OLDTk74g"
+    ]
+   },
+   {
+    "key": "11.2",
+    "hubChapter": "7svf3cge",
+    "videos": [
+     "kdXqwucFNeU",
+     "L28dEHpZ7-M",
+     "LIpEXogDHsA"
+    ]
+   },
+   {
+    "key": "11.3.1",
+    "hubChapter": "7svf3cge",
+    "videos": [
+     "kdXqwucFNeU"
+    ]
+   },
+   {
+    "key": "11.3.2",
+    "hubChapter": "7svf3cge",
+    "videos": [
+     "kdXqwucFNeU"
+    ]
+   },
+   {
+    "key": "11.3.3",
+    "hubChapter": "7svf3cge",
+    "videos": [
+     "kdXqwucFNeU"
+    ]
+   },
+   {
+    "key": "11.4.1",
+    "hubChapter": "7svf3cge",
+    "videos": [
+     "L28dEHpZ7-M"
+    ]
+   },
+   {
+    "key": "11.4.2",
+    "hubChapter": "7svf3cge",
+    "videos": [
+     "L28dEHpZ7-M",
+     "LIpEXogDHsA"
+    ]
+   },
+   {
+    "key": "11.5",
+    "hubChapter": "7svf3cge",
+    "videos": [
+     "LIpEXogDHsA"
+    ]
+   },
+   {
+    "key": "12.2.1",
+    "hubChapter": "6wtf9dtz",
+    "videos": [
+     "DuUNNvlo3UU",
+     "BvwqdFWsw9A"
+    ]
+   },
+   {
+    "key": "12.2.2",
+    "hubChapter": "6wtf9dtz",
+    "videos": [
+     "RIugTo0ivWI"
+    ]
+   },
+   {
+    "key": "12.2.3",
+    "hubChapter": "6wtf9dtz",
+    "videos": [
+     "9tUb3MDrgEc"
+    ]
+   },
+   {
+    "key": "12.3.1",
+    "hubChapter": "6wtf9dtz",
+    "videos": [
+     "CC2wf39PmSg",
+     "sV0tI_ll8Ws"
+    ]
+   },
+   {
+    "key": "12.3.2",
+    "hubChapter": "6wtf9dtz",
+    "videos": [
+     "GGzSdqIkkjU"
+    ]
+   },
+   {
+    "key": "12.4.1",
+    "hubChapter": "6wtf9dtz",
+    "videos": [
+     "io88vTQO_g4"
+    ]
+   },
+   {
+    "key": "12.4.2",
+    "hubChapter": "6wtf9dtz",
+    "videos": [
+     "io88vTQO_g4"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "FN2203",
+  "module": "asset-pricing",
+  "sections": [
+   {
+    "key": "2.2",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "U03Md5enU-0"
+    ]
+   },
+   {
+    "key": "2.3.1",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "RU-osjAs6hE",
+     "U03Md5enU-0"
+    ]
+   },
+   {
+    "key": "2.3.3",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "TBV68vfJB6s"
+    ]
+   },
+   {
+    "key": "2.4.1",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "rViT_ODg5Yk"
+    ]
+   },
+   {
+    "key": "2.4.3",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "bIIndFa0RCM",
+     "rViT_ODg5Yk"
+    ]
+   },
+   {
+    "key": "2.5.1",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "S27jP4XUarY"
+    ]
+   },
+   {
+    "key": "2.5.3",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "eEoyIiU1wY4"
+    ]
+   },
+   {
+    "key": "2.6.1",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "S27jP4XUarY",
+     "rViT_ODg5Yk"
+    ]
+   },
+   {
+    "key": "2.6.3",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "eEoyIiU1wY4"
+    ]
+   },
+   {
+    "key": "2.7.1",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "88-B0vXTTIU",
+     "U03Md5enU-0"
+    ]
+   },
+   {
+    "key": "2.7.3",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "gOxF84dioxA"
+    ]
+   },
+   {
+    "key": "2.8.1",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "Q7_eqf0Vd1Q",
+     "U03Md5enU-0"
+    ]
+   },
+   {
+    "key": "2.8.3",
+    "hubChapter": "wvmum8as",
+    "videos": [
+     "gOxF84dioxA"
+    ]
+   },
+   {
+    "key": "3.2",
+    "hubChapter": "yffnx42n",
+    "videos": [
+     "aOw7_pEHVZM",
+     "8_8g3Zw3Lg0",
+     "hyc8h5T76BE",
+     "yrmqYNvvIzs"
+    ]
+   },
+   {
+    "key": "3.3",
+    "hubChapter": "yffnx42n",
+    "videos": [
+     "mNxFjtTyXZI",
+     "hyc8h5T76BE"
+    ]
+   },
+   {
+    "key": "3.4",
+    "hubChapter": "yffnx42n",
+    "videos": [
+     "CAs_aX95tVQ"
+    ]
+   },
+   {
+    "key": "3.5",
+    "hubChapter": "yffnx42n",
+    "videos": [
+     "aOw7_pEHVZM",
+     "8_8g3Zw3Lg0",
+     "yrmqYNvvIzs"
+    ]
+   },
+   {
+    "key": "3.6",
+    "hubChapter": "yffnx42n",
+    "videos": [
+     "SNehgIhigek",
+     "yrmqYNvvIzs"
+    ]
+   },
+   {
+    "key": "4.2.1",
+    "hubChapter": "jgrrqpnx",
+    "videos": [
+     "BqFc3iosyqQ",
+     "I7FDx4DPapw"
+    ]
+   },
+   {
+    "key": "4.2.2",
+    "hubChapter": "jgrrqpnx",
+    "videos": [
+     "BqFc3iosyqQ",
+     "I7FDx4DPapw",
+     "rBWBUKZd4WY"
+    ]
+   },
+   {
+    "key": "4.3",
+    "hubChapter": "jgrrqpnx",
+    "videos": [
+     "F7XnR7sKWiE",
+     "9GOfBq5Go9U",
+     "AtT59jxU9es"
+    ]
+   },
+   {
+    "key": "4.4.1",
+    "hubChapter": "jgrrqpnx",
+    "videos": [
+     "rdDfmlerTcI",
+     "AtT59jxU9es"
+    ]
+   },
+   {
+    "key": "4.4.2",
+    "hubChapter": "jgrrqpnx",
+    "videos": [
+     "rdDfmlerTcI",
+     "9GOfBq5Go9U",
+     "I7FDx4DPapw"
+    ]
+   },
+   {
+    "key": "4.5",
+    "hubChapter": "jgrrqpnx",
+    "videos": [
+     "rdDfmlerTcI",
+     "9GOfBq5Go9U"
+    ]
+   },
+   {
+    "key": "4.6",
+    "hubChapter": "jgrrqpnx",
+    "videos": [
+     "rBWBUKZd4WY",
+     "AtT59jxU9es",
+     "tkGepWJ5b3E"
+    ]
+   },
+   {
+    "key": "4.7",
+    "hubChapter": "jgrrqpnx",
+    "videos": [
+     "tkGepWJ5b3E"
+    ]
+   },
+   {
+    "key": "5.2.1",
+    "hubChapter": "5az5u938",
+    "videos": [
+     "IMJVp3tIX9c"
+    ]
+   },
+   {
+    "key": "5.2.2",
+    "hubChapter": "5az5u938",
+    "videos": [
+     "f6QjT7H9EEU"
+    ]
+   },
+   {
+    "key": "5.2.3",
+    "hubChapter": "5az5u938",
+    "videos": [
+     "QqK6H1JPjv0"
+    ]
+   },
+   {
+    "key": "5.3",
+    "hubChapter": "5az5u938",
+    "videos": [
+     "TlH3_iOHX3s",
+     "Wh5vp-UkCpo",
+     "n6Kgg6e5iVw",
+     "cny-1yDbQno"
+    ]
+   },
+   {
+    "key": "5.4.1",
+    "hubChapter": "5az5u938",
+    "videos": [
+     "21STUhQ-iP0"
+    ]
+   },
+   {
+    "key": "5.4.2",
+    "hubChapter": "5az5u938",
+    "videos": [
+     "21STUhQ-iP0"
+    ]
+   },
+   {
+    "key": "5.5",
+    "hubChapter": "5az5u938",
+    "videos": [
+     "cny-1yDbQno"
+    ]
+   },
+   {
+    "key": "5.6.1",
+    "hubChapter": "5az5u938",
+    "videos": [
+     "o0iNxizilow",
+     "cny-1yDbQno"
+    ]
+   },
+   {
+    "key": "5.6.2",
+    "hubChapter": "5az5u938",
+    "videos": [
+     "o0iNxizilow",
+     "cny-1yDbQno"
+    ]
+   },
+   {
+    "key": "6.2",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "tCreeXzCNRc"
+    ]
+   },
+   {
+    "key": "6.3.1",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "9gpbCi1g7w4",
+     "pwyR9uAM0iU"
+    ]
+   },
+   {
+    "key": "6.3.2",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "9gpbCi1g7w4",
+     "qPu4TEGIDYI"
+    ]
+   },
+   {
+    "key": "6.3.3",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "qPu4TEGIDYI"
+    ]
+   },
+   {
+    "key": "6.4.1",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "pwyR9uAM0iU"
+    ]
+   },
+   {
+    "key": "6.4.2",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "pwyR9uAM0iU"
+    ]
+   },
+   {
+    "key": "6.4.3",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "pwyR9uAM0iU"
+    ]
+   },
+   {
+    "key": "6.4.4",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "wOaKzthMUQ0",
+     "pwyR9uAM0iU"
+    ]
+   },
+   {
+    "key": "6.4.5",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "wOaKzthMUQ0",
+     "pwyR9uAM0iU",
+     "z2oQe6B1Qa4"
+    ]
+   },
+   {
+    "key": "6.5",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "nDcZJcxOwVI"
+    ]
+   },
+   {
+    "key": "6.6.1",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "z2oQe6B1Qa4"
+    ]
+   },
+   {
+    "key": "6.6.2",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "z2oQe6B1Qa4"
+    ]
+   },
+   {
+    "key": "6.6.3",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "wOaKzthMUQ0",
+     "mNZ4BqXVfjs"
+    ]
+   },
+   {
+    "key": "6.6.4",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "z2oQe6B1Qa4"
+    ]
+   },
+   {
+    "key": "6.6.5",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "XIXd7pUt4cg",
+     "mNZ4BqXVfjs"
+    ]
+   },
+   {
+    "key": "6.6.6",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "mNZ4BqXVfjs"
+    ]
+   },
+   {
+    "key": "6.6.7",
+    "hubChapter": "hp8rqber",
+    "videos": [
+     "XIXd7pUt4cg",
+     "z2oQe6B1Qa4"
+    ]
+   },
+   {
+    "key": "7.2.1",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "AEv9AszJ4_U",
+     "yco0sC7AJ2U",
+     "3EzdvkRgToY"
+    ]
+   },
+   {
+    "key": "7.2.2",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "xFLCxs25z7Y"
+    ]
+   },
+   {
+    "key": "7.2.4",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "csSsYI8MthQ"
+    ]
+   },
+   {
+    "key": "7.2.5",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "AEv9AszJ4_U",
+     "yco0sC7AJ2U",
+     "3EzdvkRgToY"
+    ]
+   },
+   {
+    "key": "7.2.6",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "EPfGclW3dSU"
+    ]
+   },
+   {
+    "key": "7.2.7",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "AEv9AszJ4_U",
+     "yco0sC7AJ2U",
+     "NUkkRdEknjI",
+     "3EzdvkRgToY"
+    ]
+   },
+   {
+    "key": "7.3.1",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "BNLPHZjY0pc"
+    ]
+   },
+   {
+    "key": "7.3.2",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "BNLPHZjY0pc"
+    ]
+   },
+   {
+    "key": "7.3.3",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "BNLPHZjY0pc"
+    ]
+   },
+   {
+    "key": "7.3.4",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "3EzdvkRgToY",
+     "bM9bYOBuKF4",
+     "a5PF2PcElV0"
+    ]
+   },
+   {
+    "key": "7.4.1",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "T3WoIU8_ebQ"
+    ]
+   },
+   {
+    "key": "7.4.2",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "UjIuuTu40GY"
+    ]
+   },
+   {
+    "key": "7.4.3",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "aCtYxIG1dbE"
+    ]
+   },
+   {
+    "key": "7.4.4",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "25_WjiZnvQk"
+    ]
+   },
+   {
+    "key": "7.4.5",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "bM9bYOBuKF4",
+     "a5PF2PcElV0"
+    ]
+   },
+   {
+    "key": "7.5.1",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "NEwRY161m04"
+    ]
+   },
+   {
+    "key": "7.5.2",
+    "hubChapter": "jssbi8db",
+    "videos": [
+     "e6gAsSr1yFs"
+    ]
+   },
+   {
+    "key": "8.2.1",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "pYTraS5WR3s",
+     "Iel_GRQNAxA",
+     "ViTnIebSzj4"
+    ]
+   },
+   {
+    "key": "8.2.2",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "pYTraS5WR3s",
+     "Iel_GRQNAxA"
+    ]
+   },
+   {
+    "key": "8.2.3",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "pYTraS5WR3s",
+     "Iel_GRQNAxA"
+    ]
+   },
+   {
+    "key": "8.2.4",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "pYTraS5WR3s",
+     "Iel_GRQNAxA"
+    ]
+   },
+   {
+    "key": "8.2.5",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "pYTraS5WR3s",
+     "Iel_GRQNAxA",
+     "ViTnIebSzj4"
+    ]
+   },
+   {
+    "key": "8.2.6",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "We17ijX-P6Y",
+     "ViTnIebSzj4"
+    ]
+   },
+   {
+    "key": "8.2.7",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "We17ijX-P6Y"
+    ]
+   },
+   {
+    "key": "8.2.8",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "fo0Ba9-GCts"
+    ]
+   },
+   {
+    "key": "8.2.9",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "k00aFalPFBU"
+    ]
+   },
+   {
+    "key": "8.2.10",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "e0i3qH_8R_4"
+    ]
+   },
+   {
+    "key": "8.2.11",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "wTzciLaCksA"
+    ]
+   },
+   {
+    "key": "8.3.1",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "a41LhZE5Iec"
+    ]
+   },
+   {
+    "key": "8.3.2",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "PlrLVe3cqfg",
+     "a41LhZE5Iec"
+    ]
+   },
+   {
+    "key": "8.3.3",
+    "hubChapter": "bcpk8fpt",
+    "videos": [
+     "PlrLVe3cqfg",
+     "a41LhZE5Iec"
+    ]
+   },
+   {
+    "key": "9.2.1",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "zPyLCUQdh7I",
+     "i_pLF9J3QPE"
+    ]
+   },
+   {
+    "key": "9.2.3",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "i_pLF9J3QPE"
+    ]
+   },
+   {
+    "key": "9.3.1",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "zSiAiF6lvGk"
+    ]
+   },
+   {
+    "key": "9.3.2",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "zSiAiF6lvGk"
+    ]
+   },
+   {
+    "key": "9.3.3",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "zSiAiF6lvGk"
+    ]
+   },
+   {
+    "key": "9.3.5",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "zSiAiF6lvGk",
+     "dmVfZ1yjw7E"
+    ]
+   },
+   {
+    "key": "9.4.1",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "Pj3R8KFLTjo"
+    ]
+   },
+   {
+    "key": "9.4.2",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "Pj3R8KFLTjo"
+    ]
+   },
+   {
+    "key": "9.4.3",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "Pj3R8KFLTjo"
+    ]
+   },
+   {
+    "key": "9.5",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "Pj3R8KFLTjo"
+    ]
+   },
+   {
+    "key": "9.6",
+    "hubChapter": "z4bhu97x",
+    "videos": [
+     "DrlKjSG1V6s",
+     "1rR4zNQjtjg"
+    ]
+   },
+   {
+    "key": "10.2.1",
+    "hubChapter": "uyjwrjjp",
+    "videos": [
+     "-GddP-N_klw"
+    ]
+   },
+   {
+    "key": "10.2.2",
+    "hubChapter": "uyjwrjjp",
+    "videos": [
+     "wAAaPnBK87k"
+    ]
+   },
+   {
+    "key": "10.2.3",
+    "hubChapter": "uyjwrjjp",
+    "videos": [
+     "QFSyjhqITRA",
+     "-GddP-N_klw"
+    ]
+   },
+   {
+    "key": "10.2.4",
+    "hubChapter": "uyjwrjjp",
+    "videos": [
+     "-GddP-N_klw"
+    ]
+   },
+   {
+    "key": "10.3",
+    "hubChapter": "uyjwrjjp",
+    "videos": [
+     "1p5wJxGNj1Q"
+    ]
+   },
+   {
+    "key": "10.4",
+    "hubChapter": "uyjwrjjp",
+    "videos": [
+     "-m5jabeJJBs",
+     "nN4tOYVqf9o"
+    ]
+   },
+   {
+    "key": "10.6.1",
+    "hubChapter": "uyjwrjjp",
+    "videos": [
+     "g24AX2lOQYM"
+    ]
+   },
+   {
+    "key": "10.6.2",
+    "hubChapter": "uyjwrjjp",
+    "videos": [
+     "c4i0mRW1RZI"
+    ]
+   },
+   {
+    "key": "10.6.3",
+    "hubChapter": "uyjwrjjp",
+    "videos": [
+     "g24AX2lOQYM"
+    ]
+   },
+   {
+    "key": "10.6.4",
+    "hubChapter": "uyjwrjjp",
+    "videos": [
+     "c4i0mRW1RZI"
+    ]
+   },
+   {
+    "key": "11.2",
+    "hubChapter": "qj79hsbs",
+    "videos": [
+     "pkuQLFI13Ws",
+     "g3uUgV9xKkE",
+     "qZgunj-_1nQ"
+    ]
+   },
+   {
+    "key": "11.3",
+    "hubChapter": "qj79hsbs",
+    "videos": [
+     "8Zu6iVmgobo"
+    ]
+   },
+   {
+    "key": "11.4",
+    "hubChapter": "qj79hsbs",
+    "videos": [
+     "pr-u4LCFYEY",
+     "m2mLrz1PU70"
+    ]
+   }
+  ]
+ },
+ {
+  "unitCode": "MT3095",
+  "module": "further-maths-economists",
+  "sections": [
+   {
+    "key": "2.2.1",
+    "hubChapter": "haeif3ez",
+    "videos": [
+     "CcbyMH3Noow",
+     "srxexLishgY"
+    ]
+   },
+   {
+    "key": "2.2.2",
+    "hubChapter": "haeif3ez",
+    "videos": [
+     "T2Gtt8WygiU"
+    ]
+   },
+   {
+    "key": "2.2.3",
+    "hubChapter": "haeif3ez",
+    "videos": [
+     "kWorj5BBy9k",
+     "uQhTuRlWMxw"
+    ]
+   },
+   {
+    "key": "2.3.1",
+    "hubChapter": "haeif3ez",
+    "videos": [
+     "uQhTuRlWMxw",
+     "9Q1q7s1jTzU"
+    ]
+   },
+   {
+    "key": "2.3.2",
+    "hubChapter": "haeif3ez",
+    "videos": [
+     "9Q1q7s1jTzU"
+    ]
+   },
+   {
+    "key": "2.3.3",
+    "hubChapter": "haeif3ez",
+    "videos": [
+     "9Q1q7s1jTzU",
+     "HPE1yPYklh0"
+    ]
+   },
+   {
+    "key": "2.3.4",
+    "hubChapter": "haeif3ez",
+    "videos": [
+     "uQhTuRlWMxw",
+     "8o5Cmfpeo6g"
+    ]
+   },
+   {
+    "key": "2.3.5",
+    "hubChapter": "haeif3ez",
+    "videos": [
+     "uQhTuRlWMxw",
+     "8o5Cmfpeo6g"
+    ]
+   },
+   {
+    "key": "3.2",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "EP2ghkO0lSk"
+    ]
+   },
+   {
+    "key": "3.3",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "tM4TDL9Hj8U",
+     "3_MxBlWQsgs"
+    ]
+   },
+   {
+    "key": "3.4",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "YQRioQ1XUck"
+    ]
+   },
+   {
+    "key": "3.5",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "tM4TDL9Hj8U"
+    ]
+   },
+   {
+    "key": "3.6",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "9kDpbZCK62Y",
+     "OFALIHBY5Bw"
+    ]
+   },
+   {
+    "key": "3.7",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "OFALIHBY5Bw"
+    ]
+   },
+   {
+    "key": "3.8.1",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "QN00isODmEs"
+    ]
+   },
+   {
+    "key": "3.8.2",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "4C9GKyfUQkc"
+    ]
+   },
+   {
+    "key": "3.8.3",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "aOJ_o-kPi80"
+    ]
+   },
+   {
+    "key": "3.9",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "_CpshMm-5p0"
+    ]
+   },
+   {
+    "key": "3.10",
+    "hubChapter": "8p8umkn4",
+    "videos": [
+     "vpl8EZwrqPk"
+    ]
+   },
+   {
+    "key": "4.2",
+    "hubChapter": "uv32jvcv",
+    "videos": [
+     "is1cg5yhdds"
+    ]
+   },
+   {
+    "key": "4.4",
+    "hubChapter": "uv32jvcv",
+    "videos": [
+     "vyYrvhbDhW4"
+    ]
+   },
+   {
+    "key": "4.5",
+    "hubChapter": "uv32jvcv",
+    "videos": [
+     "yZ52iqxaiCc"
+    ]
+   },
+   {
+    "key": "4.6",
+    "hubChapter": "uv32jvcv",
+    "videos": [
+     "kYB8IZa5AuE",
+     "Ts3o2I8_Mxc"
+    ]
+   },
+   {
+    "key": "4.7",
+    "hubChapter": "uv32jvcv",
+    "videos": [
+     "HZa1RwFHgwU"
+    ]
+   },
+   {
+    "key": "4.8",
+    "hubChapter": "uv32jvcv",
+    "videos": [
+     "HZa1RwFHgwU",
+     "PiuhTj0zCf4",
+     "s4c5LQ5a4ek"
+    ]
+   },
+   {
+    "key": "5.2.1",
+    "hubChapter": "graa7b6k",
+    "videos": [
+     "PFDu9oVAE-g"
+    ]
+   },
+   {
+    "key": "5.2.2",
+    "hubChapter": "graa7b6k",
+    "videos": [
+     "TQvxWaQnrqI",
+     "PFDu9oVAE-g"
+    ]
+   },
+   {
+    "key": "5.3",
+    "hubChapter": "graa7b6k",
+    "videos": [
+     "FOoi8h47Tw4"
+    ]
+   },
+   {
+    "key": "5.4",
+    "hubChapter": "graa7b6k",
+    "videos": [
+     "WTLl03D4TNA",
+     "nNwZA1X-C3c",
+     "ieWyx2mlZyk"
+    ]
+   },
+   {
+    "key": "5.5",
+    "hubChapter": "graa7b6k",
+    "videos": [
+     "UCc9q_cAhho"
+    ]
+   },
+   {
+    "key": "6.2",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "13r9QY6cmjc"
+    ]
+   },
+   {
+    "key": "6.3.1",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "YIoukM31_nI"
+    ]
+   },
+   {
+    "key": "6.3.2",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "13r9QY6cmjc"
+    ]
+   },
+   {
+    "key": "6.3.3",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "13r9QY6cmjc"
+    ]
+   },
+   {
+    "key": "6.3.4",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "13r9QY6cmjc"
+    ]
+   },
+   {
+    "key": "6.4",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "aP4YXOo-Uko"
+    ]
+   },
+   {
+    "key": "6.5.1",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "07V_UNLz0qs"
+    ]
+   },
+   {
+    "key": "6.5.2",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "IZqwi0wJovM",
+     "8e_ux_E0dJ0"
+    ]
+   },
+   {
+    "key": "6.5.3",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "XXjoh8L1HkE",
+     "E-sBhLIjPaM"
+    ]
+   },
+   {
+    "key": "6.5.4",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "IZqwi0wJovM",
+     "UO_dgXa5szg",
+     "XXjoh8L1HkE"
+    ]
+   },
+   {
+    "key": "6.5.5",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "E-sBhLIjPaM",
+     "07V_UNLz0qs"
+    ]
+   },
+   {
+    "key": "6.6",
+    "hubChapter": "4n36zrm6",
+    "videos": [
+     "wJxPKj5DpMc"
+    ]
+   },
+   {
+    "key": "7.2",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "LyGKycYT2v0"
+    ]
+   },
+   {
+    "key": "7.3",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "ywjA25xFuew"
+    ]
+   },
+   {
+    "key": "7.4",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "MKXahTrgVso"
+    ]
+   },
+   {
+    "key": "7.5.1",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "6nqMegdbxik",
+     "MKXahTrgVso"
+    ]
+   },
+   {
+    "key": "7.5.2",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "MKXahTrgVso"
+    ]
+   },
+   {
+    "key": "7.5.3",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "7BFx8pt2aTQ"
+    ]
+   },
+   {
+    "key": "7.5.4",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "6nqMegdbxik",
+     "0MtwqhIwdrI"
+    ]
+   },
+   {
+    "key": "7.5.5",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "r2PogGDl8_U"
+    ]
+   },
+   {
+    "key": "7.5.6",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "MKXahTrgVso"
+    ]
+   },
+   {
+    "key": "7.6",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "zHbfZWZJTGc",
+     "0MtwqhIwdrI",
+     "zti01DiImiQ"
+    ]
+   },
+   {
+    "key": "7.7",
+    "hubChapter": "y8p45wn4",
+    "videos": [
+     "-i4CBed-zec"
+    ]
+   },
+   {
+    "key": "8.2",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "cYnTXHarstY",
+     "ZoR93jR9Ok0",
+     "lzPDT0VNcRM",
+     "H10d0NF-gXU",
+     "GBUi70WCgEE",
+     "OZDFIDGcioA",
+     "fcoC7gm4je8",
+     "ufjEv-5nmcA"
+    ]
+   },
+   {
+    "key": "8.3",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "GJpezCUMOxA",
+     "q1rKFGSiZE8"
+    ]
+   },
+   {
+    "key": "8.4",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "051WWg9twO0"
+    ]
+   },
+   {
+    "key": "8.5",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "QRGIhqz9vh4",
+     "unb3B70e4b8"
+    ]
+   },
+   {
+    "key": "8.6",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "YEiZWonJrOg"
+    ]
+   },
+   {
+    "key": "8.7.1",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "cTnlHZD5ss4"
+    ]
+   },
+   {
+    "key": "8.7.2",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "cTnlHZD5ss4"
+    ]
+   },
+   {
+    "key": "8.7.3",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "7N-4XZlxBho",
+     "rQuxMfUqCJ0"
+    ]
+   },
+   {
+    "key": "8.7.4",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "4NURDmE79VU"
+    ]
+   },
+   {
+    "key": "8.7.5",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "dWLhfYUb3wc"
+    ]
+   },
+   {
+    "key": "8.7.6",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "hYY9piVkB6g"
+    ]
+   },
+   {
+    "key": "8.8.1",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "kVQNhAIFZYc"
+    ]
+   },
+   {
+    "key": "8.8.2",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "kVQNhAIFZYc"
+    ]
+   },
+   {
+    "key": "8.8.3",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "iCN2IMgRpUw"
+    ]
+   },
+   {
+    "key": "8.8.4",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "ymJ9lbWdeZk"
+    ]
+   },
+   {
+    "key": "8.9.1",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "O98eOlHyWmQ",
+     "AwC2S_dF8vg"
+    ]
+   },
+   {
+    "key": "8.9.2",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "dcUKdwHRSD8"
+    ]
+   },
+   {
+    "key": "8.10",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "dcUKdwHRSD8"
+    ]
+   },
+   {
+    "key": "8.11.1",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "PJIJ39zThYM"
+    ]
+   },
+   {
+    "key": "8.11.2",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "PJIJ39zThYM"
+    ]
+   },
+   {
+    "key": "8.12.1",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "I7AJkqEmk-4"
+    ]
+   },
+   {
+    "key": "8.12.2",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "if2Xq4GVuvY"
+    ]
+   },
+   {
+    "key": "8.12.3",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "PJIJ39zThYM"
+    ]
+   },
+   {
+    "key": "8.13",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "WTbcJYBLxAs",
+     "O98eOlHyWmQ"
+    ]
+   },
+   {
+    "key": "8.14",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "PJIJ39zThYM"
+    ]
+   },
+   {
+    "key": "8.15",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "cMmX-JiPMcU"
+    ]
+   },
+   {
+    "key": "8.16",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "PJIJ39zThYM"
+    ]
+   },
+   {
+    "key": "8.17.1",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "if2Xq4GVuvY",
+     "rQuxMfUqCJ0"
+    ]
+   },
+   {
+    "key": "8.17.2",
+    "hubChapter": "mssrt47e",
+    "videos": [
+     "dAz9ax-bjzU"
+    ]
+   },
+   {
+    "key": "9.2.1",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "MQsZEoUV__0"
+    ]
+   },
+   {
+    "key": "9.2.2",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "HjJ140TYbXQ"
+    ]
+   },
+   {
+    "key": "9.2.3",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "acdX4YamDtU"
+    ]
+   },
+   {
+    "key": "9.3.1",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "wqtr4Udz8AY"
+    ]
+   },
+   {
+    "key": "9.3.2",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "wqtr4Udz8AY"
+    ]
+   },
+   {
+    "key": "9.3.3",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "tIpKfDc295M"
+    ]
+   },
+   {
+    "key": "9.3.4",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "9Hx2Sa3WzqU"
+    ]
+   },
+   {
+    "key": "9.4",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "N_ZRcLheNv0"
+    ]
+   },
+   {
+    "key": "9.5",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "-HMxX8o6zOc"
+    ]
+   },
+   {
+    "key": "9.6",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "bohL918kXQk"
+    ]
+   },
+   {
+    "key": "9.7",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "J08-L2buigM"
+    ]
+   },
+   {
+    "key": "9.8.1",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "mRNg-Q9f9W4"
+    ]
+   },
+   {
+    "key": "9.8.2",
+    "hubChapter": "ad8jd9a5",
+    "videos": [
+     "s0dZVmPN3Ww"
+    ]
+   },
+   {
+    "key": "10.2.1",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "ux7EQ3ip2DU"
+    ]
+   },
+   {
+    "key": "10.2.2",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "_Ffcr98c7EE"
+    ]
+   },
+   {
+    "key": "10.2.3",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "_Ffcr98c7EE"
+    ]
+   },
+   {
+    "key": "10.2.4",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "Zly5elxZ9w8"
+    ]
+   },
+   {
+    "key": "10.3.1",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "yuqB-d5MjZA"
+    ]
+   },
+   {
+    "key": "10.3.2",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "HIm3Z0L90Co",
+     "2syXAny8PfE"
+    ]
+   },
+   {
+    "key": "10.3.3",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "eREvLgRJWrE"
+    ]
+   },
+   {
+    "key": "10.3.4",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "eREvLgRJWrE"
+    ]
+   },
+   {
+    "key": "10.4",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "2syXAny8PfE",
+     "natJ8yyIvQg"
+    ]
+   },
+   {
+    "key": "10.5",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "m-G3K2GPmEQ"
+    ]
+   },
+   {
+    "key": "10.6",
+    "hubChapter": "bmi4vmdb",
+    "videos": [
+     "FX7kcDvEsJk"
+    ]
+   },
+   {
+    "key": "11.2.1",
+    "hubChapter": "kd93u6uf",
+    "videos": [
+     "Y8yEN3Uwr2s"
+    ]
+   },
+   {
+    "key": "11.2.2",
+    "hubChapter": "kd93u6uf",
+    "videos": [
+     "D0IlfUDcEvs",
+     "VKXsoFoTrx8"
+    ]
+   },
+   {
+    "key": "11.2.3",
+    "hubChapter": "kd93u6uf",
+    "videos": [
+     "VKXsoFoTrx8"
+    ]
+   },
+   {
+    "key": "11.3.1",
+    "hubChapter": "kd93u6uf",
+    "videos": [
+     "0TD9EQcheZM"
+    ]
+   },
+   {
+    "key": "11.3.2",
+    "hubChapter": "kd93u6uf",
+    "videos": [
+     "0TD9EQcheZM"
+    ]
+   },
+   {
+    "key": "11.4",
+    "hubChapter": "kd93u6uf",
+    "videos": [
+     "lSM_TQehx00",
+     "bPLNyYFLLT4"
+    ]
+   },
+   {
+    "key": "11.5.1",
+    "hubChapter": "kd93u6uf",
+    "videos": [
+     "sx9cWFLDFmw",
+     "q6zKM13aVUI"
+    ]
+   },
+   {
+    "key": "11.5.2",
+    "hubChapter": "kd93u6uf",
+    "videos": [
+     "sx9cWFLDFmw"
+    ]
+   },
+   {
+    "key": "11.5.3",
+    "hubChapter": "kd93u6uf",
+    "videos": [
+     "q6zKM13aVUI",
+     "XrQpLcKXvgY"
+    ]
+   },
+   {
+    "key": "11.5.4",
+    "hubChapter": "kd93u6uf",
+    "videos": [
+     "wG-dm40Zn9s"
+    ]
+   }
+  ]
+ }
+]
