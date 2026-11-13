@@ -1,0 +1,41 @@
+/* Postgraduates (career-postgrad, career-study-row). Each row uses the vacancies' row (career-emp, Opportunities.css);
+   this adds the icon tile (a course or a scholarship has no logo), the days left to apply, the line on what master's
+   courses ask for, and the projected class under the list. */
+
+.career-study-row__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 120px;
+  height: 88px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 30px;
+}
+@container (max-width: 479px) {
+  .career-study-row__icon {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+}
+
+.career-study-row__left {
+  color: var(--accent-text);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.career-study-row__left.is-closed {
+  color: var(--ink-3);
+}
+
+.career-postgrad__intro .career-opps__about-text {
+  flex: 1 1 320px;
+}
+
+.career-postgrad__projected {
+  margin-top: var(--sp-24);
+  padding-top: var(--sp-16);
+  border-top: 1.5px solid var(--line);
+}

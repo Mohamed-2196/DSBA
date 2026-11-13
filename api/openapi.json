@@ -4321,6 +4321,7 @@
                 "calendar",
                 "career",
                 "career.seniors",
+                "career.cv",
                 "grades",
                 "noora",
                 "noora.ai",
@@ -20763,6 +20764,517 @@
         }
       }
     },
+    "/api/v1/career/cvs": {
+      "get": {
+        "tags": [
+          "career-cv"
+        ],
+        "summary": "My Cvs",
+        "description": "The signed-in student's kept CVs and their latest ratings, newest first.",
+        "operationId": "my_cvs_api_v1_career_cvs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CvReviewOut"
+                  },
+                  "type": "array",
+                  "title": "Response My Cvs Api V1 Career Cvs Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "career-cv"
+        ],
+        "summary": "Rate Cv",
+        "description": "Rates a CV just uploaded (purpose 'cv') against a role, and keeps it.\n\nErrors: not_found (404: not the student's CV upload), not_uploaded (409), limit_reached (409: ten CVs kept),\ninvalid_input (422: an unknown role, or no readable text), rate_limited (429: ten a day).",
+        "operationId": "rate_cv_api_v1_career_cvs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CvRate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CvReviewOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/career/cvs/{review_id}/rate": {
+      "post": {
+        "tags": [
+          "career-cv"
+        ],
+        "summary": "Rerate Cv",
+        "description": "Rates a kept CV again against another role. Errors: not_found (404), invalid_input (422: an unknown role).",
+        "operationId": "rerate_cv_api_v1_career_cvs__review_id__rate_post",
+        "parameters": [
+          {
+            "name": "review_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Review Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CvRerate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CvReviewOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/career/cvs/{review_id}/file": {
+      "get": {
+        "tags": [
+          "career-cv"
+        ],
+        "summary": "Cv File",
+        "description": "A short-lived link to the student's own CV file. Errors: not_found (404 for anyone else).",
+        "operationId": "cv_file_api_v1_career_cvs__review_id__file_get",
+        "parameters": [
+          {
+            "name": "review_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Review Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CvFileLink"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
+    "/api/v1/career/cvs/{review_id}": {
+      "delete": {
+        "tags": [
+          "career-cv"
+        ],
+        "summary": "Delete Cv",
+        "description": "Deletes the CV, its file and its rating. Errors: not_found (404), storage_unavailable (503).",
+        "operationId": "delete_cv_api_v1_career_cvs__review_id__delete",
+        "parameters": [
+          {
+            "name": "review_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Review Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/api/v1/features": {
       "get": {
         "tags": [
@@ -35676,6 +36188,19 @@
             ],
             "title": "Mono"
           },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
           "url": {
             "anyOf": [
               {
@@ -37383,6 +37908,247 @@
           "roles"
         ],
         "title": "CtaLabels"
+      },
+      "CvCheck": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "earned": {
+            "type": "integer",
+            "title": "Earned"
+          },
+          "max": {
+            "type": "integer",
+            "title": "Max"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "warn",
+              "fail"
+            ],
+            "title": "Status"
+          },
+          "found": {
+            "type": "string",
+            "title": "Found"
+          },
+          "tip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tip"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "earned",
+          "max",
+          "status",
+          "found",
+          "tip"
+        ],
+        "title": "CvCheck",
+        "description": "One of the checks behind the score: what it saw and, when it fell short, what to do."
+      },
+      "CvFileLink": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "A short-lived link to the file"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "CvFileLink"
+      },
+      "CvFit": {
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "title": "Roleid"
+          },
+          "roleTitle": {
+            "type": "string",
+            "title": "Roletitle"
+          },
+          "percent": {
+            "type": "integer",
+            "title": "Percent"
+          },
+          "found": {
+            "items": {
+              "$ref": "#/components/schemas/CvSkill"
+            },
+            "type": "array",
+            "title": "Found"
+          },
+          "missing": {
+            "items": {
+              "$ref": "#/components/schemas/CvSkill"
+            },
+            "type": "array",
+            "title": "Missing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roleId",
+          "roleTitle",
+          "percent",
+          "found",
+          "missing"
+        ],
+        "title": "CvFit",
+        "description": "How well the CV fits a role: the share of the role's skills it names, those it names and those it doesn't."
+      },
+      "CvRate": {
+        "properties": {
+          "uploadId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uploadid"
+          },
+          "roleId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Roleid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uploadId",
+          "roleId"
+        ],
+        "title": "CvRate",
+        "description": "Rate a CV just uploaded (purpose 'cv', completed) against a role from Career Navigator."
+      },
+      "CvRerate": {
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Roleid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roleId"
+        ],
+        "title": "CvRerate",
+        "description": "Rate a kept CV again, against this role."
+      },
+      "CvReviewOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "fileName": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "title": "Sizebytes"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "ratedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ratedat"
+          },
+          "score": {
+            "type": "integer",
+            "title": "Score"
+          },
+          "pages": {
+            "type": "integer",
+            "title": "Pages"
+          },
+          "words": {
+            "type": "integer",
+            "title": "Words"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/CvCheck"
+            },
+            "type": "array",
+            "title": "Checks"
+          },
+          "fit": {
+            "$ref": "#/components/schemas/CvFit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "fileName",
+          "sizeBytes",
+          "createdAt",
+          "ratedAt",
+          "score",
+          "pages",
+          "words",
+          "checks",
+          "fit"
+        ],
+        "title": "CvReviewOut",
+        "description": "A kept CV and its latest rating."
+      },
+      "CvSkill": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "modules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Modules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "modules"
+        ],
+        "title": "CvSkill",
+        "description": "A skill of the role: its name and the modules that teach it."
       },
       "DailyCalendar": {
         "properties": {
@@ -40194,6 +40960,7 @@
               "calendar",
               "career",
               "career.seniors",
+              "career.cv",
               "grades",
               "noora",
               "noora.ai",
@@ -40296,6 +41063,7 @@
                 "calendar",
                 "career",
                 "career.seniors",
+                "career.cv",
                 "grades",
                 "noora",
                 "noora.ai",
@@ -41007,6 +41775,28 @@
             "minLength": 1,
             "title": "Name"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "course",
+              "scholarship"
+            ],
+            "title": "Kind",
+            "default": "course"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
           "note": {
             "type": "string",
             "maxLength": 600,
@@ -41025,6 +41815,18 @@
               }
             ],
             "title": "When"
+          },
+          "closes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closes"
           },
           "url": {
             "type": "string",
@@ -44716,6 +45518,7 @@
                 "calendar",
                 "career",
                 "career.seniors",
+                "career.cv",
                 "grades",
                 "noora",
                 "noora.ai",
@@ -47836,6 +48639,7 @@
                   "calendar",
                   "career",
                   "career.seniors",
+                  "career.cv",
                   "grades",
                   "noora",
                   "noora.ai",
@@ -56044,7 +56848,8 @@
               "board",
               "note_file",
               "career_logo",
-              "module_art"
+              "module_art",
+              "cv"
             ],
             "title": "Purpose"
           },

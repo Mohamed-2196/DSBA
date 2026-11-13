@@ -11,7 +11,7 @@ doesn't show them (services/career.py public_doc)."""
 from __future__ import annotations
 
 from collections.abc import Iterable
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -107,6 +107,7 @@ class CareerCert(ApiModel):
     short: Short
     issuer: Name
     mono: Mono | None = None
+    field: Short | None = None  # its area, for the page's filter ('Machine learning & AI', 'Healthcare', ...)
     url: HttpsUrl | None = None  # the official page
     file: CertFile | None = None
     good_for: Text
@@ -235,8 +236,11 @@ class FurtherStudyOption(ApiModel):
     """A course or scholarship worth applying to after DSBA, with its date. Dates change every year: re-check them."""
 
     name: Name
+    kind: Literal["course", "scholarship"] = "course"
+    region: Short | None = None  # where it is, for the page's filter ('UK', 'Gulf', 'Europe', 'Bahrain')
     note: Text  # who it's for and what it pays
     when: Short | None = None  # its deadline or window ('Closes 3 Jan 2027'); None when none is published
+    closes: date | None = None  # the last day to apply, for sorting and "N days to apply"; None when none is published
     url: HttpsUrl  # its official page
 
 

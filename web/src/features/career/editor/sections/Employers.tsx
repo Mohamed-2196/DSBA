@@ -7,6 +7,7 @@ import { Button, glyph, Icon, IconButton, Select, TextArea, TextField } from '..
 import { EventFormDialog, useCalendarEvents, type CalendarEvent } from '../../../calendar/public';
 import { CareerContext } from '../../context';
 import { EmployerCard } from '../../EmployerCard';
+import { useApplicationDates } from '../../useApplicationDates';
 import { SECTORS } from '../../lib/sectors';
 import { LogoSlot } from '../../LogoSlot';
 import { freeId, moveItem, publicDoc, removalBlocker, removeItem, savedIdsOf } from '../doc';
@@ -81,6 +82,7 @@ function EmployerForm({ employer: e, index }: { employer: CareerEmployer; index:
   const at = `employers.${index}`;
   const tracks = useMemo(() => new Map(doc.tracks.map((t) => [t.id, t])), [doc.tracks]);
   const preview = useMemo(() => publicDoc(doc), [doc]);
+  const applications = useApplicationDates();
   const setOffer = (n: number, patch: Partial<CareerOffer>) =>
     set(e.id, { offers: e.offers.map((o, k) => (k === n ? { ...o, ...patch } : o)) });
   return (
@@ -217,8 +219,9 @@ function EmployerForm({ employer: e, index }: { employer: CareerEmployer; index:
           <ul role="list" className="cedit-preview__cards">
             <EmployerCard
               employer={{ ...e, tracks: e.tracks.filter((t) => tracks.get(t) && !tracks.get(t)?.hidden) }}
-              track="all"
+              picked={[]}
               tracks={tracks}
+              application={applications.get(e.id)}
             />
           </ul>
         </CareerContext.Provider>

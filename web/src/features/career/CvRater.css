@@ -1,0 +1,341 @@
+/* Rate my CV (cv-). The upload and the student's CVs on one side, the rating beside them: the score, the fit for the
+   role and what to fix. One column until the section is wide enough. Colour comes from tokens. */
+
+.career-page #career-cv {
+  container: cv / inline-size;
+}
+.cv-layout {
+  display: grid;
+  gap: var(--sp-16);
+  align-items: start;
+}
+@container cv (min-width: 860px) {
+  .cv-layout {
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: var(--sp-24);
+  }
+}
+.cv-side,
+.cv-main,
+.cv-result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-16);
+  min-width: 0;
+}
+
+.cv-signin,
+.cv-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-12) var(--sp-16);
+  color: var(--ink-2);
+  font-size: var(--fs-15);
+  line-height: 1.5;
+}
+.cv-empty__icon {
+  color: var(--ink-3);
+}
+.cv-error {
+  color: var(--error);
+  font-size: var(--fs-14);
+  line-height: 1.45;
+}
+.cv-note {
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  line-height: 1.45;
+}
+
+/* The upload */
+.cv-upload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-12);
+}
+.cv-upload__file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8) var(--sp-12);
+}
+.cv-upload__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  line-height: 1.4;
+}
+.cv-upload__status:empty {
+  display: none;
+}
+.cv-upload__status {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+
+/* The student's CVs */
+.cv-history__title,
+.cv-checks__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
+}
+.cv-history__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  margin-top: var(--sp-12);
+  list-style: none;
+}
+.cv-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  border-radius: 12px;
+}
+.cv-row.is-shown {
+  background: var(--accent-soft);
+}
+.cv-row__main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--sp-12);
+  min-width: 0;
+  min-height: 48px;
+  padding: var(--sp-4) var(--sp-8);
+  border-radius: 12px;
+  text-align: start;
+}
+.cv-row__main:hover {
+  background: var(--surface-hover);
+}
+.cv-row__score {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+.cv-row.is-shown .cv-row__score {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.cv-row__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cv-row__name {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cv-row__meta {
+  color: var(--ink-3);
+  font-size: var(--fs-12);
+}
+
+/* The score */
+.cv-score {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-16) var(--sp-24);
+}
+.cv-score__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-8);
+  min-width: 0;
+}
+.cv-score__number {
+  color: var(--ink-2);
+  font-size: var(--fs-17);
+}
+.cv-score__number strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--fs-44);
+  font-weight: var(--fw-display);
+  line-height: 1;
+}
+.cv-score__meta {
+  overflow-wrap: anywhere;
+  color: var(--ink-3);
+  font-size: var(--fs-13);
+}
+
+/* The fit for the role */
+.cv-fit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-12);
+}
+.cv-fit__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8) var(--sp-16);
+}
+.cv-fit__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
+}
+.cv-fit__percent {
+  color: var(--accent-text);
+}
+.cv-fit__lead {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+.cv-fit__found {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+}
+.cv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: var(--r-pill);
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+}
+.cv-fit__sub {
+  margin-top: var(--sp-4);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.cv-fit__missing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  list-style: none;
+}
+.cv-skill {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4) var(--sp-12);
+  padding-bottom: var(--sp-8);
+  border-bottom: 1.5px solid var(--line);
+}
+.cv-skill__name {
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+.cv-skill__mods {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4) var(--sp-12);
+}
+
+/* What to fix */
+.cv-checks__list {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--sp-8);
+  list-style: none;
+}
+.cv-check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--sp-12);
+  padding: var(--sp-12) 0;
+  border-bottom: 1.5px solid var(--line);
+}
+.cv-check:last-child {
+  border-bottom: 0;
+}
+.cv-check__icon {
+  margin-top: 2px;
+  font-size: 18px;
+}
+.cv-check.is-pass .cv-check__icon {
+  color: var(--success);
+}
+.cv-check.is-warn .cv-check__icon {
+  color: var(--warning);
+}
+.cv-check.is-fail .cv-check__icon {
+  color: var(--error);
+}
+.cv-check__head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-12);
+}
+.cv-check__title {
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+}
+.cv-check__points {
+  flex: none;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
+}
+.cv-check__found {
+  margin-top: 2px;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.45;
+}
+.cv-check__tip {
+  max-width: var(--measure);
+  margin-top: var(--sp-4);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+
+/* Write or improve your CV with AI: the message to copy into an AI chat */
+.cv-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-12);
+}
+.cv-prompt__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-17);
+  font-weight: var(--fw-display);
+}
+.cv-prompt__text {
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+.cv-prompt__box {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--sp-12);
+  border: 1.5px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  resize: vertical;
+}
