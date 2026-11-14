@@ -123,7 +123,11 @@ def live(db: Session, user_id: uuid.UUID) -> list[UserSession]:
 def lock_account(db: Session, user_id: uuid.UUID) -> None:
     """Takes the account's row lock until the transaction ends. Whatever makes access that outlives a session (a
     calendar or widget link, an AI app) and whatever ends it (signin.end_other_access) take it first, so the two
-    never interleave (SEC-66)."""
+    never interleave (SEC-66).
+
+    Lock order: this comes before the account's reset links (password_resets). A takeover, using a reset link and
+    making one all take it first; one that locked a link and then waited here could deadlock with one that holds
+    this and waits for the link (COM-307)."""
     db.execute(select(User.id).where(User.id == user_id).with_for_update())
 
 

@@ -7,6 +7,7 @@ transactions; each test deletes what it made."""
 
 from __future__ import annotations
 
+import threading
 import time
 import uuid
 from collections.abc import Callable, Iterator
@@ -26,7 +27,7 @@ from app.core.access import ADMIN, STUDENT
 from app.core.errors import ApiError
 from app.core.security import hash_token, new_token
 from app.core.time import utcnow
-from app.models import AiAppClient, AiAppConnection, AuditEntry, CalendarPrefs, User, UserSession
+from app.models import AiAppClient, AiAppConnection, AuditEntry, CalendarPrefs, PasswordReset, User, UserSession
 from app.schemas.auth import PasswordChange, PasswordResetRequest
 from app.services import access, my_calendar, passwords, signin
 from app.services.ai_apps import consent, store
@@ -242,3 +243,99 @@ def test_a_signed_out_session_makes_no_link(own_connections: sessionmaker[Sessio
         with pytest.raises(ApiError) as refused:
             my_calendar.new_feed(old, user, sess)
         assert refused.value.status == 401
+
+
+# ── two recoveries at once: the account's lock comes before its reset links ────────────────────
+
+
+class _Pause:
+    """Stands in for a function a recovery calls part-way through: the first call (in the paused thread) says it got
+    there and waits to be let go; later calls go straight through."""
+
+    def __init__(self, real: Callable[..., object]) -> None:
+        self.real = real
+        self.reached = threading.Event()
+        self.go = threading.Event()
+
+    def __call__(self, *args: object, **kwargs: object) -> object:
+        if not self.reached.is_set():
+            self.reached.set()
+            assert self.go.wait(10), "never let go"
+        return self.real(*args, **kwargs)
+
+
+def _overlap(
+    own_connections: sessionmaker[Session], pause: _Pause, first: Callable[[Session], None], race: Race
+) -> None:
+    """`first` runs until `pause` (holding whatever locks it takes before that point), then a Google takeover starts
+    and gets as far as it can; then `first` goes on. Both must finish: a deadlock aborts one of them (40P01, a 500)."""
+
+    def running(change: Callable[[Session], None]) -> None:
+        with own_connections() as s:
+            change(s)
+            s.commit()
+
+    with ThreadPoolExecutor(2) as pool:
+        one = pool.submit(running, first)
+        assert pause.reached.wait(10)
+        two = pool.submit(running, lambda s: _takeover(s, race))
+        time.sleep(0.5)  # the takeover now waits on a lock `first` holds
+        pause.go.set()
+        one.result(timeout=15)
+        two.result(timeout=15)
+
+
+def _drop_settings_row(own_connections: sessionmaker[Session], race: Race) -> None:
+    with own_connections() as s:
+        s.execute(delete(CalendarPrefs).where(CalendarPrefs.user_id == race.user_id))
+        s.commit()
+
+
+@pytest.mark.parametrize("settings_row", [True, False], ids=["settings row", "no settings row"])
+def test_a_reset_link_and_a_takeover_at_once_both_finish(
+    own_connections: sessionmaker[Session], race: Race, settings_row: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The student uses a reset link while Google takes the account over. The reset used to lock its link and then
+    the account, the takeover the account and then the links, so each could wait on the other (COM-307)."""
+    if not settings_row:
+        _drop_settings_row(own_connections, race)
+    with own_connections() as s:
+        link = signin.issue_reset_link(s, s.get_one(User, race.admin_id), s.get_one(User, race.user_id), None)
+        s.commit()
+    token = link.url.split("#token=")[1]
+    pause = _Pause(passwords.check_new)  # after the reset has found its link
+    monkeypatch.setattr(passwords, "check_new", pause)
+
+    def reset(s: Session) -> None:
+        signin.use_reset_link(s, PasswordResetRequest(token=token, new_password=NEW_PASSWORD), None)
+
+    _overlap(own_connections, pause, reset, race)
+    with own_connections() as s:
+        user = s.get_one(User, race.user_id)
+        assert user.google_sub == f"sub-{race.user_id}"  # the takeover came second, so it has the last word
+        assert user.password_hash is None
+    _nothing_left(own_connections, race)
+
+
+@pytest.mark.parametrize("settings_row", [True, False], ids=["settings row", "no settings row"])
+def test_a_new_reset_link_and_a_takeover_at_once_both_finish(
+    own_connections: sessionmaker[Session], race: Race, settings_row: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An admin makes a new reset link (retiring the open one) while Google takes the account over. Making the link
+    used to lock the old link and then, adding the new one, wait on the account the takeover holds."""
+    if not settings_row:
+        _drop_settings_row(own_connections, race)
+    with own_connections() as s:
+        signin.issue_reset_link(s, s.get_one(User, race.admin_id), s.get_one(User, race.user_id), None)
+        s.commit()
+    pause = _Pause(new_token)  # after the old links are retired, before the new one is added
+    monkeypatch.setattr("app.services.signin.new_token", pause)
+
+    def new_link(s: Session) -> None:
+        signin.issue_reset_link(s, s.get_one(User, race.admin_id), s.get_one(User, race.user_id), None)
+
+    _overlap(own_connections, pause, new_link, race)
+    with own_connections() as s:
+        open_links = select(PasswordReset).where(PasswordReset.user_id == race.user_id, PasswordReset.used_at.is_(None))
+        assert s.scalar(open_links) is None  # the takeover came second and retired the new link too
+    _nothing_left(own_connections, race)

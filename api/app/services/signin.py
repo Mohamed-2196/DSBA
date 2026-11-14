@@ -186,6 +186,7 @@ def _bootstraps_admin(db: Session, user: User) -> bool:
 def _take_over(db: Session, user: User, identity: GoogleIdentity, ip: str | None) -> None:
     """The Google account's owner takes over an unconfirmed account with their address: whoever typed it at sign-up
     loses it (the password goes, every session ends with its other access, open reset links stop working)."""
+    sessions.lock_account(db, user.id)  # before its reset links, as everywhere (sessions.lock_account)
     had_password = user.password_hash is not None
     user.password_hash = None
     user.google_sub = identity.sub
@@ -287,6 +288,7 @@ def issue_reset_link(db: Session, admin: User, target: User, ip: str | None) -> 
     if access.access_of(target, db).admin:
         raise forbidden("An admin's password can't be reset here. They continue with Google.")
     now = utcnow()
+    sessions.lock_account(db, target.id)  # before its reset links, as everywhere (sessions.lock_account)
     db.execute(
         update(PasswordReset)
         .where(PasswordReset.user_id == target.id, PasswordReset.used_at.is_(None))
@@ -318,11 +320,13 @@ def use_reset_link(db: Session, body: PasswordResetRequest, ip: str | None) -> U
     reset_link_invalid (410), weak_password (422), rate_limited (429: many links that didn't work from this network)."""
     passwords.check_reset(db, ip)
     now = utcnow()
-    link = db.scalar(
-        select(PasswordReset)
-        .where(PasswordReset.token_hash == hash_token(body.token), PasswordReset.used_at.is_(None))
-        .with_for_update()
-    )
+    open_link = (PasswordReset.token_hash == hash_token(body.token), PasswordReset.used_at.is_(None))
+    # The account's lock comes before its reset links (sessions.lock_account), so: find whose link it is, lock the
+    # account, then lock the link and read it again (a takeover or a newer link may have retired it meanwhile).
+    owner = db.scalar(select(PasswordReset.user_id).where(*open_link))
+    if owner is not None:
+        sessions.lock_account(db, owner)
+    link = db.scalar(select(PasswordReset).where(*open_link).with_for_update())
     user = db.get(User, link.user_id) if link is not None else None
     if link is None or user is None or link.expires_at <= now or access.access_of(user, db).admin:
         passwords.record(db, AttemptKind.reset_failed, None, ip)
