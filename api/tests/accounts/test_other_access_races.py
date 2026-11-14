@@ -18,7 +18,7 @@ import pytest
 from mcp.server.auth.provider import AuthorizationParams
 from mcp.shared.auth import OAuthClientInformationFull
 from pydantic import AnyUrl
-from sqlalchemy import Engine, create_engine, delete, select
+from sqlalchemy import Engine, create_engine, delete, or_, select
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
 
@@ -26,7 +26,7 @@ from app.core.access import ADMIN, STUDENT
 from app.core.errors import ApiError
 from app.core.security import hash_token, new_token
 from app.core.time import utcnow
-from app.models import AiAppClient, AiAppConnection, CalendarPrefs, User, UserSession
+from app.models import AiAppClient, AiAppConnection, AuditEntry, CalendarPrefs, User, UserSession
 from app.schemas.auth import PasswordChange, PasswordResetRequest
 from app.services import access, my_calendar, passwords, signin
 from app.services.ai_apps import consent, store
@@ -97,7 +97,13 @@ def race(own_connections: sessionmaker[Session]) -> Iterator[Race]:
         made = Race(student.id, admin.id, sessions[0].id, sessions[1].id, email, client_id)
     yield made
     with own_connections() as s:
-        s.execute(delete(User).where(User.id.in_([made.user_id, made.admin_id])))
+        # Audit entries outlive their users (actor_id is SET NULL), and another test on this worker's database would
+        # find them; so they go first.
+        ids = [made.user_id, made.admin_id]
+        s.execute(
+            delete(AuditEntry).where(or_(AuditEntry.actor_id.in_(ids), AuditEntry.target_id.in_([str(i) for i in ids])))
+        )
+        s.execute(delete(User).where(User.id.in_(ids)))
         s.execute(delete(AiAppClient).where(AiAppClient.client_id == made.client_id))
         s.commit()
 
