@@ -7,6 +7,7 @@
 }
 .manage-number {
   display: grid;
+  align-content: start;
   gap: 2px;
   padding: var(--sp-12) var(--sp-16);
   border: 1.5px solid var(--line);

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Callable
+from datetime import timedelta
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -194,6 +195,19 @@ def test_the_modules_with_links(connect: Connect, make_user: MakeUser, db: Sessi
     year_two = ok(app.call(tokens["access_token"], "list_modules", year=2))["result"]
     assert year_two
     assert all(x["year"] == 2 for x in year_two)
+
+
+def test_a_tool_call_counts_as_using_the_hub(
+    connect: Connect, make_user: MakeUser, db: Session, modules: dict[str, Module]
+) -> None:
+    student = make_user()
+    app, tokens = connect(student)
+    student.last_seen_at = utcnow() - timedelta(days=8)  # connected long ago, studying through the app since
+    db.commit()
+    ok(app.call(tokens["access_token"], "list_modules"))
+    db.refresh(student)
+    assert student.last_seen_at is not None
+    assert utcnow() - student.last_seen_at < timedelta(minutes=1)  # so Manage counts them as active this week
 
 
 def test_staff_accounts_give_their_ai_app_the_student_view(

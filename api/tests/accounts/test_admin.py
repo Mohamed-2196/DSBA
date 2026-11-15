@@ -121,9 +121,29 @@ def test_stats(client_for: ClientFor, make_user: MakeUser, db: Session) -> None:
     assert after.pop("openRequests") is None  # requests arrive switched off
     assert after.pop("pendingSuggestions") is None  # suggested videos arrive switched off
     assert after.pop("openBugReports") is None  # bug reports are for admins, not reps
+    assert after.pop("weeklyActive") is None  # weekly actives are for admins, not reps
     assert set(after) == {"users", "threads", "replies", "libraryItems", "pendingUploads", "openReports"}
     delta = {k: after[k] - before[k] for k in after}
     assert delta == {"users": 1, "threads": 1, "replies": 1, "libraryItems": 1, "pendingUploads": 1, "openReports": 1}
+
+
+def test_weekly_active_counts_students_seen_in_the_last_7_days_for_admins_only(
+    client_for: ClientFor, make_user: MakeUser, admin: User, db: Session
+) -> None:
+    boss = client_for(admin)
+    before = boss.get(f"{API}/admin/stats").json()["weeklyActive"]
+    now = utcnow()
+    for seen in (now - timedelta(minutes=3), now - timedelta(days=6, hours=23), now - timedelta(days=7, minutes=1)):
+        make_user().last_seen_at = seen
+    make_user()  # signed up but never seen
+    make_user(roles=("student", "rep")).last_seen_at = now  # reps are students: counted
+    make_user(roles=("admin",)).last_seen_at = now  # the team's own visits aren't: it counts students
+    db.commit()
+    stats = boss.get(f"{API}/admin/stats").json()
+    assert stats["weeklyActive"] - before == 3  # the admin's own visit, just now, isn't one of them
+    assert stats["weeklyActive"] <= stats["users"]
+    rep = client_for(make_user(roles=("student", "rep")))
+    assert rep.get(f"{API}/admin/stats").json()["weeklyActive"] is None
 
 
 # ── people ──────────────────────────────────────────────────────────────────────────────────

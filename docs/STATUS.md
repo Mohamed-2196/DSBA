@@ -24,6 +24,11 @@ checks each new forum picture before others see it ("Picture being checked") and
 is posted; what it flags is hidden and goes to Reports as a report from the Hub, where closing it shows or removes it.
 It needs the Anthropic key, which dev doesn't have, so it stays off there until Mohamed adds one.
 
+Manage, Numbers shows admins "Active, last 7 days" next to People: the students seen in the last 7 days, admins left
+out (reps count). `users.last_seen_at` is written at sign-in, at most every 5 minutes while signed in, and at most every
+5 minutes while an AI app calls the Hub's tools as the student; `weeklyActive` in `GET /admin/stats` is None for
+everyone but admins. It keeps no history, so a weekly reading has to be noted down.
+
 A student's first board starts from templates drawn as paper (index-card piles for Study, a stapled checklist, a sticky
 note, a folded blank sheet, a ring-bound weekly planner) with each template's real columns written on it, in the
 order Study, Assignment, Personal, Blank, Weekly planner; the New board dialog shows the same papers small

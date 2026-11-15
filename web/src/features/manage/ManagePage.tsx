@@ -75,10 +75,14 @@ const NUMBERS = [
   ['openBugReports', 'Open bug reports'],
   ['pendingSuggestions', 'Suggested videos'],
   ['users', 'People'],
+  ['weeklyActive', 'Active, last 7 days'],
   ['threads', 'Threads'],
   ['replies', 'Replies'],
   ['libraryItems', 'Library files'],
 ] as const;
+
+/** Counts only admins get (null for everyone else), so they aren't drawn for others while the numbers load. */
+const ADMIN_ONLY = new Set<(typeof NUMBERS)[number][0]>(['openBugReports', 'weeklyActive']);
 
 function Numbers() {
   const { featureOn, isAdmin } = useAuth();
@@ -94,6 +98,7 @@ function Numbers() {
 }
 
 function HubNumbers() {
+  const { isAdmin } = useAuth();
   const stats = useAdminStats(true);
   if (stats.isError)
     return (
@@ -106,7 +111,9 @@ function HubNumbers() {
       />
     );
   // A count is null while its feature is switched off, so it isn't shown.
-  const shown = stats.data ? NUMBERS.filter(([key]) => stats.data[key] !== null) : NUMBERS;
+  const shown = stats.data
+    ? NUMBERS.filter(([key]) => stats.data[key] !== null)
+    : NUMBERS.filter(([key]) => isAdmin || !ADMIN_ONLY.has(key));
   return (
     <dl className="manage-numbers" aria-busy={stats.isPending || undefined}>
       {shown.map(([key, label]) => {
