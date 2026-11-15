@@ -22,7 +22,8 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.core.errors import invalid
 from app.core.time import utcnow
-from app.models import User
+from app.models import User, UserSession
+from app.services import sessions
 from app.services.ai_apps import store
 
 AUDIENCE = "dsba-ai-app-consent"
@@ -97,8 +98,9 @@ def asking(db: Session, token: str) -> Asking:
     return Asking(req, client)
 
 
-def answer(db: Session, user: User, token: str, *, allow: bool) -> str:
-    """Where to send the student back: the app's redirect URI with a code (yes) or access_denied (no)."""
+def answer(db: Session, user: User, sess: UserSession | None, token: str, *, allow: bool) -> str:
+    """Where to send the student back: the app's redirect URI with a code (yes) or access_denied (no). A yes connects
+    only while this request's session still works (sessions.hold_live, SEC-66). Errors: unauthenticated (401)."""
     a = asking(db, token)
     req = a.request
     if not allow:
@@ -108,6 +110,7 @@ def answer(db: Session, user: User, token: str, *, allow: bool) -> str:
             error_description="The student said no.",
             state=req.state,
         )
+    sessions.hold_live(db, user, sess)
     code = store.connect(
         db,
         user,

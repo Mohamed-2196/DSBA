@@ -4,15 +4,18 @@ confirming it's you; and the one-time reset links admins make for a forgotten pa
 Trust: an address typed at sign-up is never checked by email, so an account's email counts as confirmed
 (`users.email_confirmed_at`) only once Google vouches for it. Only confirmed accounts hold staff roles
 (roles.set_user_roles), DSBA_ADMIN_IDENTIFIERS gives Admin only on a Google sign-in, and when someone signs in with
-Google for an address an unconfirmed account uses, the Google account's owner takes it over: confirmed, the old
-password cleared, every session ended, and the takeover in the activity log."""
+Google for an address that Google owns and an unconfirmed account uses, the Google account's owner takes it over:
+confirmed, the old password cleared, every session ended, and the takeover in the activity log.
+
+A takeover, a reset link and a password change also end the account's access that needs no session (SEC-66): the
+private calendar and widget links stop working and AI apps are disconnected. Linking Google disconnects AI apps."""
 
 from __future__ import annotations
 
 import uuid
 from datetime import timedelta
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -21,7 +24,7 @@ from app.core.access import ADMIN, STUDENT
 from app.core.errors import ApiError, conflict, forbidden, invalid
 from app.core.security import hash_token, new_token
 from app.core.time import utcnow
-from app.models import AttemptKind, PasswordReset, User, UserSession
+from app.models import AiAppConnection, AttemptKind, CalendarPrefs, PasswordReset, User, UserSession
 from app.schemas.auth import PasswordChange, PasswordResetRequest, ResetLinkOut, SignInRequest, SignUpRequest
 from app.services import access, outbox, passwords, sessions
 from app.services.audit import record
@@ -31,6 +34,10 @@ from app.services.notify import notify
 
 RESET_TTL = timedelta(hours=1)
 NOTICE_SUBJECT = "Your DSBA Hub account changed"
+SIGNED_OUT = (
+    "Your other devices were signed out, and your calendar link, widget link and AI apps disconnected. You can make "
+    "new links and connect apps again at any time."
+)
 
 
 def find_user(db: Session, email: str) -> User | None:
@@ -72,6 +79,26 @@ def queue_notice(db: Session, user: User, text: str) -> None:
         f"{text} If this wasn't you, sign in to DSBA Hub and check Your account: {base}/account\n\nDSBA Hub\n{base}\n"
     )
     outbox.queue(db, to=user.email, subject=NOTICE_SUBJECT, body=body, kind=outbox.ACCOUNT_NOTICE, user_id=user.id)
+
+
+def _end_ai_apps(db: Session, user: User) -> None:
+    """Disconnects the account's AI apps; their codes and tokens go with them, so each app is signed out at once."""
+    db.execute(delete(AiAppConnection).where(AiAppConnection.user_id == user.id))
+
+
+def end_other_access(db: Session, user: User) -> None:
+    """Ends the account's access that needs no session (SEC-66): the private calendar and widget links stop working
+    (the student can make new ones) and AI apps are disconnected. Sessions are the caller's. The caller commits.
+
+    It takes the account's lock first, the one sessions.hold_live takes before making a link or connecting an app: a
+    request already making one finishes before this clears it, and one that comes later finds its session ended."""
+    sessions.lock_account(db, user.id)
+    _end_ai_apps(db, user)
+    db.execute(
+        update(CalendarPrefs)
+        .where(CalendarPrefs.user_id == user.id)
+        .values(feed_salt=None, feed_hash=None, widget_salt=None, widget_hash=None, updated_at=utcnow())
+    )
 
 
 # ── with a password ─────────────────────────────────────────────────────────────────────────
@@ -140,9 +167,9 @@ def set_password(db: Session, user: User, sess: UserSession | None, body: Passwo
     added = user.password_hash is None
     user.password_hash = passwords.hash_password(body.new_password)
     sessions.revoke_others(db, user.id, keep=sess)
-    queue_notice(
-        db, user, "A password was added to your DSBA Hub account." if added else "Your DSBA Hub password changed."
-    )
+    end_other_access(db, user)
+    what = "A password was added to your DSBA Hub account." if added else "Your DSBA Hub password changed."
+    queue_notice(db, user, f"{what} {SIGNED_OUT}")
 
 
 # ── with Google ─────────────────────────────────────────────────────────────────────────────
@@ -158,13 +185,15 @@ def _bootstraps_admin(db: Session, user: User) -> bool:
 
 def _take_over(db: Session, user: User, identity: GoogleIdentity, ip: str | None) -> None:
     """The Google account's owner takes over an unconfirmed account with their address: whoever typed it at sign-up
-    loses it (the password goes, every session ends, open reset links stop working)."""
+    loses it (the password goes, every session ends with its other access, open reset links stop working)."""
+    sessions.lock_account(db, user.id)  # before its reset links, as everywhere (sessions.lock_account)
     had_password = user.password_hash is not None
     user.password_hash = None
     user.google_sub = identity.sub
     user.email_confirmed_at = utcnow()
     for live in sessions.live(db, user.id):
         sessions.revoke(live)
+    end_other_access(db, user)
     db.execute(
         update(PasswordReset)
         .where(PasswordReset.user_id == user.id, PasswordReset.used_at.is_(None))
@@ -198,6 +227,8 @@ def google_sign_in(db: Session, identity: GoogleIdentity, ip: str | None) -> tup
         elif user.email_confirmed_at is not None and user.google_sub not in (None, identity.sub):
             raise GoogleFlowError("email_taken", "another Google account confirmed this address")
         elif user.email_confirmed_at is None:
+            if not identity.google_owns_address:  # SEC-68: only Google's word on its own addresses counts
+                raise GoogleFlowError("email_taken", "an unconfirmed account has an address Google doesn't own")
             _take_over(db, user, identity, ip)
         else:
             user.google_sub = identity.sub
@@ -217,8 +248,9 @@ def google_sign_in(db: Session, identity: GoogleIdentity, ip: str | None) -> tup
 
 def link_google(db: Session, user: User, sess: UserSession | None, identity: GoogleIdentity) -> None:
     """Adds Google to the signed-in account: it signs in with Google from now on, and its email address becomes the
-    Google account's, confirmed. Other sessions are signed out. The caller commits. Raises GoogleFlowError: google_taken
-    (the Google account signs in to another account), email_taken (another account uses its address)."""
+    Google account's, confirmed. Other sessions are signed out and AI apps disconnected. The caller commits. Raises
+    GoogleFlowError: google_taken (the Google account signs in to another account), email_taken (another account uses
+    its address)."""
     other = db.scalar(select(User).where(User.google_sub == identity.sub))
     if other is not None and other.id != user.id:
         raise GoogleFlowError("google_taken")
@@ -234,7 +266,14 @@ def link_google(db: Session, user: User, sess: UserSession | None, identity: Goo
     except IntegrityError:  # taken a moment ago by a parallel request
         raise GoogleFlowError("email_taken") from None
     sessions.revoke_others(db, user.id, keep=sess)
-    queue_notice(db, user, "Google sign-in was added to your DSBA Hub account.")
+    sessions.lock_account(db, user.id)  # as end_other_access: an app being connected finishes first
+    _end_ai_apps(db, user)
+    queue_notice(
+        db,
+        user,
+        "Google sign-in was added to your DSBA Hub account. Your other devices were signed out and your AI apps were "
+        "disconnected. You can connect apps again at any time.",
+    )
 
 
 # ── reset links ─────────────────────────────────────────────────────────────────────────────
@@ -249,6 +288,7 @@ def issue_reset_link(db: Session, admin: User, target: User, ip: str | None) -> 
     if access.access_of(target, db).admin:
         raise forbidden("An admin's password can't be reset here. They continue with Google.")
     now = utcnow()
+    sessions.lock_account(db, target.id)  # before its reset links, as everywhere (sessions.lock_account)
     db.execute(
         update(PasswordReset)
         .where(PasswordReset.user_id == target.id, PasswordReset.used_at.is_(None))
@@ -275,16 +315,18 @@ def issue_reset_link(db: Session, admin: User, target: User, ip: str | None) -> 
 
 
 def use_reset_link(db: Session, body: PasswordResetRequest, ip: str | None) -> User:
-    """Sets the new password through a reset link: the link is used up, every session of the account ends, and it's
-    audited. The caller signs this browser in and commits. Errors: reset_link_invalid (410), weak_password (422),
-    rate_limited (429: many links that didn't work from this network)."""
+    """Sets the new password through a reset link: the link is used up, every session of the account ends with its
+    other access (end_other_access), and it's audited. The caller signs this browser in and commits. Errors:
+    reset_link_invalid (410), weak_password (422), rate_limited (429: many links that didn't work from this network)."""
     passwords.check_reset(db, ip)
     now = utcnow()
-    link = db.scalar(
-        select(PasswordReset)
-        .where(PasswordReset.token_hash == hash_token(body.token), PasswordReset.used_at.is_(None))
-        .with_for_update()
-    )
+    open_link = (PasswordReset.token_hash == hash_token(body.token), PasswordReset.used_at.is_(None))
+    # The account's lock comes before its reset links (sessions.lock_account), so: find whose link it is, lock the
+    # account, then lock the link and read it again (a takeover or a newer link may have retired it meanwhile).
+    owner = db.scalar(select(PasswordReset.user_id).where(*open_link))
+    if owner is not None:
+        sessions.lock_account(db, owner)
+    link = db.scalar(select(PasswordReset).where(*open_link).with_for_update())
     user = db.get(User, link.user_id) if link is not None else None
     if link is None or user is None or link.expires_at <= now or access.access_of(user, db).admin:
         passwords.record(db, AttemptKind.reset_failed, None, ip)
@@ -297,7 +339,8 @@ def use_reset_link(db: Session, body: PasswordResetRequest, ip: str | None) -> U
     user.password_hash = passwords.hash_password(body.new_password)
     for live in sessions.live(db, user.id):
         sessions.revoke(live)
+    end_other_access(db, user)
     record(db, user, "user.password_reset", "user", user.id, {"via": "reset link"}, ip)
-    queue_notice(db, user, "Your DSBA Hub password was reset with a link from an admin.")
+    queue_notice(db, user, f"Your DSBA Hub password was reset with a link from an admin. {SIGNED_OUT}")
     user.last_seen_at = now
     return user

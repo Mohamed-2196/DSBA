@@ -36,6 +36,7 @@ RAISABLE_LIMITS = (
     "sign_ins_per_network_per_hour",
     "sign_ups_per_network_per_hour",
     "sign_ups_per_network_per_day",
+    "google_starts_per_network_per_hour",
 )
 
 
@@ -89,6 +90,7 @@ class Settings(BaseSettings):
     sign_ins_per_network_per_hour: int = 60  # attempts, right or wrong
     sign_ups_per_network_per_hour: int = 10
     sign_ups_per_network_per_day: int = 30
+    google_starts_per_network_per_hour: int = 60  # "Continue with Google" started, finished or not (services/google.py)
     # Production refuses limits above the defaults (the e2e suite raises them) unless this says it is on purpose.
     allow_raised_limits: bool = False
 

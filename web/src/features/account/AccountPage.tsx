@@ -197,10 +197,10 @@ function SignInMethods({ me }: { me: Me }) {
       ) : null}
       <p className="acct-note">
         {me.emailConfirmed
-          ? 'Changing your password signs out your other devices.'
+          ? 'Changing your password signs out your other devices and disconnects your calendar link, widget link and AI apps.'
           : googleSignIn
             ? 'Your email address isn’t confirmed yet. Link Google to confirm it: then nobody else can claim it, and you can sign in with Google too.'
-            : 'Your email address isn’t confirmed yet. Changing your password signs out your other devices.'}
+            : 'Your email address isn’t confirmed yet. Changing your password signs out your other devices and disconnects your calendar link, widget link and AI apps.'}
       </p>
       <PasswordDialog me={me} open={editing} onClose={() => setEditing(false)} />
     </>

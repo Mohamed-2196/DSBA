@@ -451,8 +451,11 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
 
 1. The chapters the retag found missing are in (2026-11-02), and EC2020 follows its guide. Still worth a look: any
    other module whose outlines came from notes rather than its guide, or folds guide chapters together.
-2. Then, when Mohamed says go: a student test of round 17 (resits, topics, Quick Look, the new sign-in), a security
-   review of the new sign-in, Quick Look in the sittings table and Cmd-K.
+2. Then, when Mohamed says go: a student test of round 17 (resits, topics, Quick Look, the new sign-in), Quick Look
+   in the sittings table and Cmd-K. The security review of the new sign-in is done (`docs/reviews/security.md`, round
+   17): SEC-66 and SEC-68 are fixed on `com-265-signin-fixes`; SEC-69's launch-fortnight limits are in DEPLOYMENT.md
+   section 13 (set them on Railway for 30 Nov, put them back on 14 Dec); SEC-70 is go-live check B9; SEC-67 and
+   SEC-71 are after launch. Follow-up: after a takeover, the squatter's display name and posts stay on the account.
 3. Still open from earlier reviews: CQ-20; SEC-14; the standards review's S-1, S-3, S-4 and S-5 to S-7.
 
 ## Waiting on Mohamed

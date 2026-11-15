@@ -1,7 +1,7 @@
 // The signed-in person's account: profile, sign-in methods, sessions, export and deletion.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
-import { ACCOUNT_KEY } from '../../api/keys';
+import { ACCOUNT_KEY, MY_CALENDAR_SETTINGS_KEY } from '../../api/keys';
 import type { MeUpdate, PasswordChange, SessionInfo } from '../../api/types';
 import { ME_KEY } from '../../auth';
 
@@ -24,14 +24,24 @@ export function useUpdateMe() {
   });
 }
 
-/** Change the password, or add one: the server signs out the account's other devices. */
+/** After a password change: the server signed out the other devices, disconnected the AI apps and turned the calendar
+ *  and widget links off, so Your account's lists (sessions, AI apps) and the calendar settings are read again. */
+export function refreshAfterPasswordChange(qc: QueryClient): Promise<unknown> {
+  return Promise.all([
+    qc.invalidateQueries({ queryKey: ACCOUNT_KEY }),
+    qc.invalidateQueries({ queryKey: MY_CALENDAR_SETTINGS_KEY }),
+  ]);
+}
+
+/** Change the password, or add one: the server signs out the account's other devices, disconnects its AI apps and
+ *  turns its calendar and widget links off. */
 export function useSetPassword() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: PasswordChange) => call(api.PUT('/api/v1/me/password', { body })),
     onSuccess: (me) => {
       qc.setQueryData(ME_KEY, me);
-      void qc.invalidateQueries({ queryKey: SESSIONS_KEY });
+      void refreshAfterPasswordChange(qc);
     },
   });
 }

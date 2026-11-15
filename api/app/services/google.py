@@ -48,7 +48,7 @@ ISSUERS = ("https://accounts.google.com", "accounts.google.com")
 CALLBACK_PATH = "/api/v1/auth/google/callback"
 HOUR = timedelta(hours=1)
 LOGIN_TTL = timedelta(minutes=10)
-STARTS_PER_NETWORK_PER_HOUR = 60
+GMAIL_DOMAINS = frozenset({"gmail.com", "googlemail.com"})
 KEEP_LOGINS = timedelta(days=1)  # the sweep deletes older rows
 JWKS_TTL_SECONDS = 3600
 LEEWAY_SECONDS = 60  # clock skew allowed on exp and iat
@@ -67,6 +67,9 @@ class GoogleFlowError(Exception):
 class GoogleIdentity:
     sub: str  # Google's stable id for the person
     email: str  # normalised, and verified by Google
+    # Google is the authority for the address (a Gmail address, or its Workspace domain's): only then does its word
+    # prove who holds the address today, so only then does it take over an unconfirmed account (SEC-68)
+    google_owns_address: bool = False
 
 
 @dataclass(frozen=True)
@@ -147,7 +150,9 @@ def start(db: Session, *, intent: GoogleIntent, user: User | None, return_to: st
     now = utcnow()
     lock(db, f"google-ip:{ip_bucket(ip)}")
     where = [in_ip_bucket(GoogleLogin.ip, ip)]
-    wait = window_wait(db, GoogleLogin.created_at, where, limit=STARTS_PER_NETWORK_PER_HOUR, window=HOUR, now=now)
+    wait = window_wait(
+        db, GoogleLogin.created_at, where, limit=s.google_starts_per_network_per_hour, window=HOUR, now=now
+    )
     if wait:
         raise rate_limited(wait, f"Too many tries from this network. Try again in {human_wait(wait)}.")
     state, nonce, verifier = new_token(), new_token(), new_token(48)
@@ -315,4 +320,7 @@ def verify_id_token(token: str, *, nonce: str) -> GoogleIdentity:
         normalised = normalize_email(email)
     except ApiError as e:  # an address Google verified but we can't read
         raise GoogleFlowError("google_failed", "the email address can't be read") from e
-    return GoogleIdentity(sub=sub, email=normalised)
+    domain = normalised.rpartition("@")[2]
+    hd = claims.get("hd")
+    owns = domain in GMAIL_DOMAINS or (isinstance(hd, str) and hd.lower() == domain)
+    return GoogleIdentity(sub=sub, email=normalised, google_owns_address=owns)

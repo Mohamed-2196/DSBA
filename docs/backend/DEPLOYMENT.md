@@ -50,7 +50,7 @@ What production refuses (`app/config.py`, `Settings.production_problems`):
 | `DSBA_SESSION_COOKIE`, `DSBA_CSRF_COOKIE` | start with `__Host-` (the defaults in production are `__Host-dsba_session` and `__Host-dsba_csrf`); `DSBA_COOKIE_DOMAIN` empty |
 | `DSBA_WEB_ORIGINS`, `DSBA_WEB_BASE_URL` | `https://` only; `*` is refused in every environment |
 | `DSBA_TRUSTED_PROXIES` | set (the reverse proxy's address, or `127.0.0.1/32` with no proxy), never `0.0.0.0/0` or `::/0` |
-| `DSBA_SIGN_IN_FAILURES_PER_*`, `DSBA_SIGN_INS_PER_NETWORK_PER_HOUR`, `DSBA_SIGN_UPS_PER_NETWORK_PER_*` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose |
+| `DSBA_SIGN_IN_FAILURES_PER_*`, `DSBA_SIGN_INS_PER_NETWORK_PER_HOUR`, `DSBA_SIGN_UPS_PER_NETWORK_PER_*`, `DSBA_GOOGLE_STARTS_PER_NETWORK_PER_HOUR` | at their defaults or lower, unless `DSBA_ALLOW_RAISED_LIMITS=true` says a higher one is on purpose (the launch fortnight, section 13) |
 | `DSBA_GOOGLE_CLIENT_ID`, `DSBA_GOOGLE_CLIENT_SECRET` | set together or not at all (in every environment); both empty turns "Continue with Google" off |
 | `DSBA_S3_*` | bucket and keys set, not the development keys; the endpoint set explicitly (empty for AWS S3); what browsers use (`DSBA_S3_PUBLIC_ENDPOINT_URL`, else `DSBA_S3_ENDPOINT_URL`) is `https://`; `DSBA_S3_CREATE_BUCKET` false (the default in production) |
 | `DSBA_EMAIL_BACKEND` | `smtp`, with `DSBA_SMTP_HOST` set and `DSBA_EMAIL_FROM` on your own domain; `DSBA_SMTP_STARTTLS` true, unless `DSBA_SMTP_PORT` is 465 (TLS from the start). Or `off`: no email, and no SMTP setting is checked (section 4, "Running without email") |
@@ -532,6 +532,7 @@ add it to the service's `environment` first. The defaults suit development; sect
 | `DSBA_SIGN_IN_FAILURES_PER_ADDRESS_NETWORK_PER_HOUR`, `DSBA_SIGN_IN_FAILURES_PER_ADDRESS_PER_HOUR` | `10`, `50` | wrong passwords for one address from one network (an IPv4 address, or an IPv6 /64), and from everywhere together, before signing in to it waits (decision D4) |
 | `DSBA_SIGN_INS_PER_NETWORK_PER_HOUR` | `60` | password sign-ins from one network, right or wrong |
 | `DSBA_SIGN_UPS_PER_NETWORK_PER_HOUR`, `DSBA_SIGN_UPS_PER_NETWORK_PER_DAY` | `10`, `30` | new accounts (tries included) from one network |
+| `DSBA_GOOGLE_STARTS_PER_NETWORK_PER_HOUR` | `60` | "Continue with Google" started from one network, finished or not |
 | `DSBA_GOOGLE_CLIENT_ID`, `DSBA_GOOGLE_CLIENT_SECRET` | none | "Continue with Google" (section 14); off while either is empty |
 | `DSBA_EMAIL_BACKEND` | `console` | `smtp`, `file` (into `DSBA_EMAIL_FILE_DIR`, default `var/mail`), `console`, or `off` (no email; section 4) |
 | `DSBA_EMAIL_FROM` | `DSBA Hub <no-reply@dsba-hub.local>` | the sender |
@@ -611,6 +612,37 @@ Nothing in the hub calls you when something breaks, so set these up before stude
 **On Railway** compose.prod.yaml doesn't apply: set each service's memory limit in its settings, keep the default log
 retention, keep the worker's start command `python -m app.cli mail-worker` with email off too (section 4), run backup and sweep as cron services with `DSBA_ROLE`, the same image and only the variables listed for
 them in compose.prod.yaml, and point the uptime check at the public domain.
+
+### The launch fortnight: one campus network (SEC-69)
+
+The per-network limits count an IPv4 address as one network, and BIBF's Wi-Fi most likely reaches the internet
+through one address. At the defaults, the 11th sign-up in an hour and the 31st in a day from campus get 429 "Too many
+new accounts from this network" for everyone there, and password sign-ins stop at 60 an hour. For about 160 students
+signing up on campus in one day, mostly in one class hour, set these on the API service from launch day (Mon 30 Nov)
+to the end of the fortnight (Sun 13 Dec):
+
+| Setting | Default | Launch fortnight | Why that much |
+|---|---|---|---|
+| `DSBA_SIGN_UPS_PER_NETWORK_PER_HOUR` | `10` | `200` | a whole cohort in one class hour, with typos and retries |
+| `DSBA_SIGN_UPS_PER_NETWORK_PER_DAY` | `30` | `400` | about 160 students, more than twice over |
+| `DSBA_SIGN_INS_PER_NETWORK_PER_HOUR` | `60` | `600` | each student on a phone and a laptop, wrong passwords included |
+| `DSBA_GOOGLE_STARTS_PER_NETWORK_PER_HOUR` | `60` | `600` | the same for "Continue with Google" |
+| `DSBA_ALLOW_RAISED_LIMITS` | false | `true` | production refuses to start with raised limits without it |
+
+The limits on wrong passwords for one address (`DSBA_SIGN_IN_FAILURES_PER_*`) stay at their defaults: they are per
+student, not per network, so the campus doesn't share them.
+
+What it costs: someone on campus can make up to 400 accounts a day. Each one starts as a Student with an unconfirmed
+address, holds no staff role, and can post in the forum under the usual moderation. Watch the 429s on
+`/api/v1/auth/sign-up`, `/api/v1/auth/sign-in` and `/api/v1/auth/google` that day in Railway's HTTP logs, and the
+new accounts under Access → People (`/admin/access`).
+
+**Putting them back (Mon 14 Dec):** delete the five variables from the API service (the defaults come back) and
+redeploy. Check that the API starts: with a raised limit left and `DSBA_ALLOW_RAISED_LIMITS` gone, production
+refuses to start and names the setting.
+
+Whether BIBF's Wi-Fi uses one public address is unverified. Check it from campus (any "what is my IP" page, twice,
+from two devices) or ask BIBF IT. If students use mobile data instead, the defaults are enough.
 
 ## 14. Continue with Google
 

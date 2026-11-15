@@ -31,7 +31,7 @@ from app.core.access import Feature
 from app.core.errors import ApiError, conflict, invalid, not_found
 from app.core.text import slugify
 from app.core.time import BAHRAIN, utcnow
-from app.models import CalendarEvent, CalendarPrefs, Module, PersonalEvent, User
+from app.models import CalendarEvent, CalendarPrefs, Module, PersonalEvent, User, UserSession
 from app.schemas.board import AgendaCard
 from app.schemas.calendar import (
     CalendarPrefsOut,
@@ -40,7 +40,7 @@ from app.schemas.calendar import (
     PersonalEventCreate,
     PersonalEventUpdate,
 )
-from app.services import access, grades, ratelimit
+from app.services import access, grades, ratelimit, sessions
 from app.services import calendar as programme
 from app.services.content import apply_patch
 from app.services.notify import notify
@@ -412,8 +412,10 @@ def update_prefs(db: Session, user: User, body: CalendarPrefsUpdate) -> Calendar
     return prefs
 
 
-def new_feed(db: Session, user: User) -> CalendarPrefs:
-    """Turns the private feed on at a new address: the old address, if any, stops working."""
+def new_feed(db: Session, user: User, sess: UserSession | None) -> CalendarPrefs:
+    """Turns the private feed on at a new address: the old address, if any, stops working. Only while this request's
+    session still works (sessions.hold_live, SEC-66). Errors: unauthenticated (401)."""
+    sessions.hold_live(db, user, sess)
     prefs = _prefs_for_update(db, user)
     prefs.feed_salt = secrets.token_hex(16)
     prefs.feed_hash = _feed_hash(feed_token(user.id, prefs.feed_salt, "calendar"))
@@ -428,8 +430,10 @@ def stop_feed(db: Session, user: User) -> CalendarPrefs:
     return prefs
 
 
-def new_widget(db: Session, user: User) -> CalendarPrefs:
-    """Turns the widget feed on at a new address: the old address, if any, stops working."""
+def new_widget(db: Session, user: User, sess: UserSession | None) -> CalendarPrefs:
+    """Turns the widget feed on at a new address: the old address, if any, stops working. Only while this request's
+    session still works (sessions.hold_live, SEC-66). Errors: unauthenticated (401)."""
+    sessions.hold_live(db, user, sess)
     prefs = _prefs_for_update(db, user)
     prefs.widget_salt = secrets.token_hex(16)
     prefs.widget_hash = _feed_hash(feed_token(user.id, prefs.widget_salt, "widget"))

@@ -298,8 +298,10 @@ def test_a_replayed_nonce_fails(fake_google: FakeGoogle, client_for: ClientFor) 
     assert _error(google_callback(c, second["state"])) == "google_failed"
 
 
-def test_starts_per_network(fake_google: FakeGoogle, client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(google, "STARTS_PER_NETWORK_PER_HOUR", 2)
+def test_starts_per_network(
+    fake_google: FakeGoogle, client: TestClient, set_option: Callable[[str, Any], None]
+) -> None:
+    set_option("google_starts_per_network_per_hour", 2)
     assert client.post(f"{API}/auth/google", json={}).status_code == 200
     assert client.post(f"{API}/auth/google", json={}).status_code == 200
     r = client.post(f"{API}/auth/google", json={})

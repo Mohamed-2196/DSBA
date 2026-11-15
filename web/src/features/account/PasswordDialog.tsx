@@ -45,7 +45,8 @@ export function PasswordDialog({ me, open, onClose }: { me: Me; open: boolean; o
         push({
           tone: 'success',
           title: changing ? 'Password changed' : 'Password added',
-          body: 'To be safe, your other devices were signed out.',
+          body: 'Your other devices were signed out, and your calendar link, widget link and AI apps disconnected.',
+          duration: 8000,
         });
         onClose();
       },
@@ -72,8 +73,8 @@ export function PasswordDialog({ me, open, onClose }: { me: Me; open: boolean; o
       title={changing ? 'Change your password' : 'Add a password'}
       description={
         changing
-          ? 'Your other devices are signed out afterwards.'
-          : 'Then you can sign in with your email address and this password too.'
+          ? 'Changing it signs out your other devices and disconnects your calendar link, widget link and AI apps.'
+          : 'Then you can sign in with your email address and this password too. It also signs out your other devices and disconnects your calendar link, widget link and AI apps.'
       }
       size="sm"
       data-hub="password"
