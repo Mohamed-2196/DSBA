@@ -123,9 +123,6 @@ export default function PrivacyPage() {
         <p>
           Me: <Detail value={d.fullName} gap="FULL NAME" />, the student who builds and runs DSBA Hub.
           <br />
-          Post: P.O. Box <Detail value={d.poBox} gap="NUMBER" />, <Detail value={d.area} gap="AREA" />, Kingdom of
-          Bahrain.
-          <br />
           Email: <ContactEmail details={d} />.
         </p>
       </Section>
