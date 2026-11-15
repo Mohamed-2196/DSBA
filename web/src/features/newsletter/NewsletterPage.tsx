@@ -4,7 +4,7 @@ import type { IssueSummary } from '../../api/types';
 import { useAuth } from '../../auth';
 import { formatDay, formatMonthYear, parseDay } from '../../lib/dates';
 import { useDocumentTitle } from '../../state';
-import { Badge, Button, glyph, Icon, IconButton, Page, PageHeader, Panel, QueryError, Skeleton } from '../../ui';
+import { Badge, Button, cx, glyph, Icon, IconButton, Page, PageHeader, Panel, QueryError, Skeleton } from '../../ui';
 import { toCard, useIssueDetails, useIssues, useNewsletterMasthead } from './api';
 import { DeleteIssueButton, PublishButton } from './components/IssueActions';
 import { IssueCover } from './components/IssueCover';
@@ -95,8 +95,19 @@ function LatestFeature({ issue }: { issue: IssueCard }) {
   );
 }
 
-/** No issue is out yet: what the newsletter will be, and how to get the first one. */
-function ComingSoon({ manages, hasDrafts }: { manages: boolean; hasDrafts: boolean }) {
+/** No issue is out yet: what the newsletter will be, and how to get the first one (the subscribe box below, or with
+ *  the hub's email off, the notification everyone gets). */
+function ComingSoon({
+  manages,
+  hasDrafts,
+  emailOn,
+  signedIn,
+}: {
+  manages: boolean;
+  hasDrafts: boolean;
+  emailOn: boolean;
+  signedIn: boolean;
+}) {
   return (
     <section className="nl-feature nl-feature--soon" data-hub="newsletter-empty" aria-labelledby="nl-soon-title">
       <div className="nl-feature__cover nl-soon__cover">
@@ -124,7 +135,9 @@ function ComingSoon({ manages, hasDrafts }: { manages: boolean; hasDrafts: boole
             ? hasDrafts
               ? 'Nothing is published yet. Check a draft above, then publish it: everyone who wants to hear about new issues gets a notification.'
               : 'Nothing is published yet. Start a new issue above: it stays a draft until you publish it.'
-            : 'There’s no timetable: an issue goes out when there’s news worth your time. Subscribe and you’ll hear the moment the first one is out.'}
+            : emailOn
+              ? 'There’s no timetable: an issue goes out when there’s news worth your time. Subscribe and you’ll hear the moment the first one is out.'
+              : `There’s no timetable: an issue goes out when there’s news worth your time. ${signedIn ? 'You’ll' : 'Sign in and you’ll'} get a notification the moment the first one is out.`}
         </p>
         <div className="nl-feature__contents nl-soon__contents">
           <h3 className="nl-feature__contents-title">What an issue can hold</h3>
@@ -253,7 +266,7 @@ function NewsletterSkeleton() {
 
 export default function NewsletterPage() {
   useDocumentTitle('The DSBA Newsletter');
-  const { can } = useAuth();
+  const { can, emailOn, me } = useAuth();
   const manages = can('newsletter.manage');
   const list = useIssues({ includeDrafts: manages });
   const [creating, setCreating] = useState(false);
@@ -285,7 +298,7 @@ export default function NewsletterPage() {
       ) : latest ? (
         <LatestFeature issue={latest} />
       ) : (
-        <ComingSoon manages={manages} hasDrafts={drafts.length > 0} />
+        <ComingSoon manages={manages} hasDrafts={drafts.length > 0} emailOn={emailOn} signedIn={me !== null} />
       )}
 
       {cards.length ? (
@@ -296,7 +309,7 @@ export default function NewsletterPage() {
             </h2>
             <p className="nl-archive__desc">Every issue so far, newest first.</p>
           </div>
-          <div className="nl-archive__layout">
+          <div className={cx('nl-archive__layout', !emailOn && 'nl-archive__layout--alone')}>
             <ol role="list" className="nl-shelf">
               {cards.map((issue) => (
                 <ShelfItem key={issue.slug} issue={issue} />

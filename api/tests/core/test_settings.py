@@ -94,9 +94,11 @@ def test_good_production_settings_start() -> None:
         ({"s3_endpoint_url": REMOVE}, "DSBA_S3_ENDPOINT_URL must be set"),
         ({"s3_endpoint_url": "http://minio:9000"}, "DSBA_S3_PUBLIC_ENDPOINT_URL (or DSBA_S3_ENDPOINT_URL) must be"),
         ({"s3_create_bucket": True}, "DSBA_S3_CREATE_BUCKET must be false"),
-        ({"email_backend": "console"}, "DSBA_EMAIL_BACKEND must be smtp (it is 'console')"),
-        ({"email_backend": "file"}, "DSBA_EMAIL_BACKEND must be smtp (it is 'file')"),
+        ({"email_backend": "console"}, "DSBA_EMAIL_BACKEND must be smtp or off (it is 'console')"),
+        ({"email_backend": "file"}, "DSBA_EMAIL_BACKEND must be smtp or off (it is 'file')"),
         ({"smtp_host": REMOVE}, "DSBA_SMTP_HOST must be your mail provider's"),
+        ({"smtp_host": ""}, "DSBA_SMTP_HOST must be your mail provider's"),  # compose passes an unset one as empty
+        ({"email_from": ""}, "DSBA_EMAIL_FROM must be an address on your own domain"),
         ({"email_from": REMOVE}, "DSBA_EMAIL_FROM must be an address on your own domain"),
         ({"google_client_id": "id.apps.googleusercontent.com"}, "DSBA_GOOGLE_CLIENT_ID and DSBA_GOOGLE_CLIENT_SECRET"),
         ({"google_client_secret": "a-secret"}, "DSBA_GOOGLE_CLIENT_ID and DSBA_GOOGLE_CLIENT_SECRET"),
@@ -264,3 +266,11 @@ def test_the_api_never_starts_as_a_job(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_smtp_on_port_465_needs_no_starttls() -> None:
     assert production(smtp_port=465, smtp_starttls=False).problems() == []
+
+
+def test_production_runs_with_email_off_and_no_mail_provider() -> None:
+    """No email at launch (COM-254): with DSBA_EMAIL_BACKEND=off, no SMTP server or sender address is needed."""
+    s = production(email_backend="off", smtp_host=REMOVE, smtp_port=REMOVE, smtp_starttls=REMOVE, email_from=REMOVE)
+    assert s.problems() == []
+    assert s.email_enabled is False
+    assert production().email_enabled is True

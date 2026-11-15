@@ -238,6 +238,16 @@
   gap: var(--sp-48);
   align-items: start;
 }
+.nl-archive__layout--alone {
+  grid-template-columns: minmax(0, 1fr); /* no subscribe box beside it (the hub sends no email) */
+}
+/* With the shelf alone on a wide screen, more columns keep the covers about the size they had beside the box,
+   smaller than the featured issue's cover above. */
+@media (min-width: 1300px) {
+  .nl-archive__layout--alone .nl-shelf {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
 .nl-shelf {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -293,6 +303,12 @@
   }
   .nl-archive__subscribe {
     max-width: 640px;
+  }
+}
+/* 1100-1299: the shelf is full width, so three columns would match the featured cover's size; four keep them smaller. */
+@media (min-width: 1100px) and (max-width: 1299px) {
+  .nl-shelf {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 @media (max-width: 1099px) {

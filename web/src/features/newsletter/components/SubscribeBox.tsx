@@ -15,10 +15,10 @@ export interface SubscribeBoxProps {
 /**
  * Hearing about new issues: the account's `emailNewIssues` switch (PATCH /api/v1/me), the same one as "New newsletter
  * issues" on Your account. It decides the email; the notification in the Hub comes either way (decision D1). Guests
- * are asked to sign in first.
+ * are asked to sign in first. While the hub sends no email there's nothing to subscribe to, so it shows nothing.
  */
 export function SubscribeBox({ variant = 'panel', className }: SubscribeBoxProps) {
-  const { me, status, requireAuth } = useAuth();
+  const { me, status, requireAuth, emailOn } = useAuth();
   const { push } = useToast();
   const news = useNewIssueEmails();
 
@@ -34,6 +34,7 @@ export function SubscribeBox({ variant = 'panel', className }: SubscribeBoxProps
         push({ tone: 'alert', title: 'That didn’t save', body: errorMessage(e, 'Try again in a moment.') }),
     });
 
+  if (!emailOn) return null;
   const ready = status === 'signed-in' && !!me && !me.needsProfile;
   const on = ready && me.preferences.emailNewIssues;
 

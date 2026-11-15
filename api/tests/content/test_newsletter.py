@@ -677,3 +677,18 @@ def test_deleting_an_issue_takes_its_notifications_back(
     assert [n.url for n in left] == ["/newsletter/kept"]
     pending = list(db.scalars(select(EmailOutbox).where(EmailOutbox.status == "pending")))
     assert all(e.notification_id in {n.id for n in left} for e in pending)
+
+
+def test_with_email_off_publishing_tells_the_hub_and_emails_nobody(
+    client_for: Clients, make_user: Callable[..., User], moderator: User, db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "email_backend", "off")
+    keen = make_user(name="Keen")
+    rep = client_for(moderator)
+    issue = rep.post(ISSUES, json=new_issue()).json()
+    r = rep.post(f"{ISSUES}/{issue['id']}/publish")
+    assert (r.status_code, r.json()["emailed"]) == (200, False)
+    assert [n.kind for n in db.scalars(select(Notification).where(Notification.user_id == keen.id))] == ["new_issue"]
+    assert list(db.scalars(select(EmailOutbox))) == []

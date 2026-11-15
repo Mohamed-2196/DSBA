@@ -188,7 +188,7 @@
           "auth"
         ],
         "summary": "Session State",
-        "description": "Who is signed in: `{\"me\": Me}`, or `{\"me\": null}` for a guest, and whether \"Continue with Google\" is set up.\nNever 401, so a guest's page load logs no error (student test ST-10); GET /me still answers 401 when signed out.",
+        "description": "Who is signed in: `{\"me\": Me}`, or `{\"me\": null}` for a guest, whether \"Continue with Google\" is set up, and\nwhether the hub sends email. Never 401, so a guest's page load logs no error (student test ST-10); GET /me still\nanswers 401 when signed out.",
         "operationId": "session_state_api_v1_auth_session_get",
         "responses": {
           "200": {
@@ -52492,12 +52492,17 @@
           "googleSignIn": {
             "type": "boolean",
             "title": "Googlesignin"
+          },
+          "email": {
+            "type": "boolean",
+            "title": "Email"
           }
         },
         "type": "object",
         "required": [
           "me",
-          "googleSignIn"
+          "googleSignIn",
+          "email"
         ],
         "title": "SessionState",
         "description": "GET /auth/session: the signed-in user, or null for a guest. Never 401."

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import type { TimetableRow, TimetableSaved } from '../../../api/types';
 import { errorMessage, isApiError } from '../../../api/errors';
 import { today as bahrainToday } from '../../../lib/dates';
+import { useAuth } from '../../../auth';
 import { useToast, useUnsavedChanges } from '../../../state';
 import { Badge, Button, cx, glyph, Icon, IconButton, Panel, Select, Switch, TextArea, TextField } from '../../../ui';
 import { useSaveTimetable, useTimetablePreview } from '../api';
@@ -43,6 +44,7 @@ type Stage = { at: 'paste' } | { at: 'check' } | { at: 'saved'; saved: Timetable
 
 export function TimetablePaste() {
   const { push } = useToast();
+  const { emailOn } = useAuth();
   const preview = useTimetablePreview();
   const save = useSaveTimetable();
   const [stage, setStage] = useState<Stage>({ at: 'paste' });
@@ -177,7 +179,11 @@ export function TimetablePaste() {
                 checked={notify}
                 onChange={setNotify}
                 label="Tell students"
-                description="One notice for each year whose exams change, listing them, and an email to those who want date changes. A resit goes to the year after the module’s and those resitting it."
+                description={
+                  emailOn
+                    ? 'One notice for each year whose exams change, listing them, and an email to those who want date changes. A resit goes to the year after the module’s and those resitting it.'
+                    : 'One notice for each year whose exams change, listing them. A resit goes to the year after the module’s and those resitting it.'
+                }
               />
             </div>
           ) : null}

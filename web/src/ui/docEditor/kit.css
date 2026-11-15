@@ -103,6 +103,10 @@
   gap: var(--sp-12) var(--sp-16);
   align-items: start;
 }
+.dedit-grid--pairs {
+  /* at most two columns: each at least half the row; still one column in a narrow panel */
+  grid-template-columns: repeat(auto-fit, minmax(max(min(100%, 16rem), calc((100% - var(--sp-16)) / 2)), 1fr));
+}
 .dedit-grid__wide {
   grid-column: 1 / -1;
   min-width: 0;

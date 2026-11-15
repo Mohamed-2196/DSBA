@@ -37,10 +37,14 @@ def csrf() -> Response:
 
 @router.get("/auth/session", response_model=SessionState)
 def session_state(user: OptionalUser) -> SessionState:
-    """Who is signed in: `{"me": Me}`, or `{"me": null}` for a guest, and whether "Continue with Google" is set up.
-    Never 401, so a guest's page load logs no error (student test ST-10); GET /me still answers 401 when signed out."""
+    """Who is signed in: `{"me": Me}`, or `{"me": null}` for a guest, whether "Continue with Google" is set up, and
+    whether the hub sends email. Never 401, so a guest's page load logs no error (student test ST-10); GET /me still
+    answers 401 when signed out."""
+    s = get_settings()
     return SessionState(
-        me=accounts.me_out(user) if user is not None else None, google_sign_in=get_settings().google_enabled
+        me=accounts.me_out(user) if user is not None else None,
+        google_sign_in=s.google_enabled,
+        email=s.email_enabled,
     )
 
 

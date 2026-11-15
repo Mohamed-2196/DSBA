@@ -204,7 +204,7 @@ def notify_all(
     by_user = {user_id: notification_id for notification_id, user_id in notified}
     push.queue_all(db, kind, by_user, title=title, body=body, url=path)
     switch = EMAIL_SWITCHES.get(kind)
-    if not email or switch is None or not notified:
+    if not email or switch is None or not notified or not get_settings().email_enabled:
         return len(notified)
     recipients = conn.execute(
         select(User.id, User.email).where(

@@ -13,7 +13,9 @@
 - When its turn comes, a notification email or a Sunday summary is cancelled if the person no longer wants it: the
   account is gone, its email address changed, or the switch for that kind was turned off. It is cancelled too when
   the feature it is about is switched off for the person.
-- Rows that are done are deleted after KEEP_DONE."""
+- Rows that are done are deleted after KEEP_DONE.
+- With email off (DSBA_EMAIL_BACKEND=off) nothing is queued and no switch reads on: the notifications still come in
+  the Hub and as pushes, and the mail worker keeps running for the pushes, reminders, tagging and forum checks."""
 
 from __future__ import annotations
 
@@ -27,10 +29,11 @@ from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
 from types import FrameType
 
-from sqlalchemy import ColumnElement, and_, delete, not_, or_, select, update
+from sqlalchemy import ColumnElement, and_, delete, false, not_, or_, select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.core.access import Feature
 from app.core.time import utcnow
 from app.models import EmailOutbox, OutboxStatus, User
@@ -96,7 +99,7 @@ def wants(user: User, switch: str) -> bool:
     question about emails, and while Google hasn't confirmed the address; then a switch they set says so, a
     notification email they never switched follows their answer, and the Sunday summary is off until they turn it on."""
     answer = answer_of(user)
-    if answer is None or user.email_confirmed_at is None:
+    if answer is None or user.email_confirmed_at is None or not get_settings().email_enabled:
         return False
     value = (user.preferences if isinstance(user.preferences, dict) else {}).get(switch)
     if isinstance(value, bool):
@@ -106,6 +109,8 @@ def wants(user: User, switch: str) -> bool:
 
 def wanted_by(switch: str) -> ColumnElement[bool]:
     """A condition on User: the email switch `switch` is on (as wants(), in SQL)."""
+    if not get_settings().email_enabled:
+        return false()
     prefs = User.preferences
     answered = and_(
         User.email_confirmed_at.is_not(None), or_(prefs.contains({ANSWER: True}), prefs.contains({ANSWER: False}))
@@ -126,8 +131,11 @@ def queue(
     kind: str,
     user_id: uuid.UUID | None = None,
     notification_id: uuid.UUID | None = None,
-) -> EmailOutbox:
-    """Adds an email to the outbox in the caller's transaction (the caller commits)."""
+) -> EmailOutbox | None:
+    """Adds an email to the outbox in the caller's transaction (the caller commits). -> None with email off: nothing
+    is queued."""
+    if not get_settings().email_enabled:
+        return None
     now = utcnow()
     row = EmailOutbox(
         id=uuid.uuid4(),

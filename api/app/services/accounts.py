@@ -15,6 +15,7 @@ from sqlalchemy import CompoundSelect, delete, false, func, or_, select, union, 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session, object_session, selectinload
 
+from app.config import get_settings
 from app.core.access import ADMIN, REP
 from app.core.errors import ApiError, conflict, forbidden, invalid, not_found
 from app.core.time import utcnow
@@ -196,7 +197,8 @@ def update_preferences(user: User, changes: PreferencesUpdate) -> None:
 
 def update_profile(user: User, body: MeUpdate) -> None:
     """Applies PATCH /me: only the fields sent change. A new year clears the papers (another year's choices), and
-    repeated papers are dropped. The first display name needs the answer about emails, unless the account has one.
+    repeated papers are dropped. The first display name needs the answer about emails, unless the account has one or
+    the hub sends no email.
     Raises invalid_display_name (422), invalid_input (422) on `preferences.notificationEmails`, or forbidden (403)
     for a suspended account's new name."""
     sent = body.model_fields_set
@@ -206,7 +208,8 @@ def update_profile(user: User, body: MeUpdate) -> None:
         staff = any(slug in (ADMIN, REP) for slug in access.access_of(user).slugs)  # Admin and Rep holders only
         name = clean_display_name(body.display_name, staff=staff)
         answer = body.preferences.notification_emails if body.preferences is not None else None
-        if user.display_name is None and answer is None and answer_of(user) is None:
+        asked = get_settings().email_enabled
+        if asked and user.display_name is None and answer is None and answer_of(user) is None:
             raise invalid("preferences.notificationEmails", NO_ANSWER)
         if name != user.display_name:
             if user.status == UserStatus.suspended:

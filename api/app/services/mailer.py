@@ -3,6 +3,7 @@
   smtp     an SMTP server (Mailpit locally, the provider's relay in production); 10 s timeout
   file     one .eml per message in DSBA_EMAIL_FILE_DIR
   console  a log line; in development it includes the message so a developer can read it
+  off      nothing is sent (nothing is queued either: app/services/outbox.py)
 
 Nothing here logs a message outside development, and addresses only appear masked."""
 
@@ -52,6 +53,8 @@ def send_email(to: str, subject: str, text: str, html: str | None = None) -> Non
     except (TypeError, ValueError) as e:  # e.g. a line break in a header
         raise DeliveryError("The email could not be built.") from e
     backend = get_settings().email_backend
+    if backend == "off":
+        raise DeliveryError("Email is off on this hub (DSBA_EMAIL_BACKEND=off).")
     if backend == "smtp":
         _send_smtp(msg, to)
     elif backend == "file":

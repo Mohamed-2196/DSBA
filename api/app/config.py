@@ -97,8 +97,9 @@ class Settings(BaseSettings):
     google_client_id: str | None = None
     google_client_secret: SecretStr | None = None
 
-    # Email (notifications and account notices). backend: smtp | file | console
-    email_backend: Literal["smtp", "file", "console"] = "console"
+    # Email (notifications, account notices, the Sunday summary). backend: smtp | file | console | off. Off: nothing is
+    # queued for email, no screen offers one, and the push worker runs instead of the mail worker (no mail provider).
+    email_backend: Literal["smtp", "file", "console", "off"] = "console"
     email_from: str = DEV_EMAIL_FROM
     smtp_host: str = "127.0.0.1"
     smtp_port: int = 1025
@@ -296,6 +297,12 @@ class Settings(BaseSettings):
         return bool(self.google_client_id) and self.google_client_secret is not None
 
     @property
+    def email_enabled(self) -> bool:
+        """Whether the hub sends email (DSBA_EMAIL_BACKEND isn't off): notification emails, account notices and the
+        Sunday summary are queued, and the screens offer them."""
+        return self.email_backend != "off"
+
+    @property
     def commit(self) -> str | None:
         return self.commit_sha or self.railway_git_commit_sha
 
@@ -380,13 +387,13 @@ class Settings(BaseSettings):
         if self.s3_create_bucket:
             add("DSBA_S3_CREATE_BUCKET must be false: set the bucket up once with `python -m app.cli setup-bucket`.")
 
-        # Email
-        if self.email_backend != "smtp":
+        # Email: delivered by SMTP, or off (nothing is queued, and no screen offers an email)
+        if self.email_backend not in ("smtp", "off"):
             add(
-                f"DSBA_EMAIL_BACKEND must be smtp (it is {self.email_backend!r}): the console and file backends "
-                "don't deliver notifications."
+                f"DSBA_EMAIL_BACKEND must be smtp or off (it is {self.email_backend!r}): the console and file "
+                "backends don't deliver notifications."
             )
-        elif "smtp_host" not in given:
+        elif self.email_backend == "smtp" and ("smtp_host" not in given or not self.smtp_host.strip()):
             add(
                 "DSBA_SMTP_HOST must be your mail provider's SMTP server (the default is the development mail catcher)."
             )
@@ -395,7 +402,7 @@ class Settings(BaseSettings):
                 f"DSBA_SMTP_STARTTLS must be true, or DSBA_SMTP_PORT {SMTPS_PORT} (TLS from the start): emails and "
                 "the SMTP password must never travel in clear."
             )
-        if self.email_from == DEV_EMAIL_FROM:
+        if self.email_enabled and self.email_from.strip() in ("", DEV_EMAIL_FROM):
             add("DSBA_EMAIL_FROM must be an address on your own domain, like 'DSBA Hub <no-reply@example.com>'.")
 
         # Web push: optional, but whole when set

@@ -30,6 +30,8 @@ export interface AuthValue {
   isAdmin: boolean;
   /** "Continue with Google" is set up on this hub */
   googleSignIn: boolean;
+  /** the hub sends email (notifications, the Sunday summary); off: no screen offers one */
+  emailOn: boolean;
   /** holds at least one manager box: Manage is open to them */
   manages: boolean;
   roles: Me['roles'];

@@ -308,12 +308,12 @@ def test_the_csrf_header_is_required(client_for: ClientFor) -> None:
 
 
 def test_session_state_says_whether_google_is_set_up(client: TestClient, set_option: SetOption) -> None:
-    assert client.get(f"{API}/auth/session").json() == {"me": None, "googleSignIn": False}
+    assert client.get(f"{API}/auth/session").json() == {"me": None, "googleSignIn": False, "email": True}
     set_option("google_client_id", "id.apps.googleusercontent.com")
     from pydantic import SecretStr
 
     set_option("google_client_secret", SecretStr("secret"))
-    assert client.get(f"{API}/auth/session").json() == {"me": None, "googleSignIn": True}
+    assert client.get(f"{API}/auth/session").json() == {"me": None, "googleSignIn": True, "email": True}
 
 
 def test_logout(sign_in: SignIn, db: Session) -> None:

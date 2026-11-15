@@ -83,16 +83,21 @@ describe('names and addresses', () => {
 
 describe('publishedNote', () => {
   it('says the cohort was told when the issue was emailed', () => {
-    expect(publishedNote('07', true)).toEqual({
+    expect(publishedNote('07', true, true)).toEqual({
       title: 'Issue 07 is out',
       body: 'It’s on the newsletter page, and everyone who wants newsletter notifications has been told.',
     });
   });
 
   it('says the cohort email waits a day when it wasn’t sent', () => {
-    expect(publishedNote('08', false)).toEqual({
+    expect(publishedNote('08', false, true)).toEqual({
       title: 'Issue 08 is out',
       body: 'Published. The cohort email goes out once a day; the next one can be sent tomorrow.',
     });
+  });
+
+  it('names no email when the hub sends none: everyone is notified in the Hub', () => {
+    expect(publishedNote('09', false, false).body).toBe('It’s on the newsletter page, and everyone has been notified.');
+    expect(publishedNote('10', true, false).body).toBe('It’s on the newsletter page, and everyone has been notified.');
   });
 });

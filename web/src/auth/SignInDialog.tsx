@@ -1,5 +1,6 @@
 // Sign in or sign up: Continue with Google, or an email address and a password → (first time) name, cohort and
-// whether we email them about their notifications. A forgotten password: Google, or a reset link from an admin.
+// whether we email them about their notifications (only while the hub sends email). A forgotten password: Google,
+// or a reset link from an admin.
 // AuthProvider shows it while someone needs to sign in, and calls the waiting actions once onDone() runs.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
@@ -42,7 +43,7 @@ function firstName(name: string | null | undefined): string {
 
 export function SignInDialog({ open, reason, resumes = false, reauth = false, onDone, onDismiss }: SignInDialogProps) {
   const qc = useQueryClient();
-  const { me, status, googleSignIn } = useAuth();
+  const { me, status, googleSignIn, emailOn } = useAuth();
   const { push } = useToast();
   const { year: browsedYear } = useYear();
 
@@ -177,16 +178,17 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
     const cErr = cohort === null ? 'Choose your year, or “Not a current student”.' : null;
     setNameError(nErr);
     setCohortError(cErr);
-    setEmailsError(emails === null ? 'Choose yes or no.' : null);
+    const unanswered = emailOn && emails === null;
+    setEmailsError(unanswered ? 'Choose yes or no.' : null);
     setSaveError(null);
-    if (nErr || cErr || emails === null) {
+    if (nErr || cErr || unanswered) {
       if (nErr) nameRef.current?.focus();
       return;
     }
     setSaving(true);
     try {
       const year: CohortYear | null = cohort === 'none' ? null : cohort;
-      const preferences = { notificationEmails: emails };
+      const preferences = emailOn ? { notificationEmails: emails } : undefined;
       const user = await call(api.PATCH('/api/v1/me', { body: { displayName, year, preferences } }));
       qc.setQueryData(ME_KEY, user);
       finish(user);
@@ -369,14 +371,16 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
               error={cohortError}
               hint="Your modules and exams come first. You can still browse every year."
             />
-            <EmailChoice
-              value={emails}
-              onChange={(v) => {
-                setEmails(v);
-                setEmailsError(null);
-              }}
-              error={emailsError}
-            />
+            {emailOn ? (
+              <EmailChoice
+                value={emails}
+                onChange={(v) => {
+                  setEmails(v);
+                  setEmailsError(null);
+                }}
+                error={emailsError}
+              />
+            ) : null}
             {saveError ? (
               <p className="signin__alert" role="alert">
                 <Icon glyph={glyph.error} />
