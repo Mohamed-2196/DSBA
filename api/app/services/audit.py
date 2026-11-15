@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any
+from datetime import timedelta
+from typing import Any, cast
 
+from sqlalchemy import CursorResult, update
 from sqlalchemy.orm import Session
 
 from app.core.security import valid_ip
+from app.core.time import utcnow
 from app.models import AuditEntry, User
 from app.services.identifiers import destination_hint
+
+KEEP_IP = timedelta(days=90)  # the privacy notice: "Moderation and admin records: the IP address after 90 days"
 
 
 def record(
@@ -43,6 +48,17 @@ def record(
             ip=valid_ip(ip),
         )
     )
+
+
+def clear_old_ips(db: Session) -> int:
+    """Forgets the address of entries older than KEEP_IP (the sweep); the entries themselves stay. -> how many."""
+    old = (
+        update(AuditEntry)
+        .where(AuditEntry.ip.is_not(None), AuditEntry.created_at < utcnow() - KEEP_IP)
+        .values(ip=None)
+        .execution_options(synchronize_session=False)
+    )
+    return cast(CursorResult[Any], db.execute(old)).rowcount
 
 
 def person_name(user: User) -> str | None:

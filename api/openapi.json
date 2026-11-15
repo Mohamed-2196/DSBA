@@ -20855,6 +20855,98 @@
         }
       }
     },
+    "/api/v1/privacy": {
+      "get": {
+        "tags": [
+          "features"
+        ],
+        "summary": "Privacy Services",
+        "description": "The outside services that handle people's data right now, for the privacy notice: the same for everyone.",
+        "operationId": "privacy_services_api_v1_privacy_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/boards": {
       "get": {
         "tags": [
@@ -50007,6 +50099,30 @@
           "answer"
         ],
         "title": "PreviewWord"
+      },
+      "PrivacyOut": {
+        "properties": {
+          "nooraAnswers": {
+            "type": "boolean",
+            "title": "Nooraanswers"
+          },
+          "forumCheck": {
+            "type": "boolean",
+            "title": "Forumcheck"
+          },
+          "aiApps": {
+            "type": "boolean",
+            "title": "Aiapps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nooraAnswers",
+          "forumCheck",
+          "aiApps"
+        ],
+        "title": "PrivacyOut",
+        "description": "The outside services the privacy notice names only while they handle people's data."
       },
       "Progress": {
         "properties": {

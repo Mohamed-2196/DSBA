@@ -10,7 +10,7 @@ import {
   type QueryClient,
 } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
-import { ACCESS_FEATURES_KEY, ACCESS_ROLES_KEY, FEATURES_KEY } from '../../api/keys';
+import { ACCESS_FEATURES_KEY, ACCESS_ROLES_KEY, FEATURES_KEY, PRIVACY_KEY } from '../../api/keys';
 import { nextOffset } from '../../api/paging';
 import type {
   AdminUser,
@@ -152,13 +152,16 @@ export function useSetSwitch() {
   return useMutation({
     mutationFn: ({ feature, body }: { feature: FeatureOut['feature']; body: SwitchUpdate }) =>
       call(api.PUT('/api/v1/admin/features/{feature}', { params: { path: { feature } }, body })),
-    onSuccess: (out) => {
-      qc.setQueryData<FeatureOut[]>(ACCESS_FEATURES_KEY, (list) =>
-        list?.map((f) => (f.feature === out.feature ? out : f)),
-      );
-      void qc.invalidateQueries({ queryKey: FEATURES_KEY });
-      void qc.invalidateQueries({ queryKey: ME_KEY });
-      void qc.invalidateQueries({ queryKey: AUDIT_KEY });
-    },
+    onSuccess: (out) => switchChanged(qc, out),
   });
+}
+
+/** After a switch changes: the Access list takes the new state, and everything that follows switches is read again,
+ *  the privacy notice included, so it names a service as soon as it is on (COM-280 I5). */
+export function switchChanged(qc: QueryClient, out: FeatureOut): void {
+  qc.setQueryData<FeatureOut[]>(ACCESS_FEATURES_KEY, (list) => list?.map((f) => (f.feature === out.feature ? out : f)));
+  void qc.invalidateQueries({ queryKey: FEATURES_KEY });
+  void qc.invalidateQueries({ queryKey: ME_KEY });
+  void qc.invalidateQueries({ queryKey: AUDIT_KEY });
+  void qc.invalidateQueries({ queryKey: PRIVACY_KEY });
 }

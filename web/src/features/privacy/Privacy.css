@@ -1,0 +1,114 @@
+/* The privacy notice: one reading column on the narrow page. Paragraphs and lists take the Hub's measure (lines
+   under about 75 characters); the table keeps the column's full width so its three columns aren't squeezed. */
+.privacy__intro {
+  margin-bottom: var(--sp-48);
+}
+.privacy__prose {
+  display: grid;
+  gap: var(--sp-16);
+  color: var(--ink);
+  font-size: var(--fs-16);
+  line-height: 1.6;
+}
+.privacy__prose > p,
+.privacy__prose > ul {
+  max-width: var(--measure);
+}
+.privacy__prose ul {
+  display: grid;
+  gap: var(--sp-12);
+  margin: 0;
+  padding-left: 1.25em;
+}
+.privacy__prose strong {
+  font-weight: var(--fw-semibold);
+}
+.privacy__prose a {
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+/* A detail the founder hasn't given yet: plainly a gap, never mistaken for the real thing. */
+.privacy__gap {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-weight: var(--fw-semibold);
+}
+
+.privacy__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+.privacy__table th,
+.privacy__table td {
+  padding: var(--sp-12) var(--sp-12) var(--sp-12) 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.privacy__table thead th {
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-semibold);
+  border-bottom-color: var(--line-strong);
+}
+.privacy__table tbody th {
+  width: 44%;
+  font-weight: var(--fw-regular);
+}
+/* The phrase before a colon is the row's label; the list after it stays regular, so a long cell doesn't read heavy. */
+.privacy__label {
+  font-weight: var(--fw-semibold);
+}
+.privacy__table tr > :last-child {
+  padding-right: 0;
+}
+
+/* Phones: each row becomes a short block, its column names inline ("Why:", "Do you have to give it?"), so nothing scrolls
+   sideways. */
+@media (max-width: 599px) {
+  /* Stacked, the rows are sentences, so they read at body size. */
+  .privacy__table {
+    font-size: var(--fs-16);
+    line-height: 1.55;
+  }
+  .privacy__table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .privacy__table,
+  .privacy__table tbody,
+  .privacy__table tr,
+  .privacy__table th,
+  .privacy__table td {
+    display: block;
+    width: auto;
+  }
+  .privacy__table tr {
+    padding: var(--sp-12) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .privacy__table th,
+  .privacy__table td {
+    padding: 0;
+    border: 0;
+  }
+  .privacy__table tbody th {
+    width: auto;
+    margin-bottom: var(--sp-4);
+  }
+  .privacy__table td + td {
+    margin-top: var(--sp-4);
+  }
+  .privacy__table td::before {
+    content: attr(data-label) ' ';
+    color: var(--ink-2);
+    font-weight: var(--fw-semibold);
+  }
+}

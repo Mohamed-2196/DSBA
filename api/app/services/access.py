@@ -225,6 +225,11 @@ def has_active_admin(db: Session) -> bool:
     """Whether any active account holds Admin. Takes the admins' lock first, as ensure_admins_remain() does, so a
     bootstrap and a demotion are counted one after the other."""
     ratelimit.lock(db, "access:admins")
+    return any_active_admin(db)
+
+
+def any_active_admin(db: Session) -> bool:
+    """Whether any active account holds Admin, without the lock: for reads that decide nothing (the privacy notice)."""
     found = db.scalar(
         select(RoleGrant.user_id)
         .join(AccessRole, AccessRole.id == RoleGrant.role_id)

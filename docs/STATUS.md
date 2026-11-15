@@ -374,6 +374,24 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
   touch). Apple Pencil double-tap and squeeze don't reach web pages. The e2e test (`notebook.spec.ts`, "stylus")
   dispatches synthetic pen events.
 
+### Privacy notice, 2026-11-10 (COM-258, branch `com-258-privacy`)
+
+- `/privacy` (`web/src/features/privacy/`) holds the privacy notice, open to signed-out visitors. The footer
+  ("Privacy"), the sign-in and sign-up dialog (opens in a new tab, so a half-filled form stays) and Your account's
+  "Your data" link to it. Google's consent screen links to `https://<domain>/privacy`.
+- Its words are the researcher's draft, pasted as written; a wording change goes back to the researcher.
+- Six facts are missing until go-live and show as amber placeholders ("[FULL NAME]"): the date, the full name, the
+  P.O. Box and its area, the contact email, and the production bucket's region. Fill them in
+  `web/src/features/privacy/details.ts` before students get the address.
+- Conditional sections: Anthropic for Mini Noora's answers and for the forum's automatic check, and AI apps, show
+  only while their switches are on (for anyone) and, for Anthropic, a key is set: `GET /privacy`
+  (`app/services/privacy.py`). PostHog shows only in a build with `VITE_POSTHOG_KEY`. If `/privacy` can't be read,
+  all of them show. BIBF's recordings always show (lessons hold them). There is no email section: the Hub sends no
+  email at launch. When email goes on, add it with the provider's name.
+- The daily sweep now clears the IP address on audit log entries older than 90 days (the entry stays), as the
+  notice says (`audit.clear_old_ips`).
+- Not done: no e2e test (Docker wasn't available for the run); the page needs JavaScript, like every page.
+
 ## Operating notes
 
 - **Railway dev region (2026-10-20):** Postgres, api and web run in `southeast-asia` (moved from Amsterdam with

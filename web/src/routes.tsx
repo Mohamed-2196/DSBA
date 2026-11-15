@@ -230,6 +230,13 @@ const pages: AppRoute[] = [
   },
   { id: 'about', path: '/about', title: 'About', Page: lazyPage(() => import('./features/site/AboutPage')) },
   {
+    id: 'privacy',
+    path: '/privacy',
+    title: 'Privacy notice',
+    Page: lazyPage(() => import('./features/privacy/PrivacyPage')),
+    modules: false,
+  },
+  {
     id: 'styleguide',
     path: '/styleguide',
     title: 'Style guide',
