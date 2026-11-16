@@ -6,9 +6,6 @@ export interface PrivacyDetails {
   updated: string | null;
   /** the person responsible for students' data */
   fullName: string | null;
-  /** their P.O. Box number, and its area ('Manama') */
-  poBox: string | null;
-  area: string | null;
   /** where students write to ask for their data, a correction or a deletion */
   contactEmail: string | null;
   /** the production bucket's region: where the uploaded files and the backups are */
@@ -18,8 +15,6 @@ export interface PrivacyDetails {
 export const PRIVACY_DETAILS: PrivacyDetails = {
   updated: null,
   fullName: 'Mohamed Alnooh', // founder, 13 Nov 2026: as in the footer
-  poBox: null,
-  area: null,
-  contactEmail: null,
+  contactEmail: 'privacy@dsbahub.com', // founder, 15 Nov 2026: no postal address; name and this email only
   bucketRegion: null,
 };
