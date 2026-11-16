@@ -15,6 +15,7 @@ import { CohortPicker, type CohortChoice } from './CohortPicker';
 import { EmailChoice } from './EmailChoice';
 import { GoogleButton } from './GoogleButton';
 import { PasswordField } from './PasswordField';
+import { dialogDescription, type SignInStep } from './signInCopy';
 import { ME_KEY, refreshPersonalQueries } from './queries';
 import { useAuth } from './useAuth';
 import './SignInDialog.css';
@@ -33,8 +34,6 @@ export interface SignInDialogProps {
   onDismiss: () => void;
 }
 
-type Step = 'sign-in' | 'sign-up' | 'forgot' | 'profile';
-
 const NAME_MIN = 2;
 const NAME_MAX = 40;
 
@@ -48,7 +47,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
   const { push } = useToast();
   const { year: browsedYear } = useYear();
 
-  const [step, setStep] = useState<Step>('sign-in');
+  const [step, setStep] = useState<SignInStep>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -205,7 +204,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
     }
   };
 
-  const switchTo = (next: Step) => {
+  const switchTo = (next: SignInStep) => {
     clearErrors();
     setStep(next);
   };
@@ -225,16 +224,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
       {title}
     </>
   );
-  const description =
-    step === 'profile'
-      ? 'This is how classmates see you on the forum and in the library.'
-      : step === 'sign-up'
-        ? 'Reading is open to everyone. An account lets you post, upload and keep your own things.'
-        : step === 'forgot'
-          ? 'There are two ways back in.'
-          : googleSignIn
-            ? 'Continue with Google, or use your email address and password.'
-            : 'Use your email address and password.';
+  const description = dialogDescription(step, googleSignIn);
   const alert = formError ? (
     <p className="signin__alert" role="alert">
       <Icon glyph={glyph.error} />
