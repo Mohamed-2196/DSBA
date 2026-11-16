@@ -1,6 +1,6 @@
-// Sign in or sign up: Continue with Google, or an email address and a password → (first time) name, cohort and
-// whether we email them about their notifications (only while the hub sends email). A forgotten password: Google,
-// or a reset link from an admin.
+// Sign in or sign up: Continue with Google (while Google sign-in is on), or an email address and a password →
+// (first time) name, cohort and whether we email them about their notifications (only while the hub sends email).
+// A forgotten password: Google (while it's on), or a reset link from an admin.
 // AuthProvider shows it while someone needs to sign in, and calls the waiting actions once onDone() runs.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
@@ -13,6 +13,7 @@ import { Button, HubLogo, Icon, Modal, TextField, glyph } from '../ui';
 import { authErrorMessage, checkEmail, checkNewPassword, fieldOf } from './authErrors';
 import { CohortPicker, type CohortChoice } from './CohortPicker';
 import { EmailChoice } from './EmailChoice';
+import { ForgotHelp } from './ForgotHelp';
 import { GoogleButton } from './GoogleButton';
 import { PasswordField } from './PasswordField';
 import { dialogDescription, type SignInStep } from './signInCopy';
@@ -329,15 +330,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
 
         {step === 'forgot' ? (
           <div className="signin__form" data-hub="forgot">
-            <ol className="signin__help">
-              {googleSignIn ? (
-                <li>
-                  If your address is a Gmail or Google account, continue with Google. You’re signed in, and you can set
-                  a new password in Your account.
-                </li>
-              ) : null}
-              <li>Ask an admin for a reset link. It works once, within an hour.</li>
-            </ol>
+            <ForgotHelp googleSignIn={googleSignIn} />
             {googleSignIn ? <GoogleButton onError={setFormError} /> : null}
             {alert}
             <Button variant="ghost" size="sm" onClick={() => switchTo('sign-in')}>
