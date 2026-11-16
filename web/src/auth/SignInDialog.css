@@ -141,6 +141,14 @@
   line-height: 1.5;
 }
 
+/* The one way back in when there is only one: the list's type, lined up with the title (no indent). */
+.signin__step {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+
 /* Profile step: the cohort choice as a row of cards. */
 .signin-cohorts {
   display: grid;

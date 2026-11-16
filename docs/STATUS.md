@@ -380,9 +380,9 @@ removed blocks). The e2e specs were updated but not run (they need Docker).
   ("Privacy"), the sign-in and sign-up dialog (opens in a new tab, so a half-filled form stays) and Your account's
   "Your data" link to it. Google's consent screen links to `https://<domain>/privacy`.
 - Its words are the researcher's draft, pasted as written; a wording change goes back to the researcher.
-- Six facts are missing until go-live and show as amber placeholders ("[FULL NAME]"): the date, the full name, the
-  P.O. Box and its area, the contact email, and the production bucket's region. Fill them in
-  `web/src/features/privacy/details.ts` before students get the address.
+- The contact block is a name and `privacy@dsbahub.com`, with no postal address (founder, 15 Nov). Two facts are
+  missing until go-live and show as amber placeholders ("[DATE]"): the date it went live and the production bucket's
+  region. Fill them in `web/src/features/privacy/details.ts` before students get the address.
 - Conditional sections: Anthropic for Mini Noora's answers and for the forum's automatic check, and AI apps, show
   only while their switches are on (for anyone) and, for Anthropic, a key is set: `GET /privacy`
   (`app/services/privacy.py`). PostHog shows only in a build with `VITE_POSTHOG_KEY`. If `/privacy` can't be read,

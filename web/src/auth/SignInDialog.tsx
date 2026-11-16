@@ -1,6 +1,6 @@
-// Sign in or sign up: Continue with Google, or an email address and a password → (first time) name, cohort and
-// whether we email them about their notifications (only while the hub sends email). A forgotten password: Google,
-// or a reset link from an admin.
+// Sign in or sign up: Continue with Google (while Google sign-in is on), or an email address and a password →
+// (first time) name, cohort and whether we email them about their notifications (only while the hub sends email).
+// A forgotten password: Google (while it's on), or a reset link from an admin.
 // AuthProvider shows it while someone needs to sign in, and calls the waiting actions once onDone() runs.
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
@@ -13,8 +13,10 @@ import { Button, HubLogo, Icon, Modal, TextField, glyph } from '../ui';
 import { authErrorMessage, checkEmail, checkNewPassword, fieldOf } from './authErrors';
 import { CohortPicker, type CohortChoice } from './CohortPicker';
 import { EmailChoice } from './EmailChoice';
+import { ForgotHelp } from './ForgotHelp';
 import { GoogleButton } from './GoogleButton';
 import { PasswordField } from './PasswordField';
+import { dialogDescription, type SignInStep } from './signInCopy';
 import { ME_KEY, refreshPersonalQueries } from './queries';
 import { useAuth } from './useAuth';
 import './SignInDialog.css';
@@ -33,8 +35,6 @@ export interface SignInDialogProps {
   onDismiss: () => void;
 }
 
-type Step = 'sign-in' | 'sign-up' | 'forgot' | 'profile';
-
 const NAME_MIN = 2;
 const NAME_MAX = 40;
 
@@ -48,7 +48,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
   const { push } = useToast();
   const { year: browsedYear } = useYear();
 
-  const [step, setStep] = useState<Step>('sign-in');
+  const [step, setStep] = useState<SignInStep>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -205,7 +205,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
     }
   };
 
-  const switchTo = (next: Step) => {
+  const switchTo = (next: SignInStep) => {
     clearErrors();
     setStep(next);
   };
@@ -225,16 +225,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
       {title}
     </>
   );
-  const description =
-    step === 'profile'
-      ? 'This is how classmates see you on the forum and in the library.'
-      : step === 'sign-up'
-        ? 'Reading is open to everyone. An account lets you post, upload and keep your own things.'
-        : step === 'forgot'
-          ? 'There are two ways back in.'
-          : googleSignIn
-            ? 'Continue with Google, or use your email address and password.'
-            : 'Use your email address and password.';
+  const description = dialogDescription(step, googleSignIn);
   const alert = formError ? (
     <p className="signin__alert" role="alert">
       <Icon glyph={glyph.error} />
@@ -339,15 +330,7 @@ export function SignInDialog({ open, reason, resumes = false, reauth = false, on
 
         {step === 'forgot' ? (
           <div className="signin__form" data-hub="forgot">
-            <ol className="signin__help">
-              {googleSignIn ? (
-                <li>
-                  If your address is a Gmail or Google account, continue with Google. You’re signed in, and you can set
-                  a new password in Your account.
-                </li>
-              ) : null}
-              <li>Ask an admin for a reset link. It works once, within an hour.</li>
-            </ol>
+            <ForgotHelp googleSignIn={googleSignIn} />
             {googleSignIn ? <GoogleButton onError={setFormError} /> : null}
             {alert}
             <Button variant="ghost" size="sm" onClick={() => switchTo('sign-in')}>
