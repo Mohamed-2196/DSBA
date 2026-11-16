@@ -3,7 +3,7 @@
 // are drawn (lib/links.ts), so a link the API let through by mistake never becomes a button.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, call } from '../../api/client';
-import type { CareerDoc, MySenior, Senior, SeniorUpdate } from '../../api/types';
+import type { CareerDoc, CvReviewOut, MySenior, Senior, SeniorUpdate } from '../../api/types';
 import { useAuth } from '../../auth';
 import { moduleDetailQuery } from '../modules/public';
 
@@ -86,4 +86,47 @@ export function useRemoveSenior() {
       void qc.invalidateQueries({ queryKey: SENIORS_KEY, exact: true });
     },
   });
+}
+
+// ── Rate my CV (career.cv) ──────────────────────────────────────────────────────────────────────
+
+export const CVS_KEY = [...CAREER_KEY, 'cvs'] as const;
+
+/** The signed-in student's kept CVs and their latest ratings, newest first. */
+export function useMyCvs(enabled: boolean) {
+  return useQuery({ queryKey: CVS_KEY, queryFn: () => call(api.GET('/api/v1/career/cvs')), enabled });
+}
+
+/** Rates a CV just uploaded (purpose 'cv') against a role, and keeps it. */
+export function useRateCv() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { uploadId: string; roleId: string }) => call(api.POST('/api/v1/career/cvs', { body })),
+    onSuccess: (cv) => qc.setQueryData<CvReviewOut[]>(CVS_KEY, (old) => [cv, ...(old ?? [])]),
+  });
+}
+
+/** Rates a kept CV again, against another role. */
+export function useRerateCv() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, roleId }: { id: string; roleId: string }) =>
+      call(api.POST('/api/v1/career/cvs/{review_id}/rate', { params: { path: { review_id: id } }, body: { roleId } })),
+    onSuccess: (cv) => qc.setQueryData<CvReviewOut[]>(CVS_KEY, (old) => old?.map((c) => (c.id === cv.id ? cv : c))),
+  });
+}
+
+/** Deletes a kept CV, its file and its rating. */
+export function useDeleteCv() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      call(api.DELETE('/api/v1/career/cvs/{review_id}', { params: { path: { review_id: id } } })),
+    onSuccess: (_, id) => qc.setQueryData<CvReviewOut[]>(CVS_KEY, (old) => old?.filter((c) => c.id !== id)),
+  });
+}
+
+/** A short-lived link to the student's own CV file (asked for when they open it). */
+export async function cvFileUrl(id: string): Promise<string> {
+  return (await call(api.GET('/api/v1/career/cvs/{review_id}/file', { params: { path: { review_id: id } } }))).url;
 }

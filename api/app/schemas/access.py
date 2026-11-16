@@ -46,6 +46,7 @@ FeatureKey = Literal[
     "calendar",
     "career",
     "career.seniors",
+    "career.cv",
     "grades",
     "noora",
     "noora.ai",

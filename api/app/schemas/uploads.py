@@ -9,7 +9,15 @@ from pydantic import Field, StringConstraints
 from app.schemas.common import ApiModel
 
 UploadPurpose = Literal[
-    "library", "forum_image", "newsletter_image", "bug_screenshot", "board", "note_file", "career_logo", "module_art"
+    "library",
+    "forum_image",
+    "newsletter_image",
+    "bug_screenshot",
+    "board",
+    "note_file",
+    "career_logo",
+    "module_art",
+    "cv",
 ]
 
 

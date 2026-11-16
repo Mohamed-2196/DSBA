@@ -69,6 +69,8 @@ function acceptFor(types: Readonly<Record<string, string>>, mime: readonly strin
 }
 
 const NOTE_TYPES: Readonly<Record<string, string>> = { ...LIBRARY_TYPES, ...IMAGE_TYPES };
+// A CV: the two files the API's reader takes.
+const CV_TYPES: Readonly<Record<string, string>> = { pdf: PDF, docx: LIBRARY_TYPES.docx };
 
 export const UPLOAD_RULES: Readonly<Record<UploadPurpose, UploadRules>> = {
   library: {
@@ -143,6 +145,16 @@ export const UPLOAD_RULES: Readonly<Record<UploadPurpose, UploadRules>> = {
     refused: 'That file type can’t be a logo.',
     noun: 'logo',
     smaller: 'Save a smaller copy and try again.',
+  },
+  cv: {
+    types: CV_TYPES,
+    maxMb: 5,
+    accept: acceptFor(CV_TYPES, []),
+    summary: 'A PDF or Word (.docx) file, up to 5 MB.',
+    allowed: 'Use your CV as a PDF or a Word (.docx) file.',
+    refused: 'That file type can’t be rated.',
+    noun: 'CV',
+    smaller: 'Save it again as a PDF, which is usually smaller.',
   },
   module_art: {
     types: PICTURE_TYPES,

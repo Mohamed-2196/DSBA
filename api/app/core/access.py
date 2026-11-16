@@ -68,6 +68,7 @@ class Feature(enum.StrEnum):
     calendar = "calendar"
     career = "career"
     career_seniors = "career.seniors"  # seniors who answer, listed in Career Navigator
+    career_cv = "career.cv"  # Rate my CV: students' CVs scored by rules, kept for their owner only
     grades = "grades"  # the grades calculator and its rules (students' marks stay in their browser)
     noora = "noora"  # Mini Noora: her script, and her words in Manage
     noora_ai = "noora.ai"  # her answers from Claude (Mini Noora stays scripted without it)
@@ -211,6 +212,9 @@ FEATURES: dict[Feature, FeatureInfo] = {
     Feature.career: FeatureInfo("Career Navigator", "Career Navigator."),
     Feature.career_seniors: FeatureInfo(
         "Seniors who answer", "The seniors listed in Career Navigator, and signing up as one on Your account."
+    ),
+    Feature.career_cv: FeatureInfo(
+        "Rate my CV", "Career Navigator's Rate my CV tab. The CVs students kept stay until they delete them."
     ),
     Feature.grades: FeatureInfo("Grades calculator", "The grades calculator."),
     Feature.noora: FeatureInfo("Mini Noora", "Mini Noora, the hub's helper."),

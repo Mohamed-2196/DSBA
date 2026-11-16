@@ -96,6 +96,9 @@ IMAGE_TYPES: dict[str, FileType] = {
     "webp": _WEBP,
     "gif": FileType("image/gif", (), (b"GIF87a", b"GIF89a")),
 }
+# A CV: a PDF or a Word file, the two the text reader reads (services/paper_text.py).
+CV_TYPES: dict[str, FileType] = {"pdf": LIBRARY_TYPES["pdf"], "docx": LIBRARY_TYPES["docx"]}
+CV_MAX_MB = 5
 # Newsletter pictures, bug screenshots and organisation logos: still images only (no SVG, never a GIF).
 PICTURE_TYPES: dict[str, FileType] = {"png": _PNG, "jpg": _JPEG, "jpeg": _JPEG, "webp": _WEBP}
 ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
@@ -107,6 +110,7 @@ ALLOWLISTS: dict[UploadPurpose, dict[str, FileType]] = {
     UploadPurpose.note_file: LIBRARY_TYPES | IMAGE_TYPES,  # a note's pictures, files and the PDFs it writes over
     UploadPurpose.career_logo: PICTURE_TYPES,
     UploadPurpose.module_art: PICTURE_TYPES,
+    UploadPurpose.cv: CV_TYPES,
 }
 # Shown in the browser (PDF viewer, <img>): storage.INLINE_TYPES. Everything else downloads as an attachment.
 IMAGE_CONTENT_TYPES = frozenset(t.content_type for t in IMAGE_TYPES.values())
@@ -124,6 +128,7 @@ FINAL_PREFIXES: dict[UploadPurpose, str] = {
     UploadPurpose.note_file: "notes",
     UploadPurpose.career_logo: "career",
     UploadPurpose.module_art: "modules",
+    UploadPurpose.cv: "cvs",
 }
 # The box an upload of each purpose needs (None: any active account).
 PURPOSE_BOXES: dict[UploadPurpose, Box | None] = {
@@ -135,6 +140,7 @@ PURPOSE_BOXES: dict[UploadPurpose, Box | None] = {
     UploadPurpose.note_file: None,
     UploadPurpose.career_logo: Box.career_edit,
     UploadPurpose.module_art: Box.content_edit,
+    UploadPurpose.cv: None,
 }
 
 
@@ -175,6 +181,8 @@ def serve_type(file_name: str | None) -> str:
 
 
 def limit_bytes(purpose: UploadPurpose) -> int:
+    if purpose == UploadPurpose.cv:
+        return CV_MAX_MB * 1024 * 1024
     s = get_settings()
     mb = s.max_image_mb if purpose in IMAGE_PURPOSES or purpose == UploadPurpose.career_logo else s.max_upload_mb
     return mb * 1024 * 1024
@@ -223,6 +231,8 @@ def _unsupported(purpose: UploadPurpose) -> ApiError:
         msg = "Use a PNG, JPEG or WebP image."
     elif purpose == UploadPurpose.career_logo:
         msg = "Use the logo as a PNG, JPEG or WebP picture."
+    elif purpose == UploadPurpose.cv:
+        msg = "Use your CV as a PDF or a Word (.docx) file."
     elif purpose == UploadPurpose.board:
         msg = (
             "Use a PDF, Word, Excel, PowerPoint, notebook (.ipynb), R script, text or CSV file, "
@@ -356,6 +366,7 @@ PURPOSE_FEATURES: dict[UploadPurpose, tuple[Feature, ...]] = {
     UploadPurpose.note_file: (Feature.notes,),
     UploadPurpose.career_logo: (Feature.career,),
     UploadPurpose.module_art: (),
+    UploadPurpose.cv: (Feature.career, Feature.career_cv),
 }
 
 

@@ -161,105 +161,6 @@
   }
 }
 
-/* ── Further study: one line and one button ──────────────────────────────────────────────────── */
-.career-after > .career-study {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-12) var(--sp-16);
-  padding: var(--sp-16) var(--sp-24);
-}
-.career-study__icon {
-  flex: none;
-  font-size: 28px;
-  color: var(--accent);
-}
-.career-study__text {
-  flex: 1 1 320px;
-  min-width: 0;
-  max-width: var(--measure);
-  color: var(--ink-2);
-  font-size: var(--fs-14);
-  line-height: 1.5;
-}
-.career-study__text strong {
-  color: var(--ink);
-  font-weight: var(--fw-bold);
-}
-/* Courses and scholarships: name (a link to its own page), its date, one line. At most three columns, so six
-   items always fill their rows (3 + 3 on a laptop, 2 + 2 + 2 on a tablet, one column on a phone). */
-.career-study__list {
-  flex: 1 1 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, max(240px, (100% - 2 * var(--sp-24)) / 3)), 1fr));
-  gap: var(--sp-20) var(--sp-24);
-  padding-top: var(--sp-16);
-  border-top: 1.5px solid var(--line);
-  list-style: none;
-}
-/* the whole item is the link's target; the ring goes round the item */
-.career-study__option {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.career-study__option:has(:focus-visible) {
-  outline: 2px solid var(--accent);
-  outline-offset: 4px;
-  border-radius: var(--r-control);
-}
-.career-study__name {
-  align-self: flex-start;
-  color: var(--ink);
-  font-size: var(--fs-15);
-  font-weight: var(--fw-semibold);
-  line-height: 1.35;
-  text-decoration: none;
-  overflow-wrap: anywhere;
-}
-a.career-study__name::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-}
-a.career-study__name:focus-visible {
-  outline: none;
-}
-.career-study__option:hover a.career-study__name,
-.career-study__option:hover .career-study__go {
-  color: var(--accent-text);
-}
-/* the last word and the icon don't part, so the icon never sits on a line of its own */
-.career-study__tail {
-  white-space: nowrap;
-}
-.career-study__go {
-  margin-left: 4px;
-  vertical-align: -2px;
-  color: var(--ink-2);
-}
-.career-study__when {
-  color: var(--ink);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
-}
-.career-study__when--none {
-  color: var(--ink-2);
-}
-.career-study__note {
-  color: var(--ink-2);
-  font-size: var(--fs-14);
-  line-height: 1.45;
-}
-
-.career-study__projected {
-  flex: 1 1 100%;
-  padding-top: var(--sp-12);
-  border-top: 1.5px solid var(--line);
-}
-
 @container career-after (min-width: 900px) {
   .career-after__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -276,9 +177,6 @@ a.career-study__name:focus-visible {
 }
 @media (max-width: 699px) {
   .career-after__grid > .career-ready {
-    padding: var(--sp-16);
-  }
-  .career-after > .career-study {
     padding: var(--sp-16);
   }
 }

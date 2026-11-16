@@ -42,6 +42,7 @@ export const FEATURE_KEYS = [
   'calendar',
   'career',
   'career.seniors',
+  'career.cv',
   'grades',
   'noora',
   'noora.ai',

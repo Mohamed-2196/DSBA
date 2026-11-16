@@ -680,6 +680,7 @@
       "short": "CFA Level I",
       "issuer": "CFA Institute",
       "mono": "CFA",
+      "field": "Finance",
       "url": "https://www.cfainstitute.org/programs/cfa-program",
       "goodFor": "Investment, research and finance roles. Three exam levels, and the charter also asks for work experience, so an early start helps.",
       "effort": 3,
@@ -700,6 +701,7 @@
       "short": "FRM",
       "issuer": "GARP",
       "mono": "FRM",
+      "field": "Finance",
       "url": "https://www.garp.org/frm",
       "goodFor": "Risk roles in banks, funds and regulators. Two exam parts, and the certification also asks for work experience.",
       "effort": 3,
@@ -720,6 +722,7 @@
       "short": "Power BI (PL-300)",
       "issuer": "Microsoft",
       "mono": "PBI",
+      "field": "Tools, BI & databases",
       "url": "https://learn.microsoft.com/en-us/credentials/certifications/data-analyst-associate/",
       "goodFor": "Analysts who build reports and dashboards. One exam on preparing, modelling and visualising data in Power BI.",
       "effort": 2,
@@ -741,6 +744,7 @@
       "short": "AWS Cloud Practitioner",
       "issuer": "Amazon Web Services",
       "mono": "AWS",
+      "field": "Cloud & big data",
       "url": "https://aws.amazon.com/certification/certified-cloud-practitioner/",
       "goodFor": "A foundation-level exam on cloud basics. A common first step towards data science or machine learning engineering.",
       "effort": 1,
@@ -760,6 +764,7 @@
       "short": "Google Data Analytics",
       "issuer": "Google",
       "mono": "GDA",
+      "field": "Core data science",
       "url": "https://www.coursera.org/professional-certificates/google-data-analytics",
       "goodFor": "A guided first step into data analysis, made for beginners. It covers spreadsheets, SQL, Python and Tableau.",
       "effort": 2,
@@ -781,6 +786,7 @@
       "short": "Tableau",
       "issuer": "Tableau, part of Salesforce",
       "mono": "Tab",
+      "field": "Tools, BI & databases",
       "url": "https://www.tableau.com/learn/certification",
       "goodFor": "Dashboard-focused analyst and BI roles. Desktop Foundations is the entry exam and Data Analyst is the next level.",
       "effort": 2,
@@ -800,6 +806,7 @@
       "short": "Bloomberg Market Concepts",
       "issuer": "Bloomberg",
       "mono": "BMC",
+      "field": "Finance",
       "url": "https://professional.bloomberg.com/products/bloomberg-terminal/education/certificate-courses/",
       "goodFor": "Treasury, markets and investment roles. A self-paced online course that introduces the financial markets through the Bloomberg Terminal.",
       "effort": 1,
@@ -818,6 +825,7 @@
       "name": "SQL practice",
       "short": "SQL practice",
       "issuer": "Self-study, no exam",
+      "field": "Tools, BI & databases",
       "file": {
         "module": "programming-data-science",
         "id": "st2195-block-3-notebook-sql-and-databases"
@@ -836,6 +844,818 @@
         "risk-analyst",
         "ml-engineer",
         "product-analyst"
+      ]
+    },
+    {
+      "id": "ibm-ds",
+      "name": "IBM Data Science Professional Certificate",
+      "short": "IBM Data Science",
+      "issuer": "IBM",
+      "mono": "IBM",
+      "url": "https://www.coursera.org/professional-certificates/ibm-data-science",
+      "field": "Core data science",
+      "goodFor": "Python, SQL, Jupyter notebooks, data analysis and a first look at machine learning.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "programming-data-science",
+        "machine-learning"
+      ],
+      "roles": [
+        "data-scientist",
+        "data-analyst"
+      ]
+    },
+    {
+      "id": "harvard-ds",
+      "name": "HarvardX Professional Certificate in Data Science",
+      "short": "HarvardX Data Science",
+      "issuer": "Harvard University (edX)",
+      "mono": "HX",
+      "url": "https://www.edx.org/certificates/professional-certificate/harvardx-data-science",
+      "field": "Core data science",
+      "goodFor": "Data science in R: probability, inference, regression and machine learning, taught through real case studies.",
+      "effort": 3,
+      "effortNote": "Nine courses, self-paced over several months.",
+      "covers": [
+        "programming-data-science",
+        "statistics",
+        "advanced-stats-inferential",
+        "machine-learning"
+      ],
+      "roles": [
+        "data-scientist",
+        "data-analyst"
+      ]
+    },
+    {
+      "id": "mit-micromasters",
+      "name": "MITx MicroMasters in Statistics and Data Science",
+      "short": "MIT MicroMasters",
+      "issuer": "MIT (edX)",
+      "mono": "MIT",
+      "url": "https://micromasters.mit.edu/ds/",
+      "field": "Maths & statistics",
+      "goodFor": "Graduate-level probability, statistics, machine learning and data analysis. Demanding, and it can count towards a master’s.",
+      "effort": 3,
+      "effortNote": "Several graduate-level courses, over a year or more.",
+      "covers": [
+        "advanced-stats-distribution",
+        "advanced-stats-inferential",
+        "machine-learning"
+      ],
+      "roles": [
+        "data-scientist",
+        "ml-engineer"
+      ]
+    },
+    {
+      "id": "google-ai",
+      "name": "Google AI Essentials",
+      "short": "Google AI Essentials",
+      "issuer": "Google",
+      "mono": "G",
+      "url": "https://www.coursera.org/specializations/ai-essentials-google",
+      "field": "Machine learning & AI",
+      "goodFor": "Using generative AI tools well at work: writing prompts, checking what they produce and using them responsibly.",
+      "effort": 1,
+      "effortNote": "A few weeks, self-paced.",
+      "covers": [
+        "information-systems"
+      ],
+      "roles": [
+        "business-analyst",
+        "data-analyst",
+        "consultant",
+        "product-analyst"
+      ]
+    },
+    {
+      "id": "ml-spec",
+      "name": "Machine Learning Specialization",
+      "short": "Machine Learning (Andrew Ng)",
+      "issuer": "DeepLearning.AI and Stanford",
+      "mono": "ML",
+      "url": "https://www.coursera.org/specializations/machine-learning-introduction",
+      "field": "Machine learning & AI",
+      "goodFor": "Supervised learning (linear and logistic regression, neural networks) and unsupervised learning (clustering, dimensionality reduction).",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "machine-learning",
+        "programming-data-science"
+      ],
+      "roles": [
+        "data-scientist",
+        "ml-engineer"
+      ]
+    },
+    {
+      "id": "dl-spec",
+      "name": "Deep Learning Specialization",
+      "short": "Deep Learning",
+      "issuer": "DeepLearning.AI",
+      "mono": "DL",
+      "url": "https://www.coursera.org/specializations/deep-learning",
+      "field": "Machine learning & AI",
+      "goodFor": "Neural networks in depth: convolutional and recurrent networks, transformers and how to train them well.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "machine-learning"
+      ],
+      "roles": [
+        "ml-engineer",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "nlp-spec",
+      "name": "Natural Language Processing Specialization",
+      "short": "NLP",
+      "issuer": "DeepLearning.AI",
+      "mono": "NLP",
+      "url": "https://www.coursera.org/specializations/natural-language-processing",
+      "field": "Machine learning & AI",
+      "goodFor": "Working with text: sentiment analysis, translation, attention and transformer models.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "machine-learning"
+      ],
+      "roles": [
+        "ml-engineer",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "ml-production",
+      "name": "Machine Learning in Production",
+      "short": "ML in Production",
+      "issuer": "DeepLearning.AI",
+      "mono": "MLP",
+      "url": "https://www.coursera.org/learn/introduction-to-machine-learning-in-production",
+      "field": "Machine learning & AI",
+      "goodFor": "Taking a model from a notebook to real use: planning the project, watching the data and keeping the model working.",
+      "effort": 1,
+      "effortNote": "A few weeks, self-paced.",
+      "covers": [
+        "machine-learning",
+        "programming-data-science"
+      ],
+      "roles": [
+        "ml-engineer"
+      ]
+    },
+    {
+      "id": "datacamp-ai-eng",
+      "name": "Associate AI Engineer for Data Scientists",
+      "short": "DataCamp AI Engineer",
+      "issuer": "DataCamp",
+      "mono": "DC",
+      "url": "https://www.datacamp.com/tracks/associate-ai-engineer-for-data-scientists",
+      "field": "Machine learning & AI",
+      "goodFor": "Training, evaluating and fine-tuning modern AI models, including open-source large language models.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "machine-learning",
+        "programming-data-science"
+      ],
+      "roles": [
+        "ml-engineer",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "aws-ml",
+      "name": "AWS Certified Machine Learning – Specialty",
+      "short": "AWS ML Specialty",
+      "issuer": "Amazon Web Services",
+      "mono": "AWS",
+      "url": "https://aws.amazon.com/certification/certified-machine-learning-specialty/",
+      "field": "Cloud & big data",
+      "goodFor": "Building, training, tuning and deploying machine learning models on AWS, with SageMaker.",
+      "effort": 3,
+      "effortNote": "One exam, after weeks of study and hands-on practice.",
+      "covers": [
+        "machine-learning",
+        "information-systems"
+      ],
+      "roles": [
+        "ml-engineer",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "gcp-pde",
+      "name": "Google Cloud Professional Data Engineer",
+      "short": "GCP Data Engineer",
+      "issuer": "Google Cloud",
+      "mono": "GCP",
+      "url": "https://cloud.google.com/learn/certification/data-engineer",
+      "field": "Cloud & big data",
+      "goodFor": "Designing data processing systems on Google Cloud: pipelines, storage, security and running machine learning models.",
+      "effort": 3,
+      "effortNote": "One exam, after weeks of study and hands-on practice.",
+      "covers": [
+        "information-systems",
+        "programming-data-science"
+      ],
+      "roles": [
+        "ml-engineer",
+        "bi-developer"
+      ]
+    },
+    {
+      "id": "azure-dp100",
+      "name": "Microsoft Certified: Azure Data Scientist Associate (DP-100)",
+      "short": "Azure DP-100",
+      "issuer": "Microsoft",
+      "mono": "MS",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/azure-data-scientist/",
+      "field": "Cloud & big data",
+      "goodFor": "Running machine learning work on Azure with an Azure Machine Learning workspace.",
+      "effort": 2,
+      "effortNote": "One exam, after weeks of study and hands-on practice.",
+      "covers": [
+        "machine-learning",
+        "information-systems"
+      ],
+      "roles": [
+        "data-scientist",
+        "ml-engineer"
+      ]
+    },
+    {
+      "id": "databricks-spark",
+      "name": "Databricks Certified Associate Developer for Apache Spark",
+      "short": "Databricks Spark",
+      "issuer": "Databricks",
+      "mono": "DB",
+      "url": "https://www.databricks.com/learn/certification/apache-spark-developer-associate",
+      "field": "Cloud & big data",
+      "goodFor": "Processing big data with Apache Spark DataFrames across a cluster.",
+      "effort": 2,
+      "effortNote": "One exam, after weeks of study and hands-on practice.",
+      "covers": [
+        "programming-data-science"
+      ],
+      "roles": [
+        "ml-engineer",
+        "data-scientist",
+        "bi-developer"
+      ]
+    },
+    {
+      "id": "cloudera-generalist",
+      "name": "Cloudera Data Platform Generalist Certification",
+      "short": "Cloudera Generalist",
+      "issuer": "Cloudera",
+      "mono": "CDP",
+      "url": "https://www.cloudera.com/services-and-support/training/certification.html",
+      "field": "Cloud & big data",
+      "goodFor": "Managing, querying and analysing structured and unstructured data on an enterprise big data platform.",
+      "effort": 2,
+      "effortNote": "One exam, after weeks of study and hands-on practice.",
+      "covers": [
+        "information-systems"
+      ],
+      "roles": [
+        "bi-developer",
+        "ml-engineer"
+      ]
+    },
+    {
+      "id": "udacity-python",
+      "name": "Programming for Data Science with Python Nanodegree",
+      "short": "Udacity Python for Data Science",
+      "issuer": "Udacity",
+      "mono": "UD",
+      "url": "https://www.udacity.com/course/programming-for-data-science-nanodegree--nd104",
+      "field": "Tools, BI & databases",
+      "goodFor": "Python, SQL, Git and GitHub, and the command line, with projects reviewed by mentors.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "programming-data-science"
+      ],
+      "roles": [
+        "data-analyst",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "datacamp-sql",
+      "name": "SQL Fundamentals",
+      "short": "DataCamp SQL",
+      "issuer": "DataCamp",
+      "mono": "SQL",
+      "url": "https://www.datacamp.com/tracks/sql-fundamentals",
+      "field": "Tools, BI & databases",
+      "goodFor": "Relational databases, joins, aggregations and subqueries, practised in the browser.",
+      "effort": 1,
+      "effortNote": "A few weeks, self-paced.",
+      "covers": [
+        "programming-data-science"
+      ],
+      "roles": [
+        "data-analyst",
+        "bi-developer",
+        "business-analyst",
+        "product-analyst"
+      ]
+    },
+    {
+      "id": "google-it-automation",
+      "name": "Google IT Automation with Python Professional Certificate",
+      "short": "Google IT Automation",
+      "issuer": "Google",
+      "mono": "G",
+      "url": "https://www.coursera.org/professional-certificates/google-it-automation",
+      "field": "Tools, BI & databases",
+      "goodFor": "Automating tasks with Python, Git and GitHub, debugging and troubleshooting.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "programming-data-science"
+      ],
+      "roles": [
+        "ml-engineer",
+        "data-analyst"
+      ]
+    },
+    {
+      "id": "math-ml",
+      "name": "Mathematics for Machine Learning and Data Science Specialization",
+      "short": "Maths for ML",
+      "issuer": "DeepLearning.AI",
+      "mono": "M4ML",
+      "url": "https://www.coursera.org/specializations/mathematics-for-machine-learning-and-data-science",
+      "field": "Maths & statistics",
+      "goodFor": "The linear algebra, calculus, probability and statistics behind machine learning, with code.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "mathematics",
+        "advanced-stats-distribution",
+        "machine-learning"
+      ],
+      "roles": [
+        "data-scientist",
+        "ml-engineer"
+      ]
+    },
+    {
+      "id": "udacity-ab",
+      "name": "A/B Testing",
+      "short": "A/B Testing",
+      "issuer": "Udacity",
+      "mono": "A/B",
+      "url": "https://www.udacity.com/course/ab-testing--ud257",
+      "field": "Maths & statistics",
+      "goodFor": "Designing online experiments, choosing metrics and testing whether a change really worked.",
+      "effort": 1,
+      "effortNote": "A few weeks, self-paced.",
+      "covers": [
+        "advanced-stats-inferential",
+        "market-research"
+      ],
+      "roles": [
+        "product-analyst",
+        "data-analyst",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "columbia-ferm",
+      "name": "Financial Engineering and Risk Management Specialization",
+      "short": "Financial Engineering",
+      "issuer": "Columbia University",
+      "mono": "CU",
+      "url": "https://www.coursera.org/specializations/financialengineering",
+      "field": "Finance",
+      "goodFor": "Pricing derivatives, building portfolios and managing risk with quantitative models.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "asset-pricing",
+        "advanced-stats-distribution",
+        "econometrics"
+      ],
+      "roles": [
+        "risk-analyst",
+        "financial-analyst"
+      ]
+    },
+    {
+      "id": "dasca-sds",
+      "name": "DASCA Senior Data Scientist (SDS)",
+      "short": "DASCA SDS",
+      "issuer": "Data Science Council of America",
+      "mono": "DAS",
+      "url": "https://www.dasca.org/data-science-certifications/senior-data-scientist",
+      "field": "Professional credentials",
+      "goodFor": "A vendor-neutral credential for experienced data scientists: advanced analytics, managing models and data architecture.",
+      "effort": 3,
+      "effortNote": "An exam that asks for work experience first: one to plan for later.",
+      "covers": [
+        "machine-learning",
+        "advanced-stats-inferential"
+      ],
+      "roles": [
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "informs-cap",
+      "name": "INFORMS Certified Analytics Professional (CAP)",
+      "short": "INFORMS CAP",
+      "issuer": "INFORMS",
+      "mono": "CAP",
+      "url": "https://www.informs.org/Certified-Analytics-Professional",
+      "field": "Professional credentials",
+      "goodFor": "Running an analytics project end to end: framing the business problem, choosing the method and putting the result to use.",
+      "effort": 3,
+      "effortNote": "An exam that asks for work experience first: one to plan for later.",
+      "covers": [
+        "business-analytics"
+      ],
+      "roles": [
+        "business-analyst",
+        "consultant",
+        "data-analyst"
+      ]
+    },
+    {
+      "id": "sas-base",
+      "name": "SAS Certified Specialist: Base Programming Using SAS 9.4",
+      "short": "SAS Base Programming",
+      "issuer": "SAS",
+      "mono": "SAS",
+      "url": "https://www.sas.com/en_us/certification/credentials/foundation-tools/base-programming-specialist.html",
+      "field": "Professional credentials",
+      "goodFor": "Programming in SAS: reading and changing data and making summary reports, as many banks and insurers still do.",
+      "effort": 2,
+      "effortNote": "One exam, after weeks of study and hands-on practice.",
+      "covers": [
+        "programming-data-science"
+      ],
+      "roles": [
+        "risk-analyst",
+        "data-analyst"
+      ]
+    },
+    {
+      "id": "iiba-cbda",
+      "name": "IIBA Certification in Business Data Analytics (CBDA)",
+      "short": "IIBA CBDA",
+      "issuer": "IIBA",
+      "mono": "IIBA",
+      "url": "https://www.iiba.org/business-analysis-certifications/iiba-certifications/",
+      "field": "Professional credentials",
+      "goodFor": "Linking data analysis to business decisions: framing the question, sourcing the data and explaining the results.",
+      "effort": 2,
+      "effortNote": "One exam, after weeks of study and hands-on practice.",
+      "covers": [
+        "business-analytics",
+        "information-systems"
+      ],
+      "roles": [
+        "business-analyst",
+        "consultant"
+      ]
+    },
+    {
+      "id": "jira-agile",
+      "name": "Agile with Jira: Plan and Track Sprint Work",
+      "short": "Agile with Jira",
+      "issuer": "Atlassian",
+      "mono": "JIRA",
+      "url": "https://www.coursera.org/learn/agile-atlassian-jira",
+      "field": "Professional credentials",
+      "goodFor": "Agile and Scrum in practice: backlogs, sprints and tracking a team’s work in Jira.",
+      "effort": 1,
+      "effortNote": "A few weeks, self-paced.",
+      "covers": [
+        "information-systems"
+      ],
+      "roles": [
+        "business-analyst",
+        "product-analyst",
+        "consultant"
+      ]
+    },
+    {
+      "id": "jhu-health-informatics",
+      "name": "Health Informatics Specialization",
+      "short": "Health Informatics",
+      "issuer": "Johns Hopkins University",
+      "mono": "JHU",
+      "url": "https://www.coursera.org/specializations/health-informatics",
+      "field": "Healthcare",
+      "goodFor": "How health data is recorded and shared, from electronic health records to data standards and privacy rules.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "information-systems"
+      ],
+      "roles": [
+        "data-analyst",
+        "business-analyst"
+      ]
+    },
+    {
+      "id": "ai-medicine",
+      "name": "AI for Medicine Specialization",
+      "short": "AI for Medicine",
+      "issuer": "DeepLearning.AI",
+      "mono": "AIM",
+      "url": "https://www.coursera.org/specializations/ai-for-medicine",
+      "field": "Healthcare",
+      "goodFor": "Diagnosing from X-rays and MRI scans, predicting patient survival and estimating treatment effects from trials.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "machine-learning",
+        "advanced-stats-inferential"
+      ],
+      "roles": [
+        "data-scientist",
+        "ml-engineer"
+      ]
+    },
+    {
+      "id": "stanford-ai-health",
+      "name": "AI in Healthcare Specialization",
+      "short": "AI in Healthcare",
+      "issuer": "Stanford University",
+      "mono": "SU",
+      "url": "https://www.coursera.org/specializations/ai-healthcare",
+      "field": "Healthcare",
+      "goodFor": "Clinical data, health records and medical images, and how to use machine learning safely in hospitals.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "machine-learning"
+      ],
+      "roles": [
+        "data-scientist",
+        "ml-engineer"
+      ]
+    },
+    {
+      "id": "edinburgh-precision",
+      "name": "Data Science in Stratified Healthcare and Precision Medicine",
+      "short": "Precision Medicine",
+      "issuer": "University of Edinburgh",
+      "mono": "UoE",
+      "url": "https://www.coursera.org/learn/datascimed",
+      "field": "Healthcare",
+      "goodFor": "Genomic and biomedical data, clinical text and linking records for personalised medicine.",
+      "effort": 1,
+      "effortNote": "A few weeks, self-paced.",
+      "covers": [
+        "machine-learning",
+        "statistics"
+      ],
+      "roles": [
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "skillup-health",
+      "name": "Data Science for Healthcare Specialization",
+      "short": "Data Science for Healthcare",
+      "issuer": "SkillUp (Coursera)",
+      "mono": "SU",
+      "url": "https://www.coursera.org/specializations/data-science-for-healthcare",
+      "field": "Healthcare",
+      "goodFor": "Healthcare data standards (HL7, FHIR, ICD-10), keeping patients anonymous, and models that predict disease risk.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "machine-learning",
+        "programming-data-science"
+      ],
+      "roles": [
+        "data-scientist",
+        "data-analyst"
+      ]
+    },
+    {
+      "id": "udacity-ai-health",
+      "name": "AI for Healthcare Nanodegree",
+      "short": "AI for Healthcare",
+      "issuer": "Udacity",
+      "mono": "UD",
+      "url": "https://www.udacity.com/course/ai-for-healthcare-nanodegree--nd320",
+      "field": "Healthcare",
+      "goodFor": "Deep learning on medical images, data from wearable sensors and modelling clinical trials.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "machine-learning",
+        "programming-data-science"
+      ],
+      "roles": [
+        "ml-engineer",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "dlai-aws-de",
+      "name": "Data Engineering Professional Certificate",
+      "short": "DeepLearning.AI Data Engineering",
+      "issuer": "DeepLearning.AI and AWS",
+      "mono": "DE",
+      "url": "https://www.coursera.org/professional-certificates/data-engineering",
+      "field": "Engineering",
+      "goodFor": "Building data pipelines, warehouses and streaming systems on AWS.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "programming-data-science",
+        "information-systems"
+      ],
+      "roles": [
+        "ml-engineer",
+        "bi-developer"
+      ]
+    },
+    {
+      "id": "nptel-ml-eng",
+      "name": "Machine Learning for Engineering and Science Applications",
+      "short": "ML for Engineering",
+      "issuer": "IIT Madras (NPTEL)",
+      "mono": "IITM",
+      "url": "https://nptel.ac.in/courses/106106198",
+      "field": "Engineering",
+      "goodFor": "Machine learning and deep learning applied to physical systems and engineering design.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "machine-learning",
+        "mathematics"
+      ],
+      "roles": [
+        "ml-engineer",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "ibm-de",
+      "name": "IBM Data Engineering Professional Certificate",
+      "short": "IBM Data Engineering",
+      "issuer": "IBM",
+      "mono": "IBM",
+      "url": "https://www.coursera.org/professional-certificates/ibm-data-engineer",
+      "field": "Engineering",
+      "goodFor": "Relational and NoSQL databases, Hadoop and Spark, and automating pipelines with Apache Airflow.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "programming-data-science",
+        "information-systems"
+      ],
+      "roles": [
+        "ml-engineer",
+        "bi-developer"
+      ]
+    },
+    {
+      "id": "de-zoomcamp",
+      "name": "Data Engineering Zoomcamp",
+      "short": "DE Zoomcamp",
+      "issuer": "DataTalks.Club",
+      "mono": "DTC",
+      "url": "https://github.com/DataTalksClub/data-engineering-zoomcamp",
+      "field": "Engineering",
+      "goodFor": "A free, hands-on programme: Docker, Terraform, Google Cloud, BigQuery, dbt, Kafka and Spark.",
+      "effort": 2,
+      "effortNote": "Free. Self-paced, or with the yearly group.",
+      "covers": [
+        "programming-data-science"
+      ],
+      "roles": [
+        "ml-engineer",
+        "bi-developer"
+      ]
+    },
+    {
+      "id": "snowflake-de",
+      "name": "Snowflake Data Engineering Professional Certificate",
+      "short": "Snowflake Data Engineering",
+      "issuer": "Snowflake",
+      "mono": "SF",
+      "url": "https://www.coursera.org/professional-certificates/snowflake-data-engineering",
+      "field": "Engineering",
+      "goodFor": "Data pipelines and transformations in a cloud data warehouse, with testing and automated releases.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "programming-data-science",
+        "information-systems"
+      ],
+      "roles": [
+        "bi-developer",
+        "ml-engineer"
+      ]
+    },
+    {
+      "id": "umich-sports",
+      "name": "Sports Performance Analytics Specialization",
+      "short": "Sports Performance Analytics",
+      "issuer": "University of Michigan",
+      "mono": "UM",
+      "url": "https://www.coursera.org/specializations/sports-analytics",
+      "field": "Sports",
+      "goodFor": "Modelling player and team performance in Python, testing “Moneyball” ideas and predicting results across several sports.",
+      "effort": 2,
+      "effortNote": "Self-paced online, a few months part-time.",
+      "covers": [
+        "programming-data-science",
+        "machine-learning"
+      ],
+      "roles": [
+        "data-analyst",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "mit-sports",
+      "name": "Sports Analytics",
+      "short": "MIT Sports Analytics",
+      "issuer": "MIT (MITx)",
+      "mono": "MIT",
+      "url": "https://learn.mit.edu/courses/course-v1:MITxT+2.980x",
+      "field": "Sports",
+      "goodFor": "Football, basketball and cricket data with statistics and machine learning, and explaining the results to coaches.",
+      "effort": 2,
+      "effortNote": "A few weeks, self-paced.",
+      "covers": [
+        "machine-learning",
+        "statistics"
+      ],
+      "roles": [
+        "data-analyst",
+        "data-scientist"
+      ]
+    },
+    {
+      "id": "umich-sports-foundations",
+      "name": "Foundations of Sports Analytics",
+      "short": "Sports Analytics Foundations",
+      "issuer": "University of Michigan",
+      "mono": "UM",
+      "url": "https://www.coursera.org/learn/foundations-sports-analytics",
+      "field": "Sports",
+      "goodFor": "Cleaning sports data, testing hypotheses and charting athletes’ numbers in Python.",
+      "effort": 1,
+      "effortNote": "A few weeks, self-paced.",
+      "covers": [
+        "programming-data-science",
+        "statistics"
+      ],
+      "roles": [
+        "data-analyst"
+      ]
+    },
+    {
+      "id": "umich-wearables",
+      "name": "Wearable Technologies and Sports Analytics",
+      "short": "Wearables and Sports",
+      "issuer": "University of Michigan",
+      "mono": "UM",
+      "url": "https://www.coursera.org/learn/wearable-technologies",
+      "field": "Sports",
+      "goodFor": "Data from fitness trackers, used to plan training load and recovery and to prevent injuries.",
+      "effort": 1,
+      "effortNote": "A few weeks, self-paced.",
+      "covers": [
+        "programming-data-science"
+      ],
+      "roles": [
+        "data-analyst"
+      ]
+    },
+    {
+      "id": "umich-sports-ml",
+      "name": "Introduction to Machine Learning in Sports Analytics",
+      "short": "ML in Sports",
+      "issuer": "University of Michigan",
+      "mono": "UM",
+      "url": "https://www.coursera.org/learn/machine-learning-sports-analytics",
+      "field": "Sports",
+      "goodFor": "Classification and logistic regression to judge game strategy and players’ efficiency.",
+      "effort": 1,
+      "effortNote": "A few weeks, self-paced.",
+      "covers": [
+        "machine-learning"
+      ],
+      "roles": [
+        "data-analyst",
+        "data-scientist"
       ]
     }
   ],
@@ -1532,38 +2352,56 @@
     "options": [
       {
         "name": "Gates Cambridge Scholarship",
+        "kind": "scholarship",
+        "region": "UK",
         "note": "The full cost of a Cambridge master’s or PhD, for applicants from outside the UK.",
         "when": "8 Dec 2026 or 6 Jan 2027, by course",
+        "closes": "2026-12-08",
         "url": "https://www.gatescambridge.org/apply/timeline/"
       },
       {
         "name": "MBZUAI master’s, Abu Dhabi",
+        "kind": "course",
+        "region": "Gulf",
         "note": "AI master’s degrees, including Statistics and Data Science. Funding may be offered, not promised.",
         "when": "Closes 15 Dec 2026",
+        "closes": "2026-12-15",
         "url": "https://mbzuai.ac.ae/study/graduate-admission-process/"
       },
       {
         "name": "KAUST MS, Saudi Arabia",
+        "kind": "course",
+        "region": "Gulf",
         "note": "Most admitted students get the KAUST Fellowship: tuition, a stipend and housing.",
         "when": "Closes 3 Jan 2027 (tentative)",
+        "closes": "2027-01-03",
         "url": "https://admissions.kaust.edu.sa/how-to-apply/admission-timelines"
       },
       {
         "name": "Erasmus Mundus: CoDaS",
+        "kind": "course",
+        "region": "Europe",
         "note": "A two-year master’s in communications engineering and data science across two European countries, with EU scholarships for top applicants. Other Erasmus Mundus courses set their own dates.",
         "when": "1 Dec 2026 to 5 Jan 2027",
+        "closes": "2027-01-05",
         "url": "https://codas.dice.aalto.fi/admission.html"
       },
       {
         "name": "HBKU MSc Data Science and Engineering, Qatar",
+        "kind": "course",
+        "region": "Gulf",
         "note": "For graduates in computer science, engineering, maths or a related field, with a GPA of 3.0 or more.",
         "when": "Closes 1 Feb 2027 for international applicants",
+        "closes": "2027-02-01",
         "url": "https://www.hbku.edu.qa/en/graduate-admissions"
       },
       {
         "name": "AlMabarrah AlKhalifia Foundation postgraduate scholarship",
+        "kind": "scholarship",
+        "region": "Bahrain",
         "note": "For outstanding Bahrainis aged 23 and over, towards a master’s or PhD at a leading international university.",
         "when": null,
+        "closes": null,
         "url": "https://mkfbh.org/"
       }
     ]

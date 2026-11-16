@@ -354,12 +354,14 @@
   font-weight: var(--fw-semibold);
   color: var(--ink-2);
 }
+/* A container, so the card takes the row or the narrow layout from the room it has here. */
 .cedit-preview__cards {
+  container-type: inline-size;
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: minmax(0, 22rem);
+  grid-template-columns: minmax(0, 46rem);
 }
 .cedit-page-preview {
   padding: var(--sp-16);

@@ -1,16 +1,13 @@
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import type { CareerChecklistItem, FurtherStudyOption } from '../../api/types';
-import { useAuth } from '../../auth';
+import type { CareerChecklistItem } from '../../api/types';
 import { useLocalStorage } from '../../state';
-import { Badge, Button, glyph, Icon, PageSection, Panel, SectionHeader, cx } from '../../ui';
+import { Badge, glyph, Icon, PageSection, Panel, SectionHeader, cx } from '../../ui';
 import { useModuleDetail } from './api';
 import { useCareerData } from './context';
 import { jumpTo } from './lib/jump';
-import { hostOf } from '../../lib/share';
-import { appPath, lessonPath, webUrl } from './lib/links';
+import { appPath, lessonPath } from './lib/links';
 import { useListedSeniors } from './api';
-import { ProjectedClass } from '../grades/public';
 import { Seniors } from './Seniors';
 import './AfterDsba.css';
 
@@ -130,49 +127,11 @@ function Checklist() {
   );
 }
 
-/** Courses and scholarships worth applying to after DSBA, each with its date and a link to its own page. */
-function StudyOptions({ options }: { options: FurtherStudyOption[] }) {
-  if (!options.length) return null;
-  return (
-    <ul className="career-study__list" aria-label="Courses and scholarships">
-      {options.map((o, n) => {
-        const url = webUrl(o.url);
-        const words = o.name.trim().split(' ');
-        const last = words.pop();
-        return (
-          <li key={`${n}-${o.name}`} className="career-study__option">
-            {url ? (
-              <a href={url} target="_blank" rel="noopener noreferrer" className="career-study__name">
-                {words.length ? `${words.join(' ')} ` : null}
-                <span className="career-study__tail">
-                  {last}
-                  <Icon glyph={glyph.external} size={14} className="career-study__go" />
-                </span>
-                <span className="visually-hidden">{`, opens ${hostOf(url)} in a new tab`}</span>
-              </a>
-            ) : (
-              <span className="career-study__name">{o.name}</span>
-            )}
-            {o.when ? (
-              <span className="career-study__when">{o.when}</span>
-            ) : (
-              <span className="career-study__when career-study__when--none">Dates on its page</span>
-            )}
-            <span className="career-study__note">{o.note}</span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-/** What to have ready, who to ask, and a line for those heading to further study instead, with dated options. */
+/** What to have ready before applying, and who to ask. */
 export function AfterDsba() {
-  const { checklist, furtherStudy: study } = useCareerData();
+  const { checklist } = useCareerData();
   const seniors = useListedSeniors();
-  const { featureOn } = useAuth();
-  const studyTo = appPath(study?.action.to);
-  if (!checklist.length && !seniors.length && !study) return null;
+  if (!checklist.length && !seniors.length) return null;
   const description = seniors.length
     ? 'Things to have ready, and people who can tell you how it went for them.'
     : 'Things to have ready before you send an application.';
@@ -184,23 +143,6 @@ export function AfterDsba() {
           {checklist.length ? <Checklist /> : null}
           <Seniors seniors={seniors} />
         </div>
-        {study ? (
-          <Panel tone="inset" padding="none" className="career-study" data-hub="career-study">
-            <Icon glyph={glyph.cap} className="career-study__icon" aria-hidden="true" />
-            <p className="career-study__text">
-              <strong>{study.title}</strong> {study.body}
-            </p>
-            {studyTo ? (
-              <Button variant="secondary" size="sm" to={studyTo} trailingIcon={<Icon glyph={glyph.forward} />}>
-                {study.action.label}
-              </Button>
-            ) : null}
-            <StudyOptions options={study.options} />
-            {featureOn('grades') ? (
-              <ProjectedClass className="career-study__projected" calculatorLink={studyTo !== '/grades'} />
-            ) : null}
-          </Panel>
-        ) : null}
       </div>
     </PageSection>
   );
